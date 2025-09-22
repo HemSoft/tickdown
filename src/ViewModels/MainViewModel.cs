@@ -38,8 +38,8 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(ITimerService timerService)
     {
         _timerService = timerService;
-    // Capture the UI thread dispatcher at construction time (we're on UI thread here)
-    _dispatcher = DispatcherQueue.GetForCurrentThread();
+        // Capture the UI thread dispatcher at construction time (we're on UI thread here)
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
         _timerService.TimerTick += OnTimerTick;
         _timerService.TimerCompleted += OnTimerCompleted;
 
