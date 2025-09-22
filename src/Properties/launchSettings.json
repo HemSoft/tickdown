@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TickDown (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "TickDown (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
