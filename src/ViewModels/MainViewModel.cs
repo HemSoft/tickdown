@@ -1,5 +1,9 @@
 namespace TickDown.ViewModels;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using global::TickDown.Core.Models;
+using global::TickDown.Core.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 

@@ -1,6 +1,7 @@
 namespace TickDown.Views;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using TickDown.ViewModels;
 using Windows.System;

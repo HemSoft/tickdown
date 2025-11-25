@@ -1,11 +1,13 @@
 namespace TickDown;
 
+using global::TickDown.Core.Models;
+using global::TickDown.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using TickDown.Core.Models;
-using TickDown.Core.Services;
 using TickDown.Services;
 using TickDown.Views;
 using Windows.Graphics;

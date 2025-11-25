@@ -1,5 +1,9 @@
 namespace TickDown.Services;
 
+using global::TickDown.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
+using TickDown.ViewModels;
+
 /// <summary>
 /// Extension methods for setting up application services in an <see cref="IServiceCollection" />.
 /// </summary>
