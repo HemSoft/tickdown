@@ -7,6 +7,10 @@ using System.Globalization;
 using TickDown.Core.Models;
 using TickDown.Core.Services;
 
+#pragma warning disable S1144 // Unused private types or members should be removed
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable S2325 // Methods and properties that don't access instance data should be static
+
 public partial class TimerViewModel : ObservableObject
 {
     private readonly ITimerService _timerService;
@@ -18,7 +22,7 @@ public partial class TimerViewModel : ObservableObject
     private string _timeDisplay = "00:05:00";
 
     [ObservableProperty]
-    private string _name = "New Timer";
+    private string _name;
 
     [ObservableProperty]
     private bool _isRunning = false;
@@ -33,15 +37,25 @@ public partial class TimerViewModel : ObservableObject
 
     public event EventHandler? RequestRemove;
 
-    public TimerViewModel(ITimerService timerService)
+    public TimerViewModel(ITimerService timerService, CountdownTimer? model = null)
     {
         _timerService = timerService;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
-        Model = new CountdownTimer(TimeSpan.FromMinutes(5), Name);
+        Model = model ?? new CountdownTimer(TimeSpan.FromMinutes(5), "New Timer");
+
+        // Initialize properties from model
+        _name = Model.Name;
+        if (Model.Duration.TotalSeconds > 0)
+        {
+            _hours = Model.Duration.Hours;
+            _minutes = Model.Duration.Minutes;
+            _seconds = Model.Duration.Seconds;
+        }
+
+        UpdateState();
+        UpdateTimeDisplay();
 
         _timerService.Tick += OnGlobalTick;
-
-        UpdateTimeDisplay();
     }
 
     partial void OnNameChanged(string value)
