@@ -120,9 +120,9 @@ public partial class TimerViewModel : ObservableObject
             return;
         }
 
-        if (TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out TimeSpan result))
+        if (TryParseTime(value, out TimeSpan result))
         {
-            Hours = result.Hours;
+            Hours = (int)result.TotalHours;
             Minutes = result.Minutes;
             Seconds = result.Seconds;
         }
@@ -132,9 +132,51 @@ public partial class TimerViewModel : ObservableObject
         }
     }
 
+    private static bool TryParseTime(string value, out TimeSpan result)
+    {
+        // Handle simple integers as minutes
+        if (int.TryParse(value, out int minutes))
+        {
+            result = TimeSpan.FromMinutes(minutes);
+            return true;
+        }
+
+        // Handle "10m", "1h", "30s"
+        value = value.Trim().ToLowerInvariant();
+        if (value.EndsWith('m') || value.EndsWith("min"))
+        {
+            string num = value.Replace("min", "").Replace("m", "").Trim();
+            if (double.TryParse(num, out double m))
+            {
+                result = TimeSpan.FromMinutes(m);
+                return true;
+            }
+        }
+        if (value.EndsWith('h') || value.EndsWith("hour") || value.EndsWith("hours"))
+        {
+            string num = value.Replace("hours", "").Replace("hour", "").Replace("h", "").Trim();
+            if (double.TryParse(num, out double h))
+            {
+                result = TimeSpan.FromHours(h);
+                return true;
+            }
+        }
+        if (value.EndsWith('s') || value.EndsWith("sec"))
+        {
+            string num = value.Replace("sec", "").Replace("s", "").Trim();
+            if (double.TryParse(num, out double s))
+            {
+                result = TimeSpan.FromSeconds(s);
+                return true;
+            }
+        }
+
+        return TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
+    }
+
     private int _hours = 0;
     /// <summary>
-    /// Gets or sets the hours component of the timer duration.
+    /// Gets or sets the total hours of the timer duration.
     /// </summary>
     public int Hours
     {
@@ -295,7 +337,9 @@ public partial class TimerViewModel : ObservableObject
             ? Model.Duration
             : Model.Remaining;
 
-        TimeDisplay = timeToShow.ToString(@"hh\:mm\:ss");
+        TimeDisplay = timeToShow.TotalHours >= 24
+            ? $"{(int)timeToShow.TotalHours}:{timeToShow.Minutes:D2}:{timeToShow.Seconds:D2}"
+            : timeToShow.ToString(@"hh\:mm\:ss");
         _isUpdatingTimeDisplay = false;
     }
 

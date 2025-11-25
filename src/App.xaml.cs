@@ -45,6 +45,7 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         _window ??= new Window();
+        _window.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets/app.ico"));
 
         if (_window.Content is not Frame rootFrame)
         {

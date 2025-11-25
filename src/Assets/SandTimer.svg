@@ -1,32 +1,33 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#a0d8ef" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1"/>
-    </linearGradient>
-    <linearGradient id="sandGradient" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f4d03f"/>
-      <stop offset="100%" stop-color="#e67e22"/>
+    <linearGradient id="sandGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF1493"/> <!-- DeepPink -->
+      <stop offset="100%" stop-color="#00FFFF"/> <!-- Cyan -->
     </linearGradient>
   </defs>
   
   <!-- Glass Container -->
+  <!-- White Outline -->
   <path d="M156 56 H356 C366 56 376 66 376 76 V126 C376 186 326 236 276 246 V266 C326 276 376 326 376 386 V436 C376 446 366 456 356 456 H156 C146 456 136 446 136 436 V386 C136 326 186 276 236 266 V246 C186 236 136 186 136 126 V76 C136 66 146 56 156 56 Z" 
-        fill="url(#glassGradient)" stroke="#34495e" stroke-width="12" stroke-linejoin="round"/>
+        fill="rgba(255,255,255,0.1)" stroke="white" stroke-width="16" stroke-linejoin="round"/>
+        
+  <!-- Inner Dark Stroke -->
+  <path d="M156 56 H356 C366 56 376 66 376 76 V126 C376 186 326 236 276 246 V266 C326 276 376 326 376 386 V436 C376 446 366 456 356 456 H156 C146 456 136 446 136 436 V386 C136 326 186 276 236 266 V246 C186 236 136 186 136 126 V76 C136 66 146 56 156 56 Z" 
+        fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="4" stroke-linejoin="round"/>
 
   <!-- Top Cap -->
-  <rect x="136" y="36" width="240" height="20" rx="10" fill="#34495e"/>
+  <rect x="136" y="36" width="240" height="30" rx="5" fill="#282828" stroke="#808080" stroke-width="2"/>
   
   <!-- Bottom Cap -->
-  <rect x="136" y="456" width="240" height="20" rx="10" fill="#34495e"/>
+  <rect x="136" y="446" width="240" height="30" rx="5" fill="#282828" stroke="#808080" stroke-width="2"/>
 
   <!-- Sand Top -->
-  <path d="M160 126 C160 160 190 200 256 230 C322 200 352 160 352 126 H160 Z" fill="url(#sandGradient)"/>
+  <path d="M170 126 C170 160 200 200 256 220 C312 200 342 160 342 126 H170 Z" fill="url(#sandGradient)"/>
   
   <!-- Sand Stream -->
-  <rect x="252" y="230" width="8" height="180" fill="url(#sandGradient)"/>
+  <rect x="252" y="220" width="8" height="180" fill="url(#sandGradient)"/>
   
   <!-- Sand Bottom -->
-  <path d="M160 436 H352 C352 400 300 360 256 360 C212 360 160 400 160 436 Z" fill="url(#sandGradient)"/>
+  <path d="M170 436 H342 C342 400 300 360 256 360 C212 360 170 400 170 436 Z" fill="url(#sandGradient)"/>
   
 </svg>
