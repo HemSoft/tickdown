@@ -12,7 +12,7 @@ public sealed partial class MainPage : Page
 
     public MainPage()
     {
-        this.InitializeComponent();
+        InitializeComponent();
         ViewModel = App.Services.GetRequiredService<MainViewModel>();
         DataContext = ViewModel;
     }

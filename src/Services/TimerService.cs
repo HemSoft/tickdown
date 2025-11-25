@@ -4,7 +4,7 @@ using System.Timers;
 using TickDown.Core.Models;
 using TickDown.Core.Services;
 
-public class TimerService : ITimerService
+public sealed class TimerService : ITimerService
 {
     private readonly Timer _timer;
 
@@ -30,10 +30,7 @@ public class TimerService : ITimerService
         CurrentTimer = null; // Start with no timer
     }
 
-    public void SetTimer(TimeSpan duration, string name = "")
-    {
-        CurrentTimer = new CountdownTimer(duration, name);
-    }
+    public void SetTimer(TimeSpan duration, string name = "") => CurrentTimer = new CountdownTimer(duration, name);
 
     public void Start()
     {
@@ -43,7 +40,7 @@ public class TimerService : ITimerService
         }
 
         // Only start if the timer is in a startable state
-        if (CurrentTimer.State == TimerState.Stopped || CurrentTimer.State == TimerState.Paused)
+        if (CurrentTimer.State is TimerState.Stopped or TimerState.Paused)
         {
             CurrentTimer.Start();
             _timer.Start();
@@ -73,10 +70,7 @@ public class TimerService : ITimerService
         CurrentTimer?.Reset();
     }
 
-    public void SetDuration(TimeSpan duration)
-    {
-        CurrentTimer?.SetDuration(duration);
-    }
+    public void SetDuration(TimeSpan duration) => CurrentTimer?.SetDuration(duration);
 
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
@@ -96,17 +90,5 @@ public class TimerService : ITimerService
         }
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _timer?.Dispose();
-        }
-    }
+    public void Dispose() => _timer?.Dispose();
 }

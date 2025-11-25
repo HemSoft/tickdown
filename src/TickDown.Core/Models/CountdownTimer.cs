@@ -17,10 +17,7 @@ public class CountdownTimer
     public DateTime? StartTime { get; set; }
     public DateTime? EndTime { get; set; }
 
-    public CountdownTimer()
-    {
-        State = TimerState.Stopped;
-    }
+    public CountdownTimer() => State = TimerState.Stopped;
 
     public CountdownTimer(TimeSpan duration, string name = "")
     {
@@ -80,7 +77,7 @@ public class CountdownTimer
     {
         if (State == TimerState.Running && EndTime.HasValue)
         {
-            var now = DateTime.Now;
+            DateTime now = DateTime.Now;
             Remaining = EndTime.Value - now;
 
             if (Remaining <= TimeSpan.Zero)

@@ -76,4 +76,8 @@
     <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
         <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
     </PropertyGroup>
+
+    <Target Name="CheckQuality" BeforeTargets="Build">
+        <Exec Command="pwsh -File &quot;scripts\check-quality.ps1&quot;" WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+    </Target>
 </Project>

@@ -1,8 +1,9 @@
 namespace TickDown.ViewModels;
 
-using Microsoft.UI.Dispatching;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Dispatching;
+using System.Globalization;
 using TickDown.Core.Models;
 using TickDown.Core.Services;
 
@@ -25,6 +26,25 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private double _progressPercentage = 0;
+
+    private bool _isUpdatingTimeDisplay = false;
+
+    partial void OnTimeDisplayChanged(string value)
+    {
+        if (_isUpdatingTimeDisplay) return;
+
+        if (TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out TimeSpan result))
+        {
+            Hours = result.Hours;
+            Minutes = result.Minutes;
+            Seconds = result.Seconds;
+        }
+        else
+        {
+            // If parsing fails, revert to the previous valid time
+            UpdateTimeDisplay();
+        }
+    }
 
     public int Hours
     {
@@ -80,7 +100,7 @@ public partial class MainViewModel : ObservableObject
         TimerName = "Timer Started!";
 
         // Force start button behavior regardless of state
-        var duration = new TimeSpan(Hours, Minutes, Seconds);
+        TimeSpan duration = new(Hours, Minutes, Seconds);
 
         // If no duration is set, default to 5 minutes
         if (duration.TotalSeconds <= 0)
@@ -157,13 +177,12 @@ public partial class MainViewModel : ObservableObject
         Minutes = minutes;
         Seconds = seconds;
 
-        var duration = new TimeSpan(hours, minutes, seconds);
+        TimeSpan duration = new(hours, minutes, seconds);
         _timerService.SetTimer(duration, TimerName);
         UpdateTimeDisplay();
     }
 
-    private void OnTimerTick(object? sender, CountdownTimer timer)
-    {
+    private void OnTimerTick(object? sender, CountdownTimer timer) =>
         // Update on UI thread
         _dispatcher.TryEnqueue(() =>
         {
@@ -171,10 +190,8 @@ public partial class MainViewModel : ObservableObject
             ProgressPercentage = timer.ProgressPercentage;
             UpdateState();
         });
-    }
 
-    private void OnTimerCompleted(object? sender, CountdownTimer timer)
-    {
+    private void OnTimerCompleted(object? sender, CountdownTimer timer) =>
         // Update on UI thread
         _dispatcher.TryEnqueue(() =>
         {
@@ -182,11 +199,11 @@ public partial class MainViewModel : ObservableObject
             UpdateTimeDisplay();
             // Future: Show notification, play sound, etc.
         });
-    }
 
     private void UpdateTimeDisplay()
     {
-        var timer = _timerService.CurrentTimer;
+        _isUpdatingTimeDisplay = true;
+        CountdownTimer? timer = _timerService.CurrentTimer;
         TimeSpan timeToShow;
 
         if (timer == null || timer.State == TimerState.Stopped)
@@ -201,6 +218,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         TimeDisplay = timeToShow.ToString(@"hh\:mm\:ss");
+        _isUpdatingTimeDisplay = false;
     }
 
     private void UpdateState()

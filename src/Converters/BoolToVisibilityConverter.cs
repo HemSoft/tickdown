@@ -1,7 +1,7 @@
+namespace TickDown.Converters;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-
-namespace TickDown.Converters;
 
 public class BoolToVisibilityConverter : IValueConverter
 {

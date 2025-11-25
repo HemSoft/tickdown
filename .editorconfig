@@ -85,6 +85,10 @@ csharp_style_expression_bodied_properties = true:warning
 # Remove unreachable code
 dotnet_diagnostic.IDE0035.severity = warning
 
+# Performance
+# Mark members as static
+dotnet_diagnostic.CA1822.severity = warning
+
 # Complexity
 # Cognitive Complexity
 dotnet_diagnostic.S3776.severity = warning

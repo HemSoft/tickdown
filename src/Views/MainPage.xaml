@@ -57,12 +57,16 @@
                          PlaceholderText="Timer Name"/>
 
                 <!-- Timer Display -->
-                <TextBlock Grid.Row="2"
-                           Text="{Binding TimeDisplay, Mode=OneWay}"
+                <TextBox Grid.Row="2"
+                           Text="{Binding TimeDisplay, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                            FontSize="72"
                            FontWeight="Bold"
                            HorizontalAlignment="Center"
-                           FontFamily="Consolas"/>
+                           FontFamily="Consolas"
+                           BorderThickness="0"
+                           Background="Transparent"
+                           HorizontalContentAlignment="Center"
+                           IsReadOnly="{Binding IsRunning, Mode=OneWay}"/>
 
                 <!-- Progress Bar -->
                 <ProgressBar Grid.Row="4"
@@ -73,52 +77,7 @@
             </Grid>
 
             <!-- Time Input Controls -->
-            <StackPanel Grid.Row="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Spacing="20"
-                        Margin="0,40,0,20"
-                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
-
-                <!-- Hours -->
-                <StackPanel Orientation="Vertical"
-                        Spacing="5">
-                    <TextBlock Text="Hours"
-                            HorizontalAlignment="Center"
-                            FontSize="14"
-                            Opacity="0.8"/>
-                    <NumberBox Value="{Binding Hours, Mode=TwoWay}"
-                               Minimum="0"
-                               Maximum="23"
-                               Width="80"/>
-                </StackPanel>
-
-                <!-- Minutes -->
-                <StackPanel Orientation="Vertical"
-                        Spacing="5">
-                    <TextBlock Text="Minutes"
-                            HorizontalAlignment="Center"
-                            FontSize="14"
-                            Opacity="0.8"/>
-                    <NumberBox Value="{Binding Minutes, Mode=TwoWay}"
-                               Minimum="0"
-                               Maximum="59"
-                               Width="80"/>
-                </StackPanel>
-
-                <!-- Seconds -->
-                <StackPanel Orientation="Vertical"
-                        Spacing="5">
-                    <TextBlock Text="Seconds"
-                            HorizontalAlignment="Center"
-                            FontSize="14"
-                            Opacity="0.8"/>
-                    <NumberBox Value="{Binding Seconds, Mode=TwoWay}"
-                               Minimum="0"
-                               Maximum="59"
-                               Width="80"/>
-                </StackPanel>
-            </StackPanel>
+            <!-- Removed as per request to simplify UI -->
 
             <!-- Control Buttons and Quick Timers -->
             <StackPanel Grid.Row="3"

@@ -4,16 +4,16 @@ using TickDown.Core.Models;
 
 public interface ITimerService : IDisposable
 {
-    public event EventHandler<CountdownTimer>? TimerTick;
-    public event EventHandler<CountdownTimer>? TimerCompleted;
+    event EventHandler<CountdownTimer>? TimerTick;
+    event EventHandler<CountdownTimer>? TimerCompleted;
 
-    public CountdownTimer? CurrentTimer { get; }
-    public bool IsRunning { get; }
+    CountdownTimer? CurrentTimer { get; }
+    bool IsRunning { get; }
 
-    public void SetTimer(TimeSpan duration, string name = "");
-    public void Start();
-    public void Pause();
-    public void Stop();
-    public void Reset();
-    public void SetDuration(TimeSpan duration);
+    void SetTimer(TimeSpan duration, string name = "");
+    void Start();
+    void Pause();
+    void Stop();
+    void Reset();
+    void SetDuration(TimeSpan duration);
 }
