@@ -2,7 +2,7 @@ namespace TickDown.Core.Services;
 
 using TickDown.Core.Models;
 
-public interface ITimerService
+public interface ITimerService : IDisposable
 {
     public event EventHandler<CountdownTimer>? TimerTick;
     public event EventHandler<CountdownTimer>? TimerCompleted;

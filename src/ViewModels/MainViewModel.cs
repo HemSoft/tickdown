@@ -26,14 +26,41 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private double _progressPercentage = 0;
 
-    [ObservableProperty]
-    private int _hours = 0;
+    public int Hours
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value) && !_timerService.IsRunning)
+            {
+                UpdateTimeDisplay();
+            }
+        }
+    } = 0;
 
-    [ObservableProperty]
-    private int _minutes = 5;
+    public int Minutes
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value) && !_timerService.IsRunning)
+            {
+                UpdateTimeDisplay();
+            }
+        }
+    } = 5;
 
-    [ObservableProperty]
-    private int _seconds = 0;
+    public int Seconds
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value) && !_timerService.IsRunning)
+            {
+                UpdateTimeDisplay();
+            }
+        }
+    } = 0;
 
     public MainViewModel(ITimerService timerService)
     {
@@ -180,29 +207,5 @@ public partial class MainViewModel : ObservableObject
     {
         IsRunning = _timerService.IsRunning;
         IsPaused = _timerService.CurrentTimer?.State == TimerState.Paused;
-    }
-
-    partial void OnHoursChanged(int value)
-    {
-        if (!_timerService.IsRunning)
-        {
-            UpdateTimeDisplay();
-        }
-    }
-
-    partial void OnMinutesChanged(int value)
-    {
-        if (!_timerService.IsRunning)
-        {
-            UpdateTimeDisplay();
-        }
-    }
-
-    partial void OnSecondsChanged(int value)
-    {
-        if (!_timerService.IsRunning)
-        {
-            UpdateTimeDisplay();
-        }
     }
 }

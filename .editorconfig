@@ -36,13 +36,13 @@ dotnet_diagnostic.IDE0290.severity = warning
 dotnet_diagnostic.IDE0028.severity = warning
 # Use collection expression for array (C# 12)
 dotnet_diagnostic.IDE0300.severity = warning
-dotnet_style_prefer_collection_expression = when_types_loosely_match:warning
+dotnet_style_prefer_collection_expression = true:warning
 
 # Assignments & Properties
 # Use compound assignment
 csharp_style_prefer_compound_assignment = true:warning
 dotnet_diagnostic.IDE0074.severity = warning
-# Prefer field keyword (C# 13 preview / future)
+# Prefer field keyword (C# 14)
 csharp_style_prefer_field_keyword = true:warning
 # Prefer null-conditional assignment
 csharp_style_prefer_null_conditional_assignment = true:warning
@@ -294,3 +294,6 @@ dotnet_style_prefer_simplified_interpolation = true:warning
 dotnet_style_prefer_collection_expression = when_types_loosely_match:warning
 dotnet_style_namespace_match_folder = true:warning
 dotnet_style_readonly_field = true:warning
+
+# SonarAnalyzer.CSharp
+dotnet_diagnostic.S1135.severity = warning

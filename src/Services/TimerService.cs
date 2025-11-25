@@ -7,85 +7,92 @@ using TickDown.Core.Services;
 public class TimerService : ITimerService
 {
     private readonly Timer _timer;
-    private CountdownTimer? _currentTimer;
 
     public event EventHandler<CountdownTimer>? TimerTick;
     public event EventHandler<CountdownTimer>? TimerCompleted;
 
-    public CountdownTimer? CurrentTimer => _currentTimer;
-    public bool IsRunning => _currentTimer?.State == TimerState.Running;
+    public CountdownTimer? CurrentTimer
+    {
+        get;
+        private set
+        {
+            _timer.Stop();
+            field = value;
+        }
+    }
+
+    public bool IsRunning => CurrentTimer?.State == TimerState.Running;
 
     public TimerService()
     {
         _timer = new Timer(100); // Update every 100ms for smooth progress
         _timer.Elapsed += OnTimerElapsed;
-        _currentTimer = null; // Start with no timer
+        CurrentTimer = null; // Start with no timer
     }
 
     public void SetTimer(TimeSpan duration, string name = "")
     {
-        _timer.Stop();
-        _currentTimer = new CountdownTimer(duration, name);
+        CurrentTimer = new CountdownTimer(duration, name);
     }
 
     public void Start()
     {
-        if (_currentTimer == null)
+        if (CurrentTimer == null)
         {
             return;
         }
 
         // Only start if the timer is in a startable state
-        if (_currentTimer.State == TimerState.Stopped || _currentTimer.State == TimerState.Paused)
+        if (CurrentTimer.State == TimerState.Stopped || CurrentTimer.State == TimerState.Paused)
         {
-            _currentTimer.Start();
+            CurrentTimer.Start();
             _timer.Start();
         }
     }
 
     public void Pause()
     {
-        if (_currentTimer?.State != TimerState.Running)
+        if (CurrentTimer?.State != TimerState.Running)
         {
             return;
         }
 
         _timer.Stop();
-        _currentTimer.Pause();
+        CurrentTimer.Pause();
     }
 
     public void Stop()
     {
         _timer.Stop();
-        _currentTimer?.Stop();
+        CurrentTimer?.Stop();
     }
 
     public void Reset()
     {
         _timer.Stop();
-        _currentTimer?.Reset();
+        CurrentTimer?.Reset();
     }
 
     public void SetDuration(TimeSpan duration)
     {
-        _currentTimer?.SetDuration(duration);
+        CurrentTimer?.SetDuration(duration);
     }
 
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (_currentTimer == null)
+        if (CurrentTimer == null)
         {
             _timer.Stop();
             return;
         }
 
-        _currentTimer.Tick();
-        TimerTick?.Invoke(this, _currentTimer);
+        CurrentTimer.Tick();
+        TimerTick?.Invoke(this, CurrentTimer);
 
-        if (_currentTimer.State == TimerState.Completed)
+        if (CurrentTimer.State == TimerState.Completed)
         {
             _timer.Stop();
-            TimerCompleted?.Invoke(this, _currentTimer);
+            TimerCompleted?.Invoke(this, CurrentTimer);
         }
     }
 
