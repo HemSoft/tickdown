@@ -180,7 +180,7 @@ public partial class MainViewModel : ObservableObject
         {
             UpdateState();
             UpdateTimeDisplay();
-            // TODO: Show notification, play sound, etc.
+            // Future: Show notification, play sound, etc.
         });
     }
 

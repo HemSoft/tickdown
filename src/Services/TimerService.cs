@@ -98,6 +98,15 @@ public class TimerService : ITimerService
 
     public void Dispose()
     {
-        _timer?.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _timer?.Dispose();
+        }
     }
 }

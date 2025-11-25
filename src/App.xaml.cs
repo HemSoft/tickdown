@@ -37,8 +37,8 @@ namespace TickDown
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        /// <param name="args">Details about the launch request and process.</param>
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
             _window ??= new Window();
 
@@ -49,7 +49,7 @@ namespace TickDown
                 _window.Content = rootFrame;
             }
 
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
+            _ = rootFrame.Navigate(typeof(MainPage), args.Arguments);
             _window.Activate();
         }
 
@@ -58,9 +58,9 @@ namespace TickDown
         /// </summary>
         /// <param name="sender">The Frame which failed navigation</param>
         /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+        static void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+            throw new InvalidOperationException("Failed to load Page " + e.SourcePageType.FullName);
         }
     }
 }
