@@ -7,10 +7,6 @@ using System.Globalization;
 using TickDown.Core.Models;
 using TickDown.Core.Services;
 
-#pragma warning disable S1144 // Unused private types or members should be removed
-#pragma warning disable CA1822 // Mark members as static
-#pragma warning disable S2325 // Methods and properties that don't access instance data should be static
-
 public partial class TimerViewModel : ObservableObject
 {
     private readonly ITimerService _timerService;
@@ -58,11 +54,13 @@ public partial class TimerViewModel : ObservableObject
         _timerService.Tick += OnGlobalTick;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
     partial void OnNameChanged(string value)
     {
         Model.Name = value;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
     partial void OnTimeDisplayChanged(string value)
     {
         if (_isUpdatingTimeDisplay)
@@ -91,8 +89,11 @@ public partial class TimerViewModel : ObservableObject
     [ObservableProperty]
     private int _seconds = 0;
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
     partial void OnHoursChanged(int value) => UpdateDuration();
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
     partial void OnMinutesChanged(int value) => UpdateDuration();
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
     partial void OnSecondsChanged(int value) => UpdateDuration();
 
     private void UpdateDuration()
@@ -171,6 +172,7 @@ public partial class TimerViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Accesses generated instance properties")]
     private void SetTime(int h, int m, int s)
     {
         Hours = h;
