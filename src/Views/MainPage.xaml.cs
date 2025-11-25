@@ -10,8 +10,14 @@ using Windows.System;
 /// </summary>
 public sealed partial class MainPage : Page
 {
+    /// <summary>
+    /// Gets the main view model.
+    /// </summary>
     public MainViewModel ViewModel { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainPage"/> class.
+    /// </summary>
     public MainPage()
     {
         InitializeComponent();

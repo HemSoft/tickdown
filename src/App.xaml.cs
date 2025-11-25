@@ -18,6 +18,9 @@ public partial class App : Application
     private Window? _window;
     private readonly IHost? _host;
 
+    /// <summary>
+    /// Gets the current <see cref="IServiceProvider"/> instance to resolve application services.
+    /// </summary>
     public static IServiceProvider Services => ((App)Current)._host?.Services ?? throw new InvalidOperationException("Services not available");
 
     /// <summary>

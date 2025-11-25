@@ -47,7 +47,7 @@ csharp_style_prefer_field_keyword = true:warning
 # Prefer null-conditional assignment
 csharp_style_prefer_null_conditional_assignment = true:warning
 # Prefer auto properties
-dotnet_style_prefer_auto_properties = true:warning
+dotnet_style_prefer_auto_properties = false:silent
 
 # Generics & Members
 # Prefer unbound generic nameof
@@ -284,7 +284,7 @@ end_of_line = crlf
 dotnet_style_coalesce_expression = true:warning
 dotnet_style_null_propagation = true:warning
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
-dotnet_style_prefer_auto_properties = true:warning
+dotnet_style_prefer_auto_properties = false:silent
 dotnet_style_object_initializer = true:warning
 dotnet_style_collection_initializer = true:warning
 dotnet_style_prefer_simplified_boolean_expressions = true:warning

@@ -1,20 +1,27 @@
 namespace TickDown.ViewModels;
 
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using TickDown.Core.Models;
-using TickDown.Core.Services;
 
+/// <summary>
+/// The main view model for the application, managing the collection of timers.
+/// </summary>
 public partial class MainViewModel : ObservableObject
 {
     private readonly ITimerService _timerService;
     private readonly ISettingsService _settingsService;
     private bool _isLoading = true;
 
+    /// <summary>
+    /// Gets the collection of timer view models.
+    /// </summary>
     public ObservableCollection<TimerViewModel> Timers { get; } = [];
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainViewModel"/> class.
+    /// </summary>
+    /// <param name="timerService">The timer service.</param>
+    /// <param name="settingsService">The settings service.</param>
     public MainViewModel(ITimerService timerService, ISettingsService settingsService)
     {
         _timerService = timerService;

@@ -1,38 +1,95 @@
 namespace TickDown.ViewModels;
 
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
 using System.Globalization;
-using TickDown.Core.Models;
-using TickDown.Core.Services;
 
+/// <summary>
+/// View model for a single countdown timer.
+/// </summary>
 public partial class TimerViewModel : ObservableObject
 {
     private readonly ITimerService _timerService;
     private readonly DispatcherQueue _dispatcher;
 
+    /// <summary>
+    /// Gets the underlying countdown timer model.
+    /// </summary>
     public CountdownTimer Model { get; }
 
-    [ObservableProperty]
     private string _timeDisplay = "00:05:00";
+    /// <summary>
+    /// Gets or sets the formatted time display string.
+    /// </summary>
+    public string TimeDisplay
+    {
+        get => _timeDisplay;
+        set
+        {
+            if (SetProperty(ref _timeDisplay, value))
+            {
+                OnTimeDisplayChanged(value);
+            }
+        }
+    }
 
-    [ObservableProperty]
     private string _name;
+    /// <summary>
+    /// Gets or sets the name of the timer.
+    /// </summary>
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (SetProperty(ref _name, value))
+            {
+                OnNameChanged(value);
+            }
+        }
+    }
 
-    [ObservableProperty]
     private bool _isRunning = false;
+    /// <summary>
+    /// Gets or sets a value indicating whether the timer is currently running.
+    /// </summary>
+    public bool IsRunning
+    {
+        get => _isRunning;
+        set => SetProperty(ref _isRunning, value);
+    }
 
-    [ObservableProperty]
     private bool _isPaused = false;
+    /// <summary>
+    /// Gets or sets a value indicating whether the timer is currently paused.
+    /// </summary>
+    public bool IsPaused
+    {
+        get => _isPaused;
+        set => SetProperty(ref _isPaused, value);
+    }
 
-    [ObservableProperty]
     private double _progressPercentage = 0;
+    /// <summary>
+    /// Gets or sets the progress of the timer as a percentage (0-1).
+    /// </summary>
+    public double ProgressPercentage
+    {
+        get => _progressPercentage;
+        set => SetProperty(ref _progressPercentage, value);
+    }
 
     private bool _isUpdatingTimeDisplay = false;
 
+    /// <summary>
+    /// Event raised when the timer requests to be removed.
+    /// </summary>
     public event EventHandler? RequestRemove;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TimerViewModel"/> class.
+    /// </summary>
+    /// <param name="timerService">The timer service.</param>
+    /// <param name="model">The optional timer model to wrap.</param>
     public TimerViewModel(ITimerService timerService, CountdownTimer? model = null)
     {
         _timerService = timerService;
@@ -54,14 +111,9 @@ public partial class TimerViewModel : ObservableObject
         _timerService.Tick += OnGlobalTick;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
-    partial void OnNameChanged(string value)
-    {
-        Model.Name = value;
-    }
+    private void OnNameChanged(string value) => Model.Name = value;
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
-    partial void OnTimeDisplayChanged(string value)
+    private void OnTimeDisplayChanged(string value)
     {
         if (_isUpdatingTimeDisplay)
         {
@@ -80,21 +132,57 @@ public partial class TimerViewModel : ObservableObject
         }
     }
 
-    [ObservableProperty]
     private int _hours = 0;
+    /// <summary>
+    /// Gets or sets the hours component of the timer duration.
+    /// </summary>
+    public int Hours
+    {
+        get => _hours;
+        set
+        {
+            if (SetProperty(ref _hours, value))
+            {
+                OnHoursChanged();
+            }
+        }
+    }
 
-    [ObservableProperty]
     private int _minutes = 5;
+    /// <summary>
+    /// Gets or sets the minutes component of the timer duration.
+    /// </summary>
+    public int Minutes
+    {
+        get => _minutes;
+        set
+        {
+            if (SetProperty(ref _minutes, value))
+            {
+                OnMinutesChanged();
+            }
+        }
+    }
 
-    [ObservableProperty]
     private int _seconds = 0;
+    /// <summary>
+    /// Gets or sets the seconds component of the timer duration.
+    /// </summary>
+    public int Seconds
+    {
+        get => _seconds;
+        set
+        {
+            if (SetProperty(ref _seconds, value))
+            {
+                OnSecondsChanged();
+            }
+        }
+    }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
-    partial void OnHoursChanged(int value) => UpdateDuration();
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
-    partial void OnMinutesChanged(int value) => UpdateDuration();
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by MVVM Toolkit source generator")]
-    partial void OnSecondsChanged(int value) => UpdateDuration();
+    private void OnHoursChanged() => UpdateDuration();
+    private void OnMinutesChanged() => UpdateDuration();
+    private void OnSecondsChanged() => UpdateDuration();
 
     private void UpdateDuration()
     {
