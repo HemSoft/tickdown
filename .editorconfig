@@ -301,3 +301,4 @@ dotnet_style_readonly_field = true:warning
 
 # SonarAnalyzer.CSharp
 dotnet_diagnostic.S1135.severity = warning
+dotnet_diagnostic.IDE0005.severity = warning

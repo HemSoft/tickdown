@@ -1,9 +1,5 @@
 namespace TickDown.Services;
 
-using Microsoft.Extensions.DependencyInjection;
-using TickDown.Core.Services;
-using TickDown.ViewModels;
-
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAppServices(this IServiceCollection services)
