@@ -1,9 +1,14 @@
 namespace TickDown;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Navigation;
+using TickDown.Core.Models;
+using TickDown.Core.Services;
 using TickDown.Services;
 using TickDown.Views;
+using Windows.Graphics;
 
 /// <summary>
 /// Provides application-specific behavior to supplement the default Application class.
@@ -34,7 +39,7 @@ public partial class App : Application
     /// will be used such as when the application is launched to open a specific file.
     /// </summary>
     /// <param name="args">Details about the launch request and process.</param>
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         _window ??= new Window();
 
@@ -46,7 +51,77 @@ public partial class App : Application
         }
 
         _ = rootFrame.Navigate(typeof(MainPage), args.Arguments);
+
+        // Restore window settings
+        ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
+        WindowSettings? settings = await settingsService.LoadWindowSettingsAsync();
+        if (settings is not null)
+        {
+            AppWindow appWindow = _window.AppWindow;
+            appWindow.MoveAndResize(new RectInt32(settings.X, settings.Y, settings.Width, settings.Height));
+
+            if (settings.IsMaximized)
+            {
+                ((OverlappedPresenter)appWindow.Presenter).Maximize();
+            }
+        }
+
         _window.Activate();
+        _window.AppWindow.Closing += OnAppWindowClosing;
+    }
+
+    private bool _isExitQueued;
+
+    private async void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_isExitQueued)
+        {
+            return;
+        }
+
+        args.Cancel = true;
+
+        AppWindow appWindow = _window!.AppWindow;
+        OverlappedPresenter? presenter = appWindow.Presenter as OverlappedPresenter;
+        bool isMaximized = presenter?.State == OverlappedPresenterState.Maximized;
+
+        WindowSettings settings = new()
+        {
+            IsMaximized = isMaximized
+        };
+
+        if (!isMaximized)
+        {
+            settings.X = appWindow.Position.X;
+            settings.Y = appWindow.Position.Y;
+            settings.Width = appWindow.Size.Width;
+            settings.Height = appWindow.Size.Height;
+        }
+        else
+        {
+            ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
+            WindowSettings? existingSettings = await settingsService.LoadWindowSettingsAsync();
+            if (existingSettings != null)
+            {
+                settings.X = existingSettings.X;
+                settings.Y = existingSettings.Y;
+                settings.Width = existingSettings.Width;
+                settings.Height = existingSettings.Height;
+            }
+            else
+            {
+                settings.X = 100;
+                settings.Y = 100;
+                settings.Width = 800;
+                settings.Height = 600;
+            }
+        }
+
+        ISettingsService service = Services.GetRequiredService<ISettingsService>();
+        await service.SaveWindowSettingsAsync(settings);
+
+        _isExitQueued = true;
+        _window.Close();
     }
 
     /// <summary>
