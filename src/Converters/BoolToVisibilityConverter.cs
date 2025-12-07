@@ -1,3 +1,5 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Converters;
 
 using Microsoft.UI.Xaml;
@@ -24,6 +26,7 @@ public class BoolToVisibilityConverter : IValueConverter
             bool result = invert ? !boolValue : boolValue;
             return result ? Visibility.Visible : Visibility.Collapsed;
         }
+
         return Visibility.Collapsed;
     }
 
@@ -43,6 +46,7 @@ public class BoolToVisibilityConverter : IValueConverter
             bool result = visibility == Visibility.Visible;
             return invert ? !result : result;
         }
+
         return false;
     }
 }

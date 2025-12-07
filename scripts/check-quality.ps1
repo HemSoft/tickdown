@@ -1,48 +1,27 @@
 $ErrorActionPreference = "Stop"
 
-Write-Host "Checking for code style issues..." -ForegroundColor Cyan
-dotnet format style --verify-no-changes
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Code style issues found." -ForegroundColor Yellow
-    exit 1
-} else {
-    Write-Host "No code style issues found." -ForegroundColor Green
+function Invoke-Check {
+    param(
+        [string]$Name,
+        [scriptblock]$Command,
+        [string]$FailPattern = $null
+    )
+    
+    Write-Host "`nChecking for $Name..." -ForegroundColor Cyan
+    $output = & $Command
+    
+    $failed = if ($FailPattern) { $output -match $FailPattern } else { $LASTEXITCODE -ne 0 }
+    
+    if ($failed) {
+        if ($output) { Write-Host ($output | Out-String) }
+        Write-Host "$Name issues found." -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Host "No $Name issues found." -ForegroundColor Green
 }
 
-Write-Host "`nChecking for whitespace issues..." -ForegroundColor Cyan
-dotnet format whitespace --verify-no-changes
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Whitespace issues found." -ForegroundColor Yellow
-    exit 1
-} else {
-    Write-Host "No whitespace issues found." -ForegroundColor Green
-}
-
-Write-Host "`nChecking for analyzer issues..." -ForegroundColor Cyan
-dotnet format analyzers --verify-no-changes
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Analyzer issues found." -ForegroundColor Yellow
-    exit 1
-} else {
-    Write-Host "No analyzer issues found." -ForegroundColor Green
-}
-
-Write-Host "`nChecking for package vulnerabilities..." -ForegroundColor Cyan
-$vulnerabilityOutput = dotnet list package --vulnerable
-Write-Host ($vulnerabilityOutput | Out-String)
-if ($vulnerabilityOutput -match "has the following vulnerable packages") {
-    Write-Host "Package vulnerabilities found." -ForegroundColor Yellow
-    exit 1
-} else {
-    Write-Host "No package vulnerabilities found." -ForegroundColor Green
-}
-
-Write-Host "`nChecking for outdated packages..." -ForegroundColor Cyan
-$outdatedOutput = dotnet list package --outdated
-Write-Host ($outdatedOutput | Out-String)
-if ($outdatedOutput -match "has the following updates") {
-    Write-Host "Outdated packages found." -ForegroundColor Yellow
-    exit 1
-} else {
-    Write-Host "All packages are up to date." -ForegroundColor Green
-}
+Invoke-Check "code style"          { dotnet format style --verify-no-changes }
+Invoke-Check "whitespace"          { dotnet format whitespace --verify-no-changes }
+Invoke-Check "analyzer"            { dotnet format analyzers --verify-no-changes }
+Invoke-Check "vulnerable packages" { dotnet list package --vulnerable } "has the following vulnerable packages"
+Invoke-Check "outdated packages"   { dotnet list package --outdated }   "has the following updates"

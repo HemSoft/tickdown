@@ -1,91 +1,168 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Core.Models;
 
+/// <summary>
+/// Represents the state of a countdown timer.
+/// </summary>
 public enum TimerState
 {
+    /// <summary>Timer is stopped.</summary>
     Stopped,
+
+    /// <summary>Timer is running.</summary>
     Running,
+
+    /// <summary>Timer is paused.</summary>
     Paused,
-    Completed
+
+    /// <summary>Timer has completed.</summary>
+    Completed,
 }
 
+/// <summary>
+/// Represents a countdown timer with duration, remaining time, and state.
+/// </summary>
 public class CountdownTimer
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CountdownTimer"/> class.
+    /// </summary>
+    public CountdownTimer() => this.State = TimerState.Stopped;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CountdownTimer"/> class with a specified duration.
+    /// </summary>
+    /// <param name="duration">The duration of the timer.</param>
+    /// <param name="name">The name of the timer.</param>
+    public CountdownTimer(TimeSpan duration, string name = "")
+        : this()
+    {
+        this.Duration = duration;
+        this.Remaining = duration;
+        this.Name = name;
+    }
+
+    /// <summary>
+    /// Gets or sets the total duration of the timer.
+    /// </summary>
     public TimeSpan Duration { get; set; }
+
+    /// <summary>
+    /// Gets or sets the remaining time on the timer.
+    /// </summary>
     public TimeSpan Remaining { get; set; }
+
+    /// <summary>
+    /// Gets or sets the current state of the timer.
+    /// </summary>
     public TimerState State { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the timer.
+    /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the time when the timer was started.
+    /// </summary>
     public DateTime? StartTime { get; set; }
+
+    /// <summary>
+    /// Gets or sets the time when the timer will end.
+    /// </summary>
     public DateTime? EndTime { get; set; }
 
-    public CountdownTimer() => State = TimerState.Stopped;
-
-    public CountdownTimer(TimeSpan duration, string name = "")
-    {
-        Duration = duration;
-        Remaining = duration;
-        Name = name;
-        State = TimerState.Stopped;
-    }
-
-    public double ProgressPercentage => Duration.TotalSeconds > 0
-        ? Math.Max(0, (Duration.TotalSeconds - Remaining.TotalSeconds) / Duration.TotalSeconds * 100)
+    /// <summary>
+    /// Gets the progress percentage of the timer (0-100).
+    /// </summary>
+    public double ProgressPercentage => this.Duration.TotalSeconds > 0
+        ? Math.Max(0, (this.Duration.TotalSeconds - this.Remaining.TotalSeconds) / this.Duration.TotalSeconds * 100)
         : 0;
 
+    /// <summary>
+    /// Resets the timer to its initial duration.
+    /// </summary>
     public void Reset()
     {
-        Remaining = Duration;
-        State = TimerState.Stopped;
-        StartTime = null;
-        EndTime = null;
+        this.Remaining = this.Duration;
+        this.State = TimerState.Stopped;
+        this.StartTime = null;
+        this.EndTime = null;
     }
 
+    /// <summary>
+    /// Starts the timer.
+    /// </summary>
     public void Start()
     {
-        if (State == TimerState.Stopped)
+        if (this.State == TimerState.Stopped)
         {
-            StartTime = DateTime.Now;
-            EndTime = StartTime.Value.Add(Remaining);
+            this.StartTime = DateTime.Now;
+            this.EndTime = this.StartTime.Value.Add(this.Remaining);
         }
-        State = TimerState.Running;
+
+        this.State = TimerState.Running;
     }
 
+    /// <summary>
+    /// Pauses the timer.
+    /// </summary>
     public void Pause()
     {
-        if (State == TimerState.Running)
+        if (this.State == TimerState.Running)
         {
-            State = TimerState.Paused;
+            this.State = TimerState.Paused;
         }
     }
 
+    /// <summary>
+    /// Stops the timer and preserves the remaining time.
+    /// </summary>
     public void Stop()
     {
-        State = TimerState.Stopped;
-        StartTime = null;
-        EndTime = null;
+        if (this.State == TimerState.Running && this.EndTime.HasValue)
+        {
+            this.Remaining = this.EndTime.Value - DateTime.Now;
+            if (this.Remaining < TimeSpan.Zero)
+            {
+                this.Remaining = TimeSpan.Zero;
+            }
+        }
+
+        this.State = TimerState.Stopped;
+        this.StartTime = null;
+        this.EndTime = null;
     }
 
+    /// <summary>
+    /// Sets the duration of the timer.
+    /// </summary>
+    /// <param name="duration">The new duration.</param>
     public void SetDuration(TimeSpan duration)
     {
-        Duration = duration;
-        if (State == TimerState.Stopped)
+        this.Duration = duration;
+        if (this.State == TimerState.Stopped)
         {
-            Remaining = duration;
+            this.Remaining = duration;
         }
     }
 
+    /// <summary>
+    /// Updates the timer state based on elapsed time.
+    /// </summary>
     public void Tick()
     {
-        if (State == TimerState.Running && EndTime.HasValue)
+        if (this.State == TimerState.Running && this.EndTime.HasValue)
         {
             DateTime now = DateTime.Now;
-            Remaining = EndTime.Value - now;
+            this.Remaining = this.EndTime.Value - now;
 
-            if (Remaining <= TimeSpan.Zero)
+            if (this.Remaining <= TimeSpan.Zero)
             {
-                Remaining = TimeSpan.Zero;
-                State = TimerState.Completed;
+                this.Remaining = TimeSpan.Zero;
+                this.State = TimerState.Completed;
             }
         }
     }
-
 }

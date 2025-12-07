@@ -1,3 +1,5 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Views;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -11,62 +13,43 @@ using Windows.System;
 /// </summary>
 public sealed partial class MainPage : Page
 {
-    /// <summary>
-    /// Gets the main view model.
-    /// </summary>
-    public MainViewModel ViewModel { get; }
+    private const float ZoomStep = 0.1f;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainPage"/> class.
     /// </summary>
     public MainPage()
     {
-        InitializeComponent();
-        ViewModel = App.Services.GetRequiredService<MainViewModel>();
-        DataContext = ViewModel;
+        this.InitializeComponent();
+        this.ViewModel = App.Services.GetRequiredService<MainViewModel>();
+        this.DataContext = this.ViewModel;
 
-        SetupZoomAccelerators();
+        this.SetupZoomAccelerators();
     }
+
+    /// <summary>
+    /// Gets the main view model.
+    /// </summary>
+    public MainViewModel ViewModel { get; }
 
     private void SetupZoomAccelerators()
     {
-        // Numpad +
-        KeyboardAccelerator zoomIn = new() { Key = VirtualKey.Add, Modifiers = VirtualKeyModifiers.Control };
-        zoomIn.Invoked += (s, e) => ZoomIn();
-        KeyboardAccelerators.Add(zoomIn);
-
-        // Numpad -
-        KeyboardAccelerator zoomOut = new() { Key = VirtualKey.Subtract, Modifiers = VirtualKeyModifiers.Control };
-        zoomOut.Invoked += (s, e) => ZoomOut();
-        KeyboardAccelerators.Add(zoomOut);
-
-        // Ctrl + 0 to reset
-        KeyboardAccelerator zoomReset = new() { Key = VirtualKey.Number0, Modifiers = VirtualKeyModifiers.Control };
-        zoomReset.Invoked += (s, e) => ResetZoom();
-        KeyboardAccelerators.Add(zoomReset);
-
-        // Standard + (on = key)
-        KeyboardAccelerator zoomInStd = new() { Key = (VirtualKey)187, Modifiers = VirtualKeyModifiers.Control };
-        zoomInStd.Invoked += (s, e) => ZoomIn();
-        KeyboardAccelerators.Add(zoomInStd);
-
-        // Standard -
-        KeyboardAccelerator zoomOutStd = new() { Key = (VirtualKey)189, Modifiers = VirtualKeyModifiers.Control };
-        zoomOutStd.Invoked += (s, e) => ZoomOut();
-        KeyboardAccelerators.Add(zoomOutStd);
+        this.AddAccelerator(VirtualKey.Add, () => this.Zoom(ZoomStep));
+        this.AddAccelerator(VirtualKey.Subtract, () => this.Zoom(-ZoomStep));
+        this.AddAccelerator(VirtualKey.Number0, this.ResetZoom);
+        this.AddAccelerator((VirtualKey)187, () => this.Zoom(ZoomStep));   // Ctrl+=
+        this.AddAccelerator((VirtualKey)189, () => this.Zoom(-ZoomStep));  // Ctrl+-
     }
 
-    private void ZoomIn()
+    private void AddAccelerator(VirtualKey key, Action action)
     {
-        float newZoom = RootScrollViewer.ZoomFactor + 0.1f;
-        _ = RootScrollViewer.ChangeView(null, null, newZoom);
+        KeyboardAccelerator accelerator = new() { Key = key, Modifiers = VirtualKeyModifiers.Control };
+        accelerator.Invoked += (s, e) => action();
+        this.KeyboardAccelerators.Add(accelerator);
     }
 
-    private void ZoomOut()
-    {
-        float newZoom = RootScrollViewer.ZoomFactor - 0.1f;
-        _ = RootScrollViewer.ChangeView(null, null, newZoom);
-    }
+    private void Zoom(float delta) =>
+        _ = this.RootScrollViewer.ChangeView(null, null, this.RootScrollViewer.ZoomFactor + delta);
 
-    private void ResetZoom() => _ = RootScrollViewer.ChangeView(null, null, 1.0f);
+    private void ResetZoom() => _ = this.RootScrollViewer.ChangeView(null, null, 1.0f);
 }

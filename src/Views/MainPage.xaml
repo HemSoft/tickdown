@@ -52,7 +52,7 @@
 
                                 <!-- Timer Display -->
                                 <TextBox Grid.Row="1"
-                                                Text="{Binding TimeDisplay, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                Text="{Binding TimeDisplay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          FontSize="56"
                                                 FontWeight="Bold"
                                                 HorizontalAlignment="Center"
@@ -61,7 +61,16 @@
                                                 Background="Transparent"
                                                 HorizontalContentAlignment="Center"
                                          IsReadOnly="{Binding IsRunning, Mode=OneWay}"
-                                                Margin="0,10"/>
+                                                Margin="0,10,0,0"/>
+
+                                <!-- End Time Display -->
+                                <TextBlock Grid.Row="1"
+                                                Text="{Binding EndTimeDisplay, Mode=OneWay}"
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Bottom"
+                                                Margin="0,0,0,-5"/>
 
                                 <!-- Progress Bar -->
                                 <ProgressBar Grid.Row="2"
@@ -120,6 +129,28 @@
                                                                 CommandParameter="15min"
                                                                 FontSize="12"
                                                                 Padding="8,4"/>
+                                                <Button Content="🎯"
+                                                                ToolTipService.ToolTip="Pick end date/time"
+                                                                FontSize="12"
+                                                                Padding="8,4">
+                                                        <Button.Flyout>
+                                                                <Flyout Placement="Top">
+                                                                        <StackPanel Spacing="10" Padding="5">
+                                                                                <TextBlock Text="Set End Time" FontWeight="SemiBold"/>
+                                                                                <DatePicker x:Name="EndDatePicker"
+                                                                                                Date="{Binding TargetDate, Mode=TwoWay}"
+                                                                                                MinYear="{Binding MinYear}"/>
+                                                                                <TimePicker x:Name="EndTimePicker"
+                                                                                                Time="{Binding TargetTime, Mode=TwoWay}"
+                                                                                                ClockIdentifier="12HourClock"/>
+                                                                                <Button Content="Set Timer"
+                                                                                                Command="{Binding SetEndTimeCommand}"
+                                                                                                Style="{StaticResource AccentButtonStyle}"
+                                                                                                HorizontalAlignment="Stretch"/>
+                                                                        </StackPanel>
+                                                                </Flyout>
+                                                        </Button.Flyout>
+                                                </Button>
                                         </StackPanel>
                                 </StackPanel>
                         </Grid>

@@ -1,25 +1,22 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.ViewModels;
 
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using global::TickDown.Core.Models;
 using global::TickDown.Core.Services;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 /// <summary>
 /// The main view model for the application, managing the collection of timers.
 /// </summary>
 public partial class MainViewModel : ObservableObject
 {
-    private readonly ITimerService _timerService;
-    private readonly ISettingsService _settingsService;
-    private bool _isLoading = true;
-
-    /// <summary>
-    /// Gets the collection of timer view models.
-    /// </summary>
-    public ObservableCollection<TimerViewModel> Timers { get; } = [];
+    private readonly ITimerService timerService;
+    private readonly ISettingsService settingsService;
+    private bool isLoading = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainViewModel"/> class.
@@ -28,30 +25,35 @@ public partial class MainViewModel : ObservableObject
     /// <param name="settingsService">The settings service.</param>
     public MainViewModel(ITimerService timerService, ISettingsService settingsService)
     {
-        _timerService = timerService;
-        _settingsService = settingsService;
+        this.timerService = timerService;
+        this.settingsService = settingsService;
 
-        Timers.CollectionChanged += Timers_CollectionChanged;
+        this.Timers.CollectionChanged += this.Timers_CollectionChanged;
 
-        // Load timers
-        _ = LoadTimersAsync();
+        _ = this.LoadTimersAsync();
     }
+
+    /// <summary>
+    /// Gets the collection of timer view models.
+    /// </summary>
+    public ObservableCollection<TimerViewModel> Timers { get; } = [];
 
     private async Task LoadTimersAsync()
     {
-        IEnumerable<CountdownTimer> timers = await _settingsService.LoadTimersAsync();
+        IEnumerable<CountdownTimer> timers = await this.settingsService.LoadTimersAsync();
         if (timers.Any())
         {
             foreach (CountdownTimer timer in timers)
             {
-                AddTimerInternal(timer);
+                this.AddTimerInternal(timer);
             }
         }
         else
         {
-            AddTimer();
+            this.AddTimer();
         }
-        _isLoading = false;
+
+        this.isLoading = false;
     }
 
     private void Timers_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -60,17 +62,19 @@ public partial class MainViewModel : ObservableObject
         {
             foreach (TimerViewModel item in e.NewItems)
             {
-                item.PropertyChanged += Timer_PropertyChanged;
+                item.PropertyChanged += this.Timer_PropertyChanged;
             }
         }
+
         if (e.OldItems != null)
         {
             foreach (TimerViewModel item in e.OldItems)
             {
-                item.PropertyChanged -= Timer_PropertyChanged;
+                item.PropertyChanged -= this.Timer_PropertyChanged;
             }
         }
-        SaveTimers();
+
+        this.SaveTimers();
     }
 
     private void Timer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -82,35 +86,36 @@ public partial class MainViewModel : ObservableObject
             or nameof(TimerViewModel.IsRunning)
             or nameof(TimerViewModel.IsPaused))
         {
-            SaveTimers();
+            this.SaveTimers();
         }
     }
 
     private void SaveTimers()
     {
-        if (_isLoading)
+        if (this.isLoading)
         {
             return;
         }
-        _ = _settingsService.SaveTimersAsync(Timers.Select(t => t.Model));
+
+        _ = this.settingsService.SaveTimersAsync(this.Timers.Select(t => t.Model));
     }
 
     [RelayCommand]
-    private void AddTimer() => AddTimerInternal(null);
+    private void AddTimer() => this.AddTimerInternal(null);
 
     private void AddTimerInternal(CountdownTimer? model)
     {
-        TimerViewModel timerVm = new(_timerService, model);
-        timerVm.RequestRemove += OnRemoveTimerRequested;
-        Timers.Add(timerVm);
+        TimerViewModel timerVm = new(this.timerService, model);
+        timerVm.RequestRemove += this.OnRemoveTimerRequested;
+        this.Timers.Add(timerVm);
     }
 
     private void OnRemoveTimerRequested(object? sender, EventArgs e)
     {
         if (sender is TimerViewModel vm)
         {
-            vm.RequestRemove -= OnRemoveTimerRequested;
-            _ = Timers.Remove(vm);
+            vm.RequestRemove -= this.OnRemoveTimerRequested;
+            _ = this.Timers.Remove(vm);
         }
     }
 }

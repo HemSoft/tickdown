@@ -1,0 +1,5 @@
+<Project>
+  <!-- No MSBuild targets required.
+       Markdown linting is run separately via: npm run lint:md
+       Tests are run separately via: dotnet test -->
+</Project>

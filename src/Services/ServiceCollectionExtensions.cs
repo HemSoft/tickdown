@@ -1,3 +1,5 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Services;
 
 using global::TickDown.Core.Services;
@@ -16,11 +18,8 @@ public static class ServiceCollectionExtensions
     /// <returns>The updated service collection.</returns>
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
-        // Core services
         _ = services.AddSingleton<ITimerService, TimerService>();
         _ = services.AddSingleton<ISettingsService, SettingsService>();
-
-        // ViewModels
         _ = services.AddTransient<MainViewModel>();
 
         return services;

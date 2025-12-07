@@ -1,16 +1,18 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Services;
 
+using System.Text.Json;
 using global::TickDown.Core.Models;
 using global::TickDown.Core.Services;
-using System.Text.Json;
 
 /// <summary>
 /// Service for saving and loading application settings and timers.
 /// </summary>
 public class SettingsService : ISettingsService
 {
-    private readonly string _filePath;
-    private readonly string _windowSettingsPath;
+    private readonly string filePath;
+    private readonly string windowSettingsPath;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsService"/> class.
@@ -20,71 +22,47 @@ public class SettingsService : ISettingsService
         string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string appFolder = Path.Combine(folder, "TickDown");
         _ = Directory.CreateDirectory(appFolder);
-        _filePath = Path.Combine(appFolder, "timers.json");
-        _windowSettingsPath = Path.Combine(appFolder, "window.json");
+        this.filePath = Path.Combine(appFolder, "timers.json");
+        this.windowSettingsPath = Path.Combine(appFolder, "window.json");
     }
 
-    /// <summary>
-    /// Saves the list of timers to storage.
-    /// </summary>
-    /// <param name="timers">The timers to save.</param>
-    public async Task SaveTimersAsync(IEnumerable<CountdownTimer> timers)
+    /// <inheritdoc/>
+    public Task SaveTimersAsync(IEnumerable<CountdownTimer> timers) =>
+        SaveAsync(this.filePath, timers);
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<CountdownTimer>> LoadTimersAsync() =>
+        await LoadAsync<IEnumerable<CountdownTimer>>(this.filePath) ?? [];
+
+    /// <inheritdoc/>
+    public Task SaveWindowSettingsAsync(WindowSettings settings) =>
+        SaveAsync(this.windowSettingsPath, settings);
+
+    /// <inheritdoc/>
+    public Task<WindowSettings?> LoadWindowSettingsAsync() =>
+        LoadAsync<WindowSettings>(this.windowSettingsPath);
+
+    private static async Task SaveAsync<T>(string path, T data)
     {
-        string json = JsonSerializer.Serialize(timers);
-        await File.WriteAllTextAsync(_filePath, json);
+        string json = JsonSerializer.Serialize(data);
+        await File.WriteAllTextAsync(path, json);
     }
 
-    /// <summary>
-    /// Loads the list of timers from storage.
-    /// </summary>
-    /// <returns>A collection of loaded timers.</returns>
-    public async Task<IEnumerable<CountdownTimer>> LoadTimersAsync()
+    private static async Task<T?> LoadAsync<T>(string path)
     {
-        if (!File.Exists(_filePath))
+        if (!File.Exists(path))
         {
-            return [];
+            return default;
         }
 
         try
         {
-            string json = await File.ReadAllTextAsync(_filePath);
-            return JsonSerializer.Deserialize<IEnumerable<CountdownTimer>>(json) ?? [];
+            string json = await File.ReadAllTextAsync(path);
+            return JsonSerializer.Deserialize<T>(json);
         }
         catch
         {
-            return [];
-        }
-    }
-
-    /// <summary>
-    /// Saves the window settings to storage.
-    /// </summary>
-    /// <param name="settings">The window settings to save.</param>
-    public async Task SaveWindowSettingsAsync(WindowSettings settings)
-    {
-        string json = JsonSerializer.Serialize(settings);
-        await File.WriteAllTextAsync(_windowSettingsPath, json);
-    }
-
-    /// <summary>
-    /// Loads the window settings from storage.
-    /// </summary>
-    /// <returns>The loaded window settings, or null if not found.</returns>
-    public async Task<WindowSettings?> LoadWindowSettingsAsync()
-    {
-        if (!File.Exists(_windowSettingsPath))
-        {
-            return null;
-        }
-
-        try
-        {
-            string json = await File.ReadAllTextAsync(_windowSettingsPath);
-            return JsonSerializer.Deserialize<WindowSettings>(json);
-        }
-        catch
-        {
-            return null;
+            return default;
         }
     }
 }

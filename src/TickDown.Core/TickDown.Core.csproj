@@ -12,11 +12,6 @@
     <Compile Remove="Class1.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
+
 
 </Project>

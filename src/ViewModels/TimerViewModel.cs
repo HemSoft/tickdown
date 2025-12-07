@@ -1,94 +1,39 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.ViewModels;
 
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using global::TickDown.Core.Models;
-using global::TickDown.Core.Services;
-using Microsoft.UI.Dispatching;
 using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Dispatching;
+using TickDown.Core.Models;
+using TickDown.Core.Services;
 
 /// <summary>
 /// View model for a single countdown timer.
 /// </summary>
 public partial class TimerViewModel : ObservableObject
 {
-    private readonly ITimerService _timerService;
-    private readonly DispatcherQueue _dispatcher;
+    private static readonly Regex TimePattern = new(
+        @"^(\d+(?:\.\d+)?)\s*(h|hours?|m|min|s|sec)?$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    /// <summary>
-    /// Gets the underlying countdown timer model.
-    /// </summary>
-    public CountdownTimer Model { get; }
-
-    private string _timeDisplay = "00:05:00";
-    /// <summary>
-    /// Gets or sets the formatted time display string.
-    /// </summary>
-    public string TimeDisplay
-    {
-        get => _timeDisplay;
-        set
-        {
-            if (SetProperty(ref _timeDisplay, value))
-            {
-                OnTimeDisplayChanged(value);
-            }
-        }
-    }
-
-    private string _name;
-    /// <summary>
-    /// Gets or sets the name of the timer.
-    /// </summary>
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (SetProperty(ref _name, value))
-            {
-                OnNameChanged(value);
-            }
-        }
-    }
-
-    private bool _isRunning = false;
-    /// <summary>
-    /// Gets or sets a value indicating whether the timer is currently running.
-    /// </summary>
-    public bool IsRunning
-    {
-        get => _isRunning;
-        set => SetProperty(ref _isRunning, value);
-    }
-
-    private bool _isPaused = false;
-    /// <summary>
-    /// Gets or sets a value indicating whether the timer is currently paused.
-    /// </summary>
-    public bool IsPaused
-    {
-        get => _isPaused;
-        set => SetProperty(ref _isPaused, value);
-    }
-
-    private double _progressPercentage = 0;
-    /// <summary>
-    /// Gets or sets the progress of the timer as a percentage (0-1).
-    /// </summary>
-    public double ProgressPercentage
-    {
-        get => _progressPercentage;
-        set => SetProperty(ref _progressPercentage, value);
-    }
-
-    private bool _isUpdatingTimeDisplay = false;
-
-    /// <summary>
-    /// Event raised when the timer requests to be removed.
-    /// </summary>
-    public event EventHandler? RequestRemove;
+    private readonly ITimerService timerService;
+    private readonly DispatcherQueue dispatcher;
+    private string timeDisplay = "00:05:00";
+    private string name;
+    private bool isRunning = false;
+    private bool isPaused = false;
+    private double progressPercentage = 0;
+    private string endTimeDisplay = string.Empty;
+    private bool isUpdatingTimeDisplay = false;
+    private DateTimeOffset targetDate = DateTimeOffset.Now.Date;
+    private TimeSpan targetTime = DateTime.Now.TimeOfDay.Add(TimeSpan.FromMinutes(5));
+    private int hours = 0;
+    private int minutes = 5;
+    private int seconds = 0;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TimerViewModel"/> class.
@@ -97,239 +42,365 @@ public partial class TimerViewModel : ObservableObject
     /// <param name="model">The optional timer model to wrap.</param>
     public TimerViewModel(ITimerService timerService, CountdownTimer? model = null)
     {
-        _timerService = timerService;
-        _dispatcher = DispatcherQueue.GetForCurrentThread();
-        Model = model ?? new CountdownTimer(TimeSpan.FromMinutes(5), "New Timer");
+        this.timerService = timerService;
+        this.dispatcher = DispatcherQueue.GetForCurrentThread();
+        this.Model = model ?? new CountdownTimer(TimeSpan.FromMinutes(5), "New Timer");
 
-        // Initialize properties from model
-        _name = Model.Name;
-        if (Model.Duration.TotalSeconds > 0)
+        this.name = this.Model.Name;
+        if (this.Model.Duration.TotalSeconds > 0)
         {
-            _hours = Model.Duration.Hours;
-            _minutes = Model.Duration.Minutes;
-            _seconds = Model.Duration.Seconds;
+            this.hours = this.Model.Duration.Hours;
+            this.minutes = this.Model.Duration.Minutes;
+            this.seconds = this.Model.Duration.Seconds;
         }
 
-        UpdateState();
-        UpdateTimeDisplay();
+        this.UpdateState();
+        this.UpdateTimeDisplay();
 
-        _timerService.Tick += OnGlobalTick;
+        this.timerService.Tick += this.OnGlobalTick;
     }
 
-    private void OnNameChanged(string value) => Model.Name = value;
+    /// <summary>
+    /// Event raised when the timer requests to be removed.
+    /// </summary>
+    public event EventHandler? RequestRemove;
+
+    /// <summary>
+    /// Gets the minimum year for the date picker.
+    /// </summary>
+    public static DateTimeOffset MinYear => DateTimeOffset.Now;
+
+    /// <summary>
+    /// Gets the underlying countdown timer model.
+    /// </summary>
+    public CountdownTimer Model { get; }
+
+    /// <summary>
+    /// Gets or sets the formatted time display string.
+    /// </summary>
+    public string TimeDisplay
+    {
+        get => this.timeDisplay;
+        set
+        {
+            if (this.SetProperty(ref this.timeDisplay, value))
+            {
+                this.OnTimeDisplayChanged(value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the name of the timer.
+    /// </summary>
+    public string Name
+    {
+        get => this.name;
+        set
+        {
+            if (this.SetProperty(ref this.name, value))
+            {
+                this.OnNameChanged(value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the timer is currently running.
+    /// </summary>
+    public bool IsRunning
+    {
+        get => this.isRunning;
+        set => this.SetProperty(ref this.isRunning, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the timer is currently paused.
+    /// </summary>
+    public bool IsPaused
+    {
+        get => this.isPaused;
+        set => this.SetProperty(ref this.isPaused, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the progress of the timer as a percentage (0-1).
+    /// </summary>
+    public double ProgressPercentage
+    {
+        get => this.progressPercentage;
+        set => this.SetProperty(ref this.progressPercentage, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the formatted end time display string.
+    /// </summary>
+    public string EndTimeDisplay
+    {
+        get => this.endTimeDisplay;
+        set => this.SetProperty(ref this.endTimeDisplay, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the target end date for the timer.
+    /// </summary>
+    public DateTimeOffset TargetDate
+    {
+        get => this.targetDate;
+        set => this.SetProperty(ref this.targetDate, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the target end time for the timer.
+    /// </summary>
+    public TimeSpan TargetTime
+    {
+        get => this.targetTime;
+        set => this.SetProperty(ref this.targetTime, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the total hours of the timer duration.
+    /// </summary>
+    public int Hours
+    {
+        get => this.hours;
+        set
+        {
+            if (this.SetProperty(ref this.hours, value))
+            {
+                this.UpdateDuration();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the minutes component of the timer duration.
+    /// </summary>
+    public int Minutes
+    {
+        get => this.minutes;
+        set
+        {
+            if (this.SetProperty(ref this.minutes, value))
+            {
+                this.UpdateDuration();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the seconds component of the timer duration.
+    /// </summary>
+    public int Seconds
+    {
+        get => this.seconds;
+        set
+        {
+            if (this.SetProperty(ref this.seconds, value))
+            {
+                this.UpdateDuration();
+            }
+        }
+    }
+
+    private static bool TryParseTime(string value, out TimeSpan result)
+    {
+        value = value.Trim();
+
+        Match match = TimePattern.Match(value);
+        if (match.Success && double.TryParse(match.Groups[1].Value, out double num))
+        {
+            string unit = match.Groups[2].Value.ToLowerInvariant();
+            result = unit switch
+            {
+                "h" or "hour" or "hours" => TimeSpan.FromHours(num),
+                "s" or "sec" => TimeSpan.FromSeconds(num),
+                _ => TimeSpan.FromMinutes(num),
+            };
+            return true;
+        }
+
+        return TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
+    }
+
+    private static string FormatEndTime(DateTime endTime)
+    {
+        string daySuffix = GetDaySuffix(endTime.Day);
+        string timeZone = TimeZoneInfo.Local.IsDaylightSavingTime(endTime)
+            ? TimeZoneInfo.Local.DaylightName
+            : TimeZoneInfo.Local.StandardName;
+        string timeZoneAbbr = GetTimeZoneAbbreviation(timeZone);
+
+        return $"{endTime:dddd, MMMM} {endTime.Day}{daySuffix} {endTime:yyyy, h:mm tt} {timeZoneAbbr}";
+    }
+
+    private static string GetDaySuffix(int day) =>
+        day switch
+        {
+            1 or 21 or 31 => "st",
+            2 or 22 => "nd",
+            3 or 23 => "rd",
+            _ => "th",
+        };
+
+    private static string GetTimeZoneAbbreviation(string timeZoneName)
+    {
+        string[] words = timeZoneName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return words.Length switch
+        {
+            >= 2 => string.Concat(words.Select(w => w[0])),
+            _ when timeZoneName.Length > 3 => timeZoneName[..3].ToUpperInvariant(),
+            _ => timeZoneName.ToUpperInvariant(),
+        };
+    }
+
+    private void OnNameChanged(string value) => this.Model.Name = value;
 
     private void OnTimeDisplayChanged(string value)
     {
-        if (_isUpdatingTimeDisplay)
+        if (this.isUpdatingTimeDisplay)
         {
             return;
         }
 
         if (TryParseTime(value, out TimeSpan result))
         {
-            Hours = (int)result.TotalHours;
-            Minutes = result.Minutes;
-            Seconds = result.Seconds;
+            this.Hours = (int)result.TotalHours;
+            this.Minutes = result.Minutes;
+            this.Seconds = result.Seconds;
         }
         else
         {
-            UpdateTimeDisplay();
+            this.UpdateTimeDisplay();
         }
     }
-
-    private static bool TryParseTime(string value, out TimeSpan result)
-    {
-        // Handle simple integers as minutes
-        if (int.TryParse(value, out int minutes))
-        {
-            result = TimeSpan.FromMinutes(minutes);
-            return true;
-        }
-
-        // Handle "10m", "1h", "30s"
-        value = value.Trim().ToLowerInvariant();
-        if (value.EndsWith('m') || value.EndsWith("min"))
-        {
-            string num = value.Replace("min", "").Replace("m", "").Trim();
-            if (double.TryParse(num, out double m))
-            {
-                result = TimeSpan.FromMinutes(m);
-                return true;
-            }
-        }
-        if (value.EndsWith('h') || value.EndsWith("hour") || value.EndsWith("hours"))
-        {
-            string num = value.Replace("hours", "").Replace("hour", "").Replace("h", "").Trim();
-            if (double.TryParse(num, out double h))
-            {
-                result = TimeSpan.FromHours(h);
-                return true;
-            }
-        }
-        if (value.EndsWith('s') || value.EndsWith("sec"))
-        {
-            string num = value.Replace("sec", "").Replace("s", "").Trim();
-            if (double.TryParse(num, out double s))
-            {
-                result = TimeSpan.FromSeconds(s);
-                return true;
-            }
-        }
-
-        return TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
-    }
-
-    private int _hours = 0;
-    /// <summary>
-    /// Gets or sets the total hours of the timer duration.
-    /// </summary>
-    public int Hours
-    {
-        get => _hours;
-        set
-        {
-            if (SetProperty(ref _hours, value))
-            {
-                OnHoursChanged();
-            }
-        }
-    }
-
-    private int _minutes = 5;
-    /// <summary>
-    /// Gets or sets the minutes component of the timer duration.
-    /// </summary>
-    public int Minutes
-    {
-        get => _minutes;
-        set
-        {
-            if (SetProperty(ref _minutes, value))
-            {
-                OnMinutesChanged();
-            }
-        }
-    }
-
-    private int _seconds = 0;
-    /// <summary>
-    /// Gets or sets the seconds component of the timer duration.
-    /// </summary>
-    public int Seconds
-    {
-        get => _seconds;
-        set
-        {
-            if (SetProperty(ref _seconds, value))
-            {
-                OnSecondsChanged();
-            }
-        }
-    }
-
-    private void OnHoursChanged() => UpdateDuration();
-    private void OnMinutesChanged() => UpdateDuration();
-    private void OnSecondsChanged() => UpdateDuration();
 
     private void UpdateDuration()
     {
-        if (!Model.State.Equals(TimerState.Stopped))
+        if (!this.Model.State.Equals(TimerState.Stopped))
         {
             return;
         }
 
-        TimeSpan duration = new(Hours, Minutes, Seconds);
-        Model.SetDuration(duration);
-        UpdateTimeDisplay();
+        TimeSpan duration = new(this.Hours, this.Minutes, this.Seconds);
+        this.Model.SetDuration(duration);
+        this.UpdateTimeDisplay();
     }
 
     [RelayCommand]
     private void Start()
     {
-        if (Model.Duration.TotalSeconds <= 0)
+        if (this.Model.Remaining == this.Model.Duration || this.Model.Remaining <= TimeSpan.Zero)
         {
-            // Default if zero
-            Hours = 0;
-            Minutes = 5;
-            Seconds = 0;
+            TimeSpan duration = new(this.Hours, this.Minutes, this.Seconds);
+            if (duration.TotalSeconds <= 0)
+            {
+                this.Hours = 0;
+                this.Minutes = 5;
+                this.Seconds = 0;
+                duration = new TimeSpan(0, 5, 0);
+            }
+
+            this.Model.SetDuration(duration);
         }
 
-        Model.Start();
-        UpdateState();
+        this.Model.Start();
+        this.UpdateState();
     }
 
     [RelayCommand]
     private void Pause()
     {
-        Model.Pause();
-        UpdateState();
+        this.Model.Pause();
+        this.UpdateState();
     }
 
     [RelayCommand]
     private void Stop()
     {
-        Model.Stop();
-        UpdateState();
-        UpdateTimeDisplay();
+        this.Model.Stop();
+        this.UpdateState();
+        this.UpdateTimeDisplay();
     }
 
     [RelayCommand]
     private void Reset()
     {
-        Model.Reset();
-        UpdateState();
-        UpdateTimeDisplay();
+        this.Model.Reset();
+        this.UpdateState();
+        this.UpdateTimeDisplay();
     }
 
     [RelayCommand]
     private void Remove()
     {
-        _timerService.Tick -= OnGlobalTick;
-        RequestRemove?.Invoke(this, EventArgs.Empty);
+        this.timerService.Tick -= this.OnGlobalTick;
+        this.RequestRemove?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void SetQuickTime(string timeStr)
     {
-        if (Model.State != TimerState.Stopped)
+        if (this.Model.State != TimerState.Stopped)
         {
             return;
         }
 
-        switch (timeStr)
+        if (TryParseTime(timeStr, out TimeSpan result))
         {
-            case "1min": SetTime(0, 1, 0); break;
-            case "5min": SetTime(0, 5, 0); break;
-            case "10min": SetTime(0, 10, 0); break;
-            case "15min": SetTime(0, 15, 0); break;
-            case "30min": SetTime(0, 30, 0); break;
-            case "1hour": SetTime(1, 0, 0); break;
+            this.SetTime((int)result.TotalHours, result.Minutes, result.Seconds);
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Accesses generated instance properties")]
+    [RelayCommand]
+    private void SetEndTime()
+    {
+        if (this.Model.State != TimerState.Stopped)
+        {
+            return;
+        }
+
+        DateTime targetDateTime = this.TargetDate.Date.Add(this.TargetTime);
+        TimeSpan duration = targetDateTime - DateTime.Now;
+
+        if (duration.TotalSeconds <= 0)
+        {
+            return;
+        }
+
+        this.SetTime((int)duration.TotalHours, duration.Minutes, duration.Seconds);
+    }
+
     private void SetTime(int h, int m, int s)
     {
-        Hours = h;
-        Minutes = m;
-        Seconds = s;
-        // UpdateDuration called by property changes
+        // Set backing fields directly to avoid triggering UpdateDuration multiple times
+        this.hours = h;
+        this.minutes = m;
+        this.seconds = s;
+
+        // Notify property changes
+        this.OnPropertyChanged(nameof(this.Hours));
+        this.OnPropertyChanged(nameof(this.Minutes));
+        this.OnPropertyChanged(nameof(this.Seconds));
+
+        // Update duration and display
+        this.UpdateDuration();
     }
 
     private void OnGlobalTick(object? sender, EventArgs e)
     {
-        if (Model.State == TimerState.Running)
+        if (this.Model.State == TimerState.Running)
         {
-            Model.Tick();
-            _ = _dispatcher.TryEnqueue(() =>
+            this.Model.Tick();
+            _ = this.dispatcher.TryEnqueue(() =>
             {
-                UpdateTimeDisplay();
-                ProgressPercentage = Model.ProgressPercentage;
+                this.UpdateTimeDisplay();
+                this.ProgressPercentage = this.Model.ProgressPercentage;
 
-                if (Model.State == TimerState.Completed)
+                if (this.Model.State == TimerState.Completed)
                 {
-                    UpdateState();
-                    // Play sound?
+                    this.UpdateState();
                 }
             });
         }
@@ -337,20 +408,36 @@ public partial class TimerViewModel : ObservableObject
 
     private void UpdateTimeDisplay()
     {
-        _isUpdatingTimeDisplay = true;
-        TimeSpan timeToShow = Model.State == TimerState.Stopped
-            ? Model.Duration
-            : Model.Remaining;
+        this.isUpdatingTimeDisplay = true;
 
-        TimeDisplay = timeToShow.TotalHours >= 24
+        TimeSpan timeToShow = this.Model.State == TimerState.Stopped && this.Model.Remaining == this.Model.Duration
+            ? this.Model.Duration
+            : this.Model.Remaining;
+
+        this.TimeDisplay = timeToShow.TotalHours >= 24
             ? $"{(int)timeToShow.TotalHours}:{timeToShow.Minutes:D2}:{timeToShow.Seconds:D2}"
             : timeToShow.ToString(@"hh\:mm\:ss");
-        _isUpdatingTimeDisplay = false;
+        this.isUpdatingTimeDisplay = false;
+
+        this.UpdateEndTimeDisplay();
+    }
+
+    private void UpdateEndTimeDisplay()
+    {
+        if (this.Model.State is TimerState.Running or TimerState.Paused)
+        {
+            DateTime endTime = DateTime.Now.Add(this.Model.Remaining);
+            this.EndTimeDisplay = FormatEndTime(endTime);
+        }
+        else
+        {
+            this.EndTimeDisplay = string.Empty;
+        }
     }
 
     private void UpdateState()
     {
-        IsRunning = Model.State == TimerState.Running;
-        IsPaused = Model.State == TimerState.Paused;
+        this.IsRunning = this.Model.State == TimerState.Running;
+        this.IsPaused = this.Model.State == TimerState.Paused;
     }
 }

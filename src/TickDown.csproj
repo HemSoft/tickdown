@@ -15,8 +15,7 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>TickDown</RootNamespace>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
 
         <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
@@ -50,10 +49,6 @@
 
         <Manifest Include="$(ApplicationManifest)" />
 
-        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-          <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
     </ItemGroup>
 
     <!-- Exclude nested TickDown.Core sources from this app project (they're compiled via the project reference) -->
@@ -82,7 +77,4 @@
         <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
     </PropertyGroup>
 
-    <Target Name="CheckQuality" BeforeTargets="Build">
-        <Exec Command="pwsh -File &quot;scripts\check-quality.ps1&quot;" WorkingDirectory="$(MSBuildProjectDirectory)\.." />
-    </Target>
 </Project>

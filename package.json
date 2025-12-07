@@ -1,0 +1,13 @@
+{
+  "name": "tickdown",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Quality build tooling for .NET project",
+  "scripts": {
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#**/bin\" \"#**/obj\"",
+    "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\" \"#node_modules\" \"#**/bin\" \"#**/obj\""
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "^0.19.1"
+  }
+}
