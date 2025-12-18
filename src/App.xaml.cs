@@ -43,6 +43,11 @@ public partial class App : Application
     public static IServiceProvider Services => ((App)Current).host?.Services ?? throw new InvalidOperationException("Services not available");
 
     /// <summary>
+    /// Gets the main application window.
+    /// </summary>
+    public Window? MainWindow => this.window;
+
+    /// <summary>
     /// Invoked when the application is launched normally by the end user.  Other entry points
     /// will be used such as when the application is launched to open a specific file.
     /// </summary>
@@ -74,6 +79,10 @@ public partial class App : Application
             }
         }
 
+        // Initialize theme after window is set up
+        IThemeService themeService = Services.GetRequiredService<IThemeService>();
+        await themeService.InitializeAsync();
+
         this.window.Activate();
         this.window.AppWindow.Closing += this.OnAppWindowClosing;
     }
@@ -100,7 +109,7 @@ public partial class App : Application
 
         ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
         AppWindow appWindow = this.window!.AppWindow;
-        bool isMaximized = (appWindow.Presenter as OverlappedPresenter)?.State == OverlappedPresenterState.Maximized;
+        bool isMaximized = appWindow.Presenter is OverlappedPresenter presenter && presenter.State == OverlappedPresenterState.Maximized;
 
         // When maximized, preserve the previous non-maximized position; otherwise capture current position
         (int x, int y, int width, int height) = isMaximized

@@ -74,6 +74,41 @@ public class CountdownTimer
     public DateTime? EndTime { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to change the timer background color on completion.
+    /// </summary>
+    public bool EnableCompletionColor { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the background color to display when the timer completes (hex format).
+    /// </summary>
+    public string CompletionColor { get; set; } = "#4CAF50";
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to play an alarm sound on completion.
+    /// </summary>
+    public bool EnableAlarm { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the system sound to play when the timer completes.
+    /// </summary>
+    public string AlarmSound { get; set; } = "Alarm 01";
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to repeat the alarm sound.
+    /// </summary>
+    public bool EnableAlarmRepeat { get; set; }
+
+    /// <summary>
+    /// Gets or sets the interval in seconds between alarm repeats.
+    /// </summary>
+    public int AlarmRepeatIntervalSeconds { get; set; } = 10;
+
+    /// <summary>
+    /// Gets or sets the duration in minutes after which the alarm stops repeating.
+    /// </summary>
+    public int AlarmExpirationMinutes { get; set; } = 30;
+
+    /// <summary>
     /// Gets the progress percentage of the timer (0-100).
     /// </summary>
     public double ProgressPercentage => this.Duration.TotalSeconds > 0

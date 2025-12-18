@@ -16,17 +16,27 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly ITimerService timerService;
     private readonly ISettingsService settingsService;
+    private readonly IThemeService themeService;
+    private readonly IAudioService audioService;
     private bool isLoading = true;
+    private string currentTheme;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainViewModel"/> class.
     /// </summary>
     /// <param name="timerService">The timer service.</param>
     /// <param name="settingsService">The settings service.</param>
-    public MainViewModel(ITimerService timerService, ISettingsService settingsService)
+    /// <param name="themeService">The theme service.</param>
+    /// <param name="audioService">The audio service.</param>
+    public MainViewModel(ITimerService timerService, ISettingsService settingsService, IThemeService themeService, IAudioService audioService)
     {
         this.timerService = timerService;
         this.settingsService = settingsService;
+        this.themeService = themeService;
+        this.audioService = audioService;
+
+        this.currentTheme = themeService.CurrentTheme;
+        this.themeService.ThemeChanged += this.OnThemeChanged;
 
         this.Timers.CollectionChanged += this.Timers_CollectionChanged;
 
@@ -34,9 +44,31 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Gets the available theme options.
+    /// </summary>
+    public static IReadOnlyList<string> AvailableThemes { get; } = ["Light", "Dark", "System"];
+
+    /// <summary>
     /// Gets the collection of timer view models.
     /// </summary>
     public ObservableCollection<TimerViewModel> Timers { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the current theme.
+    /// </summary>
+    public string CurrentTheme
+    {
+        get => this.currentTheme;
+        set
+        {
+            if (this.SetProperty(ref this.currentTheme, value))
+            {
+                this.themeService.SetTheme(value);
+            }
+        }
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e) => this.CurrentTheme = this.themeService.CurrentTheme;
 
     private async Task LoadTimersAsync()
     {
@@ -84,7 +116,14 @@ public partial class MainViewModel : ObservableObject
             or nameof(TimerViewModel.Minutes)
             or nameof(TimerViewModel.Seconds)
             or nameof(TimerViewModel.IsRunning)
-            or nameof(TimerViewModel.IsPaused))
+            or nameof(TimerViewModel.IsPaused)
+            or nameof(TimerViewModel.EnableCompletionColor)
+            or nameof(TimerViewModel.CompletionColor)
+            or nameof(TimerViewModel.EnableAlarm)
+            or nameof(TimerViewModel.AlarmSound)
+            or nameof(TimerViewModel.EnableAlarmRepeat)
+            or nameof(TimerViewModel.AlarmRepeatIntervalSeconds)
+            or nameof(TimerViewModel.AlarmExpirationMinutes))
         {
             this.SaveTimers();
         }
@@ -105,7 +144,7 @@ public partial class MainViewModel : ObservableObject
 
     private void AddTimerInternal(CountdownTimer? model)
     {
-        TimerViewModel timerVm = new(this.timerService, model);
+        TimerViewModel timerVm = new(this.timerService, this.audioService, model);
         timerVm.RequestRemove += this.OnRemoveTimerRequested;
         this.Timers.Add(timerVm);
     }

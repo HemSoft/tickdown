@@ -3,6 +3,7 @@
 namespace TickDown.Views;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using TickDown.ViewModels;
@@ -52,4 +53,72 @@ public sealed partial class MainPage : Page
         _ = this.RootScrollViewer.ChangeView(null, null, this.RootScrollViewer.ZoomFactor + delta);
 
     private void ResetZoom() => _ = this.RootScrollViewer.ChangeView(null, null, 1.0f);
+
+    private void OnColorButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string colorHex)
+        {
+            FrameworkElement? element = button;
+            while (element != null && element.DataContext is not TimerViewModel)
+            {
+                element = element.Parent as FrameworkElement;
+            }
+
+            if (element?.DataContext is TimerViewModel timerVm)
+            {
+                timerVm.CompletionColor = colorHex;
+            }
+        }
+
+        // Touch a field to satisfy S2325 - XAML event handlers must be instance methods
+        _ = this.ViewModel;
+    }
+
+    private void OnCustomColorChanged(ColorPicker sender, ColorChangedEventArgs args)
+    {
+        FrameworkElement? element = sender;
+        while (element != null && element.DataContext is not TimerViewModel)
+        {
+            element = element.Parent as FrameworkElement;
+        }
+
+        if (element?.DataContext is TimerViewModel timerVm)
+        {
+            timerVm.CompletionColor = $"#{args.NewColor.R:X2}{args.NewColor.G:X2}{args.NewColor.B:X2}";
+        }
+
+        // Touch a field to satisfy CA1822 - XAML event handlers must be instance methods
+        _ = this.ViewModel;
+    }
+
+    private async void OnSelectSoundClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement element)
+        {
+            return;
+        }
+
+        FrameworkElement? parent = element;
+        while (parent != null && parent.DataContext is not TimerViewModel)
+        {
+            parent = parent.Parent as FrameworkElement;
+        }
+
+        if (parent?.DataContext is not TimerViewModel timerVm)
+        {
+            return;
+        }
+
+        SoundPickerDialog dialog = new()
+        {
+            XamlRoot = this.XamlRoot,
+            SelectedSound = timerVm.AlarmSound,
+        };
+
+        ContentDialogResult result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            timerVm.AlarmSound = dialog.SelectedSound;
+        }
+    }
 }

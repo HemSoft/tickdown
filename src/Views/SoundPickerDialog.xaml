@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="TickDown.Views.SoundPickerDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Select Alarm Sound"
+    PrimaryButtonText="OK"
+    SecondaryButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="15"
+            MinWidth="250">
+        <ListView x:Name="SoundListView"
+                  ItemsSource="{x:Bind AvailableSounds}"
+                  SelectedItem="{x:Bind SelectedSound, Mode=TwoWay}"
+                  SelectionMode="Single"
+                  MaxHeight="200">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <TextBlock Text="{x:Bind}"
+                            Padding="5"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <Button x:Name="PreviewButton"
+                Content="🔊 Preview"
+                Click="OnPreviewClick"
+                HorizontalAlignment="Center"/>
+    </StackPanel>
+</ContentDialog>

@@ -5,44 +5,64 @@ namespace TickDown.ViewModels;
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Timers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Media;
 using TickDown.Core.Models;
 using TickDown.Core.Services;
+using Windows.UI;
 
 /// <summary>
 /// View model for a single countdown timer.
 /// </summary>
-public partial class TimerViewModel : ObservableObject
+public sealed partial class TimerViewModel : ObservableObject, IDisposable
 {
     private static readonly Regex TimePattern = new(
         @"^(\d+(?:\.\d+)?)\s*(h|hours?|m|min|s|sec)?$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    private static readonly IReadOnlyList<string> PredefinedColorValues =
+    [
+        "#4CAF50", // Green
+        "#F44336", // Red
+        "#2196F3", // Blue
+        "#FFEB3B", // Yellow
+        "#FF9800", // Orange
+        "#9C27B0", // Purple
+    ];
+
     private readonly ITimerService timerService;
+    private readonly IAudioService audioService;
     private readonly DispatcherQueue dispatcher;
+    private readonly Timer? alarmRepeatTimer;
+
     private string timeDisplay = "00:05:00";
     private string name;
-    private bool isRunning = false;
-    private bool isPaused = false;
-    private double progressPercentage = 0;
+    private bool isRunning;
+    private bool isPaused;
+    private bool isCompleted;
+    private double progressPercentage;
     private string endTimeDisplay = string.Empty;
-    private bool isUpdatingTimeDisplay = false;
+    private bool isUpdatingTimeDisplay;
     private DateTimeOffset targetDate = DateTimeOffset.Now.Date;
     private TimeSpan targetTime = DateTime.Now.TimeOfDay.Add(TimeSpan.FromMinutes(5));
-    private int hours = 0;
+    private int hours;
     private int minutes = 5;
-    private int seconds = 0;
+    private int seconds;
+    private DateTime? alarmExpirationTime;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TimerViewModel"/> class.
     /// </summary>
     /// <param name="timerService">The timer service.</param>
+    /// <param name="audioService">The audio service.</param>
     /// <param name="model">The optional timer model to wrap.</param>
-    public TimerViewModel(ITimerService timerService, CountdownTimer? model = null)
+    public TimerViewModel(ITimerService timerService, IAudioService audioService, CountdownTimer? model = null)
     {
         this.timerService = timerService;
+        this.audioService = audioService;
         this.dispatcher = DispatcherQueue.GetForCurrentThread();
         this.Model = model ?? new CountdownTimer(TimeSpan.FromMinutes(5), "New Timer");
 
@@ -54,8 +74,13 @@ public partial class TimerViewModel : ObservableObject
             this.seconds = this.Model.Duration.Seconds;
         }
 
+        this.alarmRepeatTimer = new Timer();
+        this.alarmRepeatTimer.Elapsed += this.OnAlarmRepeatTimerElapsed;
+
         this.UpdateState();
         this.UpdateTimeDisplay();
+        this.UpdateCompletionBackground();
+        this.UpdateProgressBarColor();
 
         this.timerService.Tick += this.OnGlobalTick;
     }
@@ -69,6 +94,11 @@ public partial class TimerViewModel : ObservableObject
     /// Gets the minimum year for the date picker.
     /// </summary>
     public static DateTimeOffset MinYear => DateTimeOffset.Now;
+
+    /// <summary>
+    /// Gets the predefined completion colors.
+    /// </summary>
+    public static IReadOnlyList<string> PredefinedColors => PredefinedColorValues;
 
     /// <summary>
     /// Gets the underlying countdown timer model.
@@ -124,12 +154,18 @@ public partial class TimerViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Gets or sets the progress of the timer as a percentage (0-1).
+    /// Gets or sets the progress of the timer as a percentage (0-100).
     /// </summary>
     public double ProgressPercentage
     {
         get => this.progressPercentage;
-        set => this.SetProperty(ref this.progressPercentage, value);
+        set
+        {
+            if (this.SetProperty(ref this.progressPercentage, value))
+            {
+                this.UpdateProgressBarColor();
+            }
+        }
     }
 
     /// <summary>
@@ -204,6 +240,153 @@ public partial class TimerViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the timer has completed.
+    /// </summary>
+    public bool IsCompleted
+    {
+        get => this.isCompleted;
+        set
+        {
+            if (this.SetProperty(ref this.isCompleted, value))
+            {
+                this.UpdateCompletionBackground();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the available alarm sounds.
+    /// </summary>
+    public IReadOnlyList<string> AvailableSounds => this.audioService.AvailableSounds;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show completion color.
+    /// </summary>
+    public bool EnableCompletionColor
+    {
+        get => this.Model.EnableCompletionColor;
+        set
+        {
+            if (this.Model.EnableCompletionColor != value)
+            {
+                this.Model.EnableCompletionColor = value;
+                this.OnPropertyChanged();
+                this.UpdateCompletionBackground();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the completion color.
+    /// </summary>
+    public string CompletionColor
+    {
+        get => this.Model.CompletionColor;
+        set
+        {
+            if (this.Model.CompletionColor != value)
+            {
+                this.Model.CompletionColor = value;
+                this.OnPropertyChanged();
+                this.UpdateCompletionBackground();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to play an alarm sound.
+    /// </summary>
+    public bool EnableAlarm
+    {
+        get => this.Model.EnableAlarm;
+        set
+        {
+            if (this.Model.EnableAlarm != value)
+            {
+                this.Model.EnableAlarm = value;
+                this.OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the alarm sound.
+    /// </summary>
+    public string AlarmSound
+    {
+        get => this.Model.AlarmSound;
+        set
+        {
+            if (this.Model.AlarmSound != value)
+            {
+                this.Model.AlarmSound = value;
+                this.OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to repeat the alarm.
+    /// </summary>
+    public bool EnableAlarmRepeat
+    {
+        get => this.Model.EnableAlarmRepeat;
+        set
+        {
+            if (this.Model.EnableAlarmRepeat != value)
+            {
+                this.Model.EnableAlarmRepeat = value;
+                this.OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the alarm repeat interval in seconds.
+    /// </summary>
+    public int AlarmRepeatIntervalSeconds
+    {
+        get => this.Model.AlarmRepeatIntervalSeconds;
+        set
+        {
+            if (this.Model.AlarmRepeatIntervalSeconds != value)
+            {
+                this.Model.AlarmRepeatIntervalSeconds = value;
+                this.OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the alarm expiration time in minutes.
+    /// </summary>
+    public int AlarmExpirationMinutes
+    {
+        get => this.Model.AlarmExpirationMinutes;
+        set
+        {
+            if (this.Model.AlarmExpirationMinutes != value)
+            {
+                this.Model.AlarmExpirationMinutes = value;
+                this.OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the completion background brush.
+    /// </summary>
+    public Brush? CompletionBackgroundBrush { get; private set; }
+
+    /// <summary>
+    /// Gets the progress bar brush that transitions from red to green.
+    /// </summary>
+    public Brush ProgressBarBrush { get; private set; } = new SolidColorBrush(Color.FromArgb(255, 244, 67, 54));
+
+    /// <inheritdoc/>
+    public void Dispose() => this.alarmRepeatTimer?.Dispose();
+
     private static bool TryParseTime(string value, out TimeSpan result)
     {
         value = value.Trim();
@@ -253,6 +436,25 @@ public partial class TimerViewModel : ObservableObject
             _ when timeZoneName.Length > 3 => timeZoneName[..3].ToUpperInvariant(),
             _ => timeZoneName.ToUpperInvariant(),
         };
+    }
+
+    private static SolidColorBrush? CreateBrushFromHex(string hex)
+    {
+        if (string.IsNullOrEmpty(hex))
+        {
+            return null;
+        }
+
+        hex = hex.TrimStart('#');
+        if (hex.Length == 6)
+        {
+            byte r = Convert.ToByte(hex[..2], 16);
+            byte g = Convert.ToByte(hex[2..4], 16);
+            byte b = Convert.ToByte(hex[4..6], 16);
+            return new SolidColorBrush(Color.FromArgb(255, r, g, b));
+        }
+
+        return null;
     }
 
     private void OnNameChanged(string value) => this.Model.Name = value;
@@ -319,7 +521,9 @@ public partial class TimerViewModel : ObservableObject
     [RelayCommand]
     private void Stop()
     {
+        this.StopAlarmRepeat();
         this.Model.Stop();
+        this.IsCompleted = false;
         this.UpdateState();
         this.UpdateTimeDisplay();
     }
@@ -327,7 +531,9 @@ public partial class TimerViewModel : ObservableObject
     [RelayCommand]
     private void Reset()
     {
+        this.StopAlarmRepeat();
         this.Model.Reset();
+        this.IsCompleted = false;
         this.UpdateState();
         this.UpdateTimeDisplay();
     }
@@ -335,8 +541,17 @@ public partial class TimerViewModel : ObservableObject
     [RelayCommand]
     private void Remove()
     {
+        this.StopAlarmRepeat();
         this.timerService.Tick -= this.OnGlobalTick;
         this.RequestRemove?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void Dismiss()
+    {
+        this.StopAlarmRepeat();
+        this.IsCompleted = false;
+        this.UpdateCompletionBackground();
     }
 
     [RelayCommand]
@@ -392,14 +607,16 @@ public partial class TimerViewModel : ObservableObject
     {
         if (this.Model.State == TimerState.Running)
         {
+            TimerState previousState = this.Model.State;
             this.Model.Tick();
             _ = this.dispatcher.TryEnqueue(() =>
             {
                 this.UpdateTimeDisplay();
                 this.ProgressPercentage = this.Model.ProgressPercentage;
 
-                if (this.Model.State == TimerState.Completed)
+                if (this.Model.State == TimerState.Completed && previousState != TimerState.Completed)
                 {
+                    this.OnTimerCompleted();
                     this.UpdateState();
                 }
             });
@@ -416,7 +633,7 @@ public partial class TimerViewModel : ObservableObject
 
         this.TimeDisplay = timeToShow.TotalHours >= 24
             ? $"{(int)timeToShow.TotalHours}:{timeToShow.Minutes:D2}:{timeToShow.Seconds:D2}"
-            : timeToShow.ToString(@"hh\:mm\:ss");
+            : timeToShow.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture);
         this.isUpdatingTimeDisplay = false;
 
         this.UpdateEndTimeDisplay();
@@ -439,5 +656,81 @@ public partial class TimerViewModel : ObservableObject
     {
         this.IsRunning = this.Model.State == TimerState.Running;
         this.IsPaused = this.Model.State == TimerState.Paused;
+    }
+
+    private void OnTimerCompleted()
+    {
+        this.IsCompleted = true;
+
+        if (this.EnableAlarm)
+        {
+            this.audioService.PlaySound(this.AlarmSound);
+
+            if (this.EnableAlarmRepeat)
+            {
+                this.StartAlarmRepeat();
+            }
+        }
+    }
+
+    private void StartAlarmRepeat()
+    {
+        if (this.alarmRepeatTimer is null)
+        {
+            return;
+        }
+
+        this.alarmExpirationTime = DateTime.Now.AddMinutes(this.AlarmExpirationMinutes);
+        this.alarmRepeatTimer.Interval = this.AlarmRepeatIntervalSeconds * 1000;
+        this.alarmRepeatTimer.Start();
+    }
+
+    private void StopAlarmRepeat()
+    {
+        this.alarmRepeatTimer?.Stop();
+        this.alarmExpirationTime = null;
+    }
+
+    private void OnAlarmRepeatTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (this.alarmExpirationTime.HasValue && DateTime.Now >= this.alarmExpirationTime.Value)
+        {
+            _ = this.dispatcher.TryEnqueue(this.StopAlarmRepeat);
+            return;
+        }
+
+        if (this.IsCompleted && this.EnableAlarm)
+        {
+            this.audioService.PlaySound(this.AlarmSound);
+        }
+        else
+        {
+            _ = this.dispatcher.TryEnqueue(this.StopAlarmRepeat);
+        }
+    }
+
+    private void UpdateCompletionBackground()
+    {
+        this.CompletionBackgroundBrush = this.IsCompleted && this.EnableCompletionColor
+            ? CreateBrushFromHex(this.CompletionColor)
+            : null;
+
+        this.OnPropertyChanged(nameof(this.CompletionBackgroundBrush));
+    }
+
+    private void UpdateProgressBarColor()
+    {
+        // Progress goes from 100 (just started) to 0 (completed)
+        // Color transitions from red (0% progress remaining) to green (100% progress remaining)
+        // Red: RGB(244, 67, 54) - #F44336
+        // Green: RGB(76, 175, 80) - #4CAF50
+        double progress = this.progressPercentage / 100.0;
+
+        byte r = (byte)(244 + ((76 - 244) * progress));
+        byte g = (byte)(67 + ((175 - 67) * progress));
+        byte b = (byte)(54 + ((80 - 54) * progress));
+
+        this.ProgressBarBrush = new SolidColorBrush(Color.FromArgb(255, r, g, b));
+        this.OnPropertyChanged(nameof(this.ProgressBarBrush));
     }
 }

@@ -36,4 +36,9 @@ public class WindowSettings
     /// Gets or sets a value indicating whether the window is maximized.
     /// </summary>
     public bool IsMaximized { get; set; }
+
+    /// <summary>
+    /// Gets or sets the application theme. Valid values: "Light", "Dark", "System".
+    /// </summary>
+    public string Theme { get; set; } = "System";
 }

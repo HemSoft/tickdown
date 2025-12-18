@@ -20,6 +20,8 @@ public static class ServiceCollectionExtensions
     {
         _ = services.AddSingleton<ITimerService, TimerService>();
         _ = services.AddSingleton<ISettingsService, SettingsService>();
+        _ = services.AddSingleton<IThemeService, ThemeService>();
+        _ = services.AddSingleton<IAudioService, AudioService>();
         _ = services.AddTransient<MainViewModel>();
 
         return services;
