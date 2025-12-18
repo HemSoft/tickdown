@@ -1,189 +1,382 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page
-    x:Class="TickDown.Views.MainPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:TickDown"
-    xmlns:converters="using:TickDown.Converters"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+        x:Class="TickDown.Views.MainPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="using:TickDown"
+        xmlns:converters="using:TickDown.Converters"
+        xmlns:viewmodels="using:TickDown.ViewModels"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d">
 
-    <Page.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-    </Page.Resources>
-    <Page.Content>
-        <Grid Padding="40">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Page.Resources>
+                <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
-            <!-- Header -->
-            <StackPanel Grid.Row="0"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Margin="0,0,0,40">
-                <TextBlock Text="⏱️"
-                        FontSize="32"
-                        VerticalAlignment="Center"
-                        Margin="0,0,10,0"/>
-                <TextBlock Text="TickDown Timer"
-                        FontSize="32"
-                        FontWeight="Bold"
-                        VerticalAlignment="Center"/>
-            </StackPanel>
+                <DataTemplate x:Key="TimerTemplate"
+                              x:DataType="viewmodels:TimerViewModel">
+                        <Grid Width="380"
+                              Margin="10"
+                              BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}"
+                              BorderThickness="1"
+                              CornerRadius="8"
+                              Padding="20"
+                              Background="{Binding CompletionBackgroundBrush, TargetNullValue={ThemeResource SystemControlBackgroundAltHighBrush}}">
+                                <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-            <!-- Main Timer Display -->
-            <Grid Grid.Row="1"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                                <!-- Header with Name and Close Button -->
+                                <Grid Grid.Row="0"
+                                      Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding Name, Mode=TwoWay}"
+                                                 FontSize="18"
+                                                 PlaceholderText="Timer Name"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"/>
+                                        <Button Grid.Column="1"
+                                                Content="❌"
+                                                Command="{Binding RemoveCommand}"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Margin="5,0,0,0"/>
+                                </Grid>
 
-                <!-- Timer Name -->
-                <TextBox Grid.Row="0"
-                         Text="{Binding TimerName, Mode=TwoWay}"
-                         FontSize="20"
-                         HorizontalAlignment="Center"
-                         Width="300"
-                         PlaceholderText="Timer Name"/>
+                                <!-- Timer Display -->
+                                <TextBox Grid.Row="1"
+                                         Text="{Binding TimeDisplay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         FontSize="56"
+                                         FontWeight="Bold"
+                                         HorizontalAlignment="Center"
+                                         FontFamily="Consolas"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         HorizontalContentAlignment="Center"
+                                         IsReadOnly="{Binding IsRunning, Mode=OneWay}"
+                                         Margin="0,10,0,0"/>
 
-                <!-- Timer Display -->
-                <TextBlock Grid.Row="2"
-                           Text="{Binding TimeDisplay, Mode=OneWay}"
-                           FontSize="72"
-                           FontWeight="Bold"
-                           HorizontalAlignment="Center"
-                           FontFamily="Consolas"/>
+                                <!-- End Time Display -->
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding EndTimeDisplay, Mode=OneWay}"
+                                           FontSize="11"
+                                           Opacity="0.6"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Bottom"
+                                           Margin="0,0,0,-5"/>
 
-                <!-- Progress Bar -->
-                <ProgressBar Grid.Row="4"
-                             Value="{Binding ProgressPercentage, Mode=OneWay}"
-                             Maximum="100"
-                             Width="400"
-                             Height="8"/>
-            </Grid>
+                                <!-- Progress Bar -->
+                                <ProgressBar Grid.Row="2"
+                                             Value="{Binding ProgressPercentage, Mode=OneWay}"
+                                             Maximum="100"
+                                             Height="6"
+                                             Margin="0,10,0,20"
+                                             Foreground="{Binding ProgressBarBrush, Mode=OneWay}"/>
 
-            <!-- Time Input Controls -->
-            <StackPanel Grid.Row="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Spacing="20"
-                        Margin="0,40,0,20"
-                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+                                <!-- Controls -->
+                                <StackPanel Grid.Row="3"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            Spacing="10"
+                                            Margin="0,0,0,20">
+                                        <Button Command="{Binding StartCommand}"
+                                                Content="▶️ Start"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                                        <Button Command="{Binding PauseCommand}"
+                                                Content="⏸️ Pause"
+                                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        <Button Command="{Binding StopCommand}"
+                                                Content="⏹️ Stop"/>
+                                        <Button Command="{Binding ResetCommand}"
+                                                Content="🔄 Reset"/>
+                                        <Button Command="{Binding DismissCommand}"
+                                                Content="✅ Dismiss"
+                                                Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Style="{StaticResource AccentButtonStyle}"/>
+                                </StackPanel>
 
-                <!-- Hours -->
-                <StackPanel Orientation="Vertical"
-                        Spacing="5">
-                    <TextBlock Text="Hours"
-                            HorizontalAlignment="Center"
-                            FontSize="14"
-                            Opacity="0.8"/>
-                    <NumberBox Value="{Binding Hours, Mode=TwoWay}"
-                               Minimum="0"
-                               Maximum="23"
-                               Width="80"/>
-                </StackPanel>
+                                <!-- Quick Timers -->
+                                <StackPanel Grid.Row="4"
+                                            Orientation="Vertical"
+                                            Spacing="5">
+                                        <TextBlock Text="Quick Set"
+                                                   FontSize="12"
+                                                   Opacity="0.7"
+                                                   HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    Spacing="5">
+                                                <Button Content="1m"
+                                                        Command="{Binding SetQuickTimeCommand}"
+                                                        CommandParameter="1min"
+                                                        FontSize="12"
+                                                        Padding="8,4"/>
+                                                <Button Content="5m"
+                                                        Command="{Binding SetQuickTimeCommand}"
+                                                        CommandParameter="5min"
+                                                        FontSize="12"
+                                                        Padding="8,4"/>
+                                                <Button Content="10m"
+                                                        Command="{Binding SetQuickTimeCommand}"
+                                                        CommandParameter="10min"
+                                                        FontSize="12"
+                                                        Padding="8,4"/>
+                                                <Button Content="15m"
+                                                        Command="{Binding SetQuickTimeCommand}"
+                                                        CommandParameter="15min"
+                                                        FontSize="12"
+                                                        Padding="8,4"/>
+                                                <Button Content="🎯"
+                                                        ToolTipService.ToolTip="Pick end date/time"
+                                                        FontSize="12"
+                                                        Padding="8,4">
+                                                        <Button.Flyout>
+                                                                <Flyout Placement="Top">
+                                                                        <StackPanel Spacing="10"
+                                                                                    Padding="5">
+                                                                                <TextBlock Text="Set End Time"
+                                                                                           FontWeight="SemiBold"/>
+                                                                                <DatePicker x:Name="EndDatePicker"
+                                                                                            Date="{Binding TargetDate, Mode=TwoWay}"
+                                                                                            MinYear="{Binding MinYear}"/>
+                                                                                <TimePicker x:Name="EndTimePicker"
+                                                                                            Time="{Binding TargetTime, Mode=TwoWay}"
+                                                                                            ClockIdentifier="12HourClock"/>
+                                                                                <Button Content="Set Timer"
+                                                                                        Command="{Binding SetEndTimeCommand}"
+                                                                                        Style="{StaticResource AccentButtonStyle}"
+                                                                                        HorizontalAlignment="Stretch"/>
+                                                                        </StackPanel>
+                                                                </Flyout>
+                                                        </Button.Flyout>
+                                                </Button>
+                                                <Button Content="⚙️"
+                                                        ToolTipService.ToolTip="Timer completion settings"
+                                                        FontSize="12"
+                                                        Padding="8,4">
+                                                        <Button.Flyout>
+                                                                <Flyout Placement="Top">
+                                                                        <StackPanel Spacing="8"
+                                                                                    Padding="5"
+                                                                                    MinWidth="280">
+                                                                                <TextBlock Text="When Timer Completes"
+                                                                                           FontSize="12"
+                                                                                           FontWeight="SemiBold"
+                                                                                           Opacity="0.8"/>
 
-                <!-- Minutes -->
-                <StackPanel Orientation="Vertical"
-                        Spacing="5">
-                    <TextBlock Text="Minutes"
-                            HorizontalAlignment="Center"
-                            FontSize="14"
-                            Opacity="0.8"/>
-                    <NumberBox Value="{Binding Minutes, Mode=TwoWay}"
-                               Minimum="0"
-                               Maximum="59"
-                               Width="80"/>
-                </StackPanel>
+                                                                                <!-- Color Change -->
+                                                                                <Grid>
+                                                                                        <Grid.ColumnDefinitions>
+                                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                                <ColumnDefinition Width="*"/>
+                                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                        </Grid.ColumnDefinitions>
+                                                                                        <CheckBox Grid.Column="0"
+                                                                                                  Content="Change color"
+                                                                                                  IsChecked="{Binding EnableCompletionColor, Mode=TwoWay}"
+                                                                                                  FontSize="12"/>
+                                                                                        <Button Grid.Column="2"
+                                                                                                Padding="4"
+                                                                                                MinWidth="32"
+                                                                                                MinHeight="32"
+                                                                                                ToolTipService.ToolTip="Select color"
+                                                                                                IsEnabled="{Binding EnableCompletionColor}">
+                                                                                                <Border Width="20"
+                                                                                                        Height="20"
+                                                                                                        CornerRadius="4">
+                                                                                                        <Border.Background>
+                                                                                                                <SolidColorBrush Color="{Binding CompletionColor}"/>
+                                                                                                        </Border.Background>
+                                                                                                </Border>
+                                                                                                <Button.Flyout>
+                                                                                                        <Flyout Placement="Top">
+                                                                                                                <StackPanel Spacing="10"
+                                                                                                                            Padding="5">
+                                                                                                                        <TextBlock Text="Select Color"
+                                                                                                                                   FontWeight="SemiBold"/>
+                                                                                                                        <ItemsControl ItemsSource="{Binding PredefinedColors}">
+                                                                                                                                <ItemsControl.ItemsPanel>
+                                                                                                                                        <ItemsPanelTemplate>
+                                                                                                                                                <StackPanel Orientation="Horizontal"
+                                                                                                                                                            Spacing="5"/>
+                                                                                                                                        </ItemsPanelTemplate>
+                                                                                                                                </ItemsControl.ItemsPanel>
+                                                                                                                                <ItemsControl.ItemTemplate>
+                                                                                                                                        <DataTemplate x:DataType="x:String">
+                                                                                                                                                <Button Padding="4"
+                                                                                                                                                        MinWidth="32"
+                                                                                                                                                        MinHeight="32"
+                                                                                                                                                        Tag="{x:Bind}"
+                                                                                                                                                        Click="OnColorButtonClick">
+                                                                                                                                                        <Border Width="20"
+                                                                                                                                                                Height="20"
+                                                                                                                                                                CornerRadius="4">
+                                                                                                                                                                <Border.Background>
+                                                                                                                                                                        <SolidColorBrush Color="{x:Bind}"/>
+                                                                                                                                                                </Border.Background>
+                                                                                                                                                        </Border>
+                                                                                                                                                </Button>
+                                                                                                                                        </DataTemplate>
+                                                                                                                                </ItemsControl.ItemTemplate>
+                                                                                                                        </ItemsControl>
+                                                                                                                        <ColorPicker x:Name="CustomColorPicker"
+                                                                                                                                     ColorSpectrumShape="Ring"
+                                                                                                                                     IsMoreButtonVisible="False"
+                                                                                                                                     IsColorSliderVisible="True"
+                                                                                                                                     IsColorChannelTextInputVisible="False"
+                                                                                                                                     IsHexInputVisible="True"
+                                                                                                                                     ColorChanged="OnCustomColorChanged"/>
+                                                                                                                </StackPanel>
+                                                                                                        </Flyout>
+                                                                                                </Button.Flyout>
+                                                                                        </Button>
+                                                                                </Grid>
 
-                <!-- Seconds -->
-                <StackPanel Orientation="Vertical"
-                        Spacing="5">
-                    <TextBlock Text="Seconds"
-                            HorizontalAlignment="Center"
-                            FontSize="14"
-                            Opacity="0.8"/>
-                    <NumberBox Value="{Binding Seconds, Mode=TwoWay}"
-                               Minimum="0"
-                               Maximum="59"
-                               Width="80"/>
-                </StackPanel>
-            </StackPanel>
+                                                                                <!-- Alarm Sound -->
+                                                                                <Grid>
+                                                                                        <Grid.ColumnDefinitions>
+                                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                                <ColumnDefinition Width="*"/>
+                                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                        </Grid.ColumnDefinitions>
+                                                                                        <CheckBox Grid.Column="0"
+                                                                                                  Content="Play alarm"
+                                                                                                  IsChecked="{Binding EnableAlarm, Mode=TwoWay}"
+                                                                                                  FontSize="12"/>
+                                                                                        <Button Grid.Column="2"
+                                                                                                Content="{Binding AlarmSound}"
+                                                                                                FontSize="11"
+                                                                                                Padding="8,4"
+                                                                                                IsEnabled="{Binding EnableAlarm}"
+                                                                                                Click="OnSelectSoundClick"/>
+                                                                                </Grid>
 
-            <!-- Control Buttons and Quick Timers -->
-            <StackPanel Grid.Row="3"
-                    Spacing="20">
+                                                                                <!-- Repeat Alarm -->
+                                                                                <StackPanel Orientation="Vertical"
+                                                                                            Spacing="5"
+                                                                                            Visibility="{Binding EnableAlarm, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                        <CheckBox Content="Repeat alarm"
+                                                                                                  IsChecked="{Binding EnableAlarmRepeat, Mode=TwoWay}"
+                                                                                                  FontSize="12"/>
+                                                                                        <StackPanel Orientation="Horizontal"
+                                                                                                    Spacing="10"
+                                                                                                    Margin="28,0,0,0"
+                                                                                                    Visibility="{Binding EnableAlarmRepeat, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                                <StackPanel Orientation="Horizontal"
+                                                                                                            Spacing="5">
+                                                                                                        <TextBlock Text="Every"
+                                                                                                                   FontSize="11"
+                                                                                                                   VerticalAlignment="Center"/>
+                                                                                                        <NumberBox Value="{Binding AlarmRepeatIntervalSeconds, Mode=TwoWay}"
+                                                                                                                   Minimum="5"
+                                                                                                                   Maximum="300"
+                                                                                                                   SpinButtonPlacementMode="Compact"
+                                                                                                                   FontSize="11"
+                                                                                                                   MinWidth="70"/>
+                                                                                                        <TextBlock Text="sec"
+                                                                                                                   FontSize="11"
+                                                                                                                   VerticalAlignment="Center"/>
+                                                                                                </StackPanel>
+                                                                                                <StackPanel Orientation="Horizontal"
+                                                                                                            Spacing="5">
+                                                                                                        <TextBlock Text="for"
+                                                                                                                   FontSize="11"
+                                                                                                                   VerticalAlignment="Center"/>
+                                                                                                        <NumberBox Value="{Binding AlarmExpirationMinutes, Mode=TwoWay}"
+                                                                                                                   Minimum="1"
+                                                                                                                   Maximum="120"
+                                                                                                                   SpinButtonPlacementMode="Compact"
+                                                                                                                   FontSize="11"
+                                                                                                                   MinWidth="70"/>
+                                                                                                        <TextBlock Text="min"
+                                                                                                                   FontSize="11"
+                                                                                                                   VerticalAlignment="Center"/>
+                                                                                                </StackPanel>
+                                                                                        </StackPanel>
+                                                                                </StackPanel>
+                                                                        </StackPanel>
+                                                                </Flyout>
+                                                        </Button.Flyout>
+                                                </Button>
+                                        </StackPanel>
+                                </StackPanel>
+                        </Grid>
+                </DataTemplate>
+        </Page.Resources>
 
-                <!-- Timer Control Buttons -->
-                <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Spacing="15">
-                    <Button Command="{Binding StartTimerCommand}"
-                            Content="▶️ Start"
-                            Style="{StaticResource AccentButtonStyle}"
-                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+        <ScrollViewer x:Name="RootScrollViewer"
+                      ZoomMode="Enabled"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      MinZoomFactor="0.1"
+                      MaxZoomFactor="4.0">
+                <Grid Padding="20">
+                        <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                    <Button Command="{Binding PauseTimerCommand}"
-                            Content="⏸️ Pause"
-                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <!-- Header -->
+                        <Grid Grid.Row="0"
+                              Margin="0,0,0,20">
+                                <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                    <Button Command="{Binding StopTimerCommand}"
-                            Content="⏹️ Stop"/>
+                                <!-- Spacer for centering -->
+                                <Border Grid.Column="0"/>
 
-                    <Button Command="{Binding ResetTimerCommand}"
-                            Content="🔄 Reset"/>
-                </StackPanel>
+                                <!-- Centered Title and Add Button -->
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            Spacing="20">
+                                        <StackPanel Orientation="Horizontal"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="⏱️"
+                                                           FontSize="24"
+                                                           Margin="0,0,10,0"/>
+                                                <TextBlock Text="TickDown"
+                                                           FontSize="24"
+                                                           FontWeight="Bold"/>
+                                        </StackPanel>
+                                        <Button Command="{Binding AddTimerCommand}"
+                                                Content="➕ Add Timer"
+                                                Style="{StaticResource AccentButtonStyle}"/>
+                                </StackPanel>
 
-                <!-- Quick Timer Buttons -->
-                <TextBlock Text="Quick Timers"
-                        HorizontalAlignment="Center"
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Margin="0,20,0,10"/>
-                <StackPanel HorizontalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="5">
-                    <Button Command="{Binding SetQuickTimerCommand}"
-                            CommandParameter="1min"
-                            Content="1 min"
-                            Margin="5"/>
-                    <Button Command="{Binding SetQuickTimerCommand}"
-                            CommandParameter="5min"
-                            Content="5 min"
-                            Margin="5"/>
-                    <Button Command="{Binding SetQuickTimerCommand}"
-                            CommandParameter="10min"
-                            Content="10 min"
-                            Margin="5"/>
-                </StackPanel>
-                <StackPanel HorizontalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="5"
-                        Margin="0,5,0,0">
-                    <Button Command="{Binding SetQuickTimerCommand}"
-                            CommandParameter="15min"
-                            Content="15 min"
-                            Margin="5"/>
-                    <Button Command="{Binding SetQuickTimerCommand}"
-                            CommandParameter="30min"
-                            Content="30 min"
-                            Margin="5"/>
-                    <Button Command="{Binding SetQuickTimerCommand}"
-                            CommandParameter="1hour"
-                            Content="1 hour"
-                            Margin="5"/>
-                </StackPanel>
-            </StackPanel>
-        </Grid>
-    </Page.Content>
+                                <!-- Theme Toggle (right-aligned) -->
+                                <ComboBox Grid.Column="2"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          ItemsSource="{Binding AvailableThemes}"
+                                          SelectedItem="{Binding CurrentTheme, Mode=TwoWay}"
+                                          MinWidth="100"/>
+                        </Grid>
+
+                        <!-- Timers List -->
+                        <ItemsControl Grid.Row="1"
+                                      ItemsSource="{Binding Timers}"
+                                      ItemTemplate="{StaticResource TimerTemplate}">
+                                <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal"
+                                                            HorizontalAlignment="Center"
+                                                            Spacing="20"/>
+                                        </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                </Grid>
+        </ScrollViewer>
 </Page>

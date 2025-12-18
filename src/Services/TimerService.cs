@@ -1,96 +1,36 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Services;
 
 using System.Timers;
-using TickDown.Core.Models;
-using TickDown.Core.Services;
+using global::TickDown.Core.Services;
 
-public class TimerService : ITimerService
+/// <summary>
+/// Service that provides a global timer tick.
+/// </summary>
+public sealed class TimerService : ITimerService
 {
-    private readonly Timer _timer;
-    private CountdownTimer? _currentTimer;
+    private readonly Timer timer;
 
-    public event EventHandler<CountdownTimer>? TimerTick;
-    public event EventHandler<CountdownTimer>? TimerCompleted;
-
-    public CountdownTimer? CurrentTimer => _currentTimer;
-    public bool IsRunning => _currentTimer?.State == TimerState.Running;
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TimerService"/> class.
+    /// </summary>
     public TimerService()
     {
-        _timer = new Timer(100); // Update every 100ms for smooth progress
-        _timer.Elapsed += OnTimerElapsed;
-        _currentTimer = null; // Start with no timer
+        this.timer = new Timer(100);
+        this.timer.Elapsed += this.OnTimerElapsed;
+        this.timer.Start();
     }
 
-    public void SetTimer(TimeSpan duration, string name = "")
-    {
-        _timer.Stop();
-        _currentTimer = new CountdownTimer(duration, name);
-    }
+    /// <summary>
+    /// Occurs when the timer interval has elapsed.
+    /// </summary>
+    public event EventHandler? Tick;
 
-    public void Start()
-    {
-        if (_currentTimer == null)
-        {
-            return;
-        }
+    /// <summary>
+    /// Disposes the timer resources.
+    /// </summary>
+    public void Dispose() => this.timer?.Dispose();
 
-        // Only start if the timer is in a startable state
-        if (_currentTimer.State == TimerState.Stopped || _currentTimer.State == TimerState.Paused)
-        {
-            _currentTimer.Start();
-            _timer.Start();
-        }
-    }
-
-    public void Pause()
-    {
-        if (_currentTimer?.State != TimerState.Running)
-        {
-            return;
-        }
-
-        _timer.Stop();
-        _currentTimer.Pause();
-    }
-
-    public void Stop()
-    {
-        _timer.Stop();
-        _currentTimer?.Stop();
-    }
-
-    public void Reset()
-    {
-        _timer.Stop();
-        _currentTimer?.Reset();
-    }
-
-    public void SetDuration(TimeSpan duration)
-    {
-        _currentTimer?.SetDuration(duration);
-    }
-
-    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        if (_currentTimer == null)
-        {
-            _timer.Stop();
-            return;
-        }
-
-        _currentTimer.Tick();
-        TimerTick?.Invoke(this, _currentTimer);
-
-        if (_currentTimer.State == TimerState.Completed)
-        {
-            _timer.Stop();
-            TimerCompleted?.Invoke(this, _currentTimer);
-        }
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
-    }
+    private void OnTimerElapsed(object? sender, ElapsedEventArgs e) => this.Tick?.Invoke(this, EventArgs.Empty);
 }

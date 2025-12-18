@@ -1,66 +1,131 @@
+// Copyright © 2025 HemSoft
+
+namespace TickDown;
+
+using global::TickDown.Core.Models;
+using global::TickDown.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using TickDown.Services;
 using TickDown.Views;
+using Windows.Graphics;
 
-namespace TickDown
+/// <summary>
+/// Provides application-specific behavior to supplement the default Application class.
+/// </summary>
+public partial class App : Application
 {
+    private readonly IHost? host;
+    private Window? window;
+    private bool isExitQueued;
+
     /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
+    /// Initializes a new instance of the <see cref="App"/> class.
+    /// Initializes the singleton application object.  This is the first line of authored code
+    /// executed, and as such is the logical equivalent of main() or WinMain().
     /// </summary>
-    public partial class App : Application
+    public App()
     {
-        private Window? _window;
-        private IHost? _host;
+        this.InitializeComponent();
 
-        public static IServiceProvider Services => ((App)Current)._host?.Services ?? throw new InvalidOperationException("Services not available");
+        this.host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services => _ = services.AddAppServices())
+            .Build();
+    }
 
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        public App()
+    /// <summary>
+    /// Gets the current <see cref="IServiceProvider"/> instance to resolve application services.
+    /// </summary>
+    public static IServiceProvider Services => ((App)Current).host?.Services ?? throw new InvalidOperationException("Services not available");
+
+    /// <summary>
+    /// Gets the main application window.
+    /// </summary>
+    public Window? MainWindow => this.window;
+
+    /// <summary>
+    /// Invoked when the application is launched normally by the end user.  Other entry points
+    /// will be used such as when the application is launched to open a specific file.
+    /// </summary>
+    /// <param name="args">Details about the launch request and process.</param>
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        this.window ??= new Window();
+        this.window.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets/app.ico"));
+
+        if (this.window.Content is not Frame rootFrame)
         {
-            this.InitializeComponent();
-
-            // Set up dependency injection
-            _host = Host.CreateDefaultBuilder()
-                .ConfigureServices(services =>
-                {
-                    services.AddAppServices();
-                })
-                .Build();
+            rootFrame = new Frame();
+            rootFrame.NavigationFailed += OnNavigationFailed;
+            this.window.Content = rootFrame;
         }
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
-        {
-            _window ??= new Window();
+        _ = rootFrame.Navigate(typeof(MainPage), args.Arguments);
 
-            if (_window.Content is not Frame rootFrame)
+        ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
+        WindowSettings? settings = await settingsService.LoadWindowSettingsAsync();
+        if (settings is not null)
+        {
+            AppWindow appWindow = this.window.AppWindow;
+            appWindow.MoveAndResize(new RectInt32(settings.X, settings.Y, settings.Width, settings.Height));
+
+            if (settings.IsMaximized)
             {
-                rootFrame = new Frame();
-                rootFrame.NavigationFailed += OnNavigationFailed;
-                _window.Content = rootFrame;
+                ((OverlappedPresenter)appWindow.Presenter).Maximize();
             }
-
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
-            _window.Activate();
         }
 
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+        // Initialize theme after window is set up
+        IThemeService themeService = Services.GetRequiredService<IThemeService>();
+        await themeService.InitializeAsync();
+
+        this.window.Activate();
+        this.window.AppWindow.Closing += this.OnAppWindowClosing;
+    }
+
+    private static void OnNavigationFailed(object sender, NavigationFailedEventArgs e) =>
+        throw new InvalidOperationException("Failed to load Page " + e.SourcePageType.FullName);
+
+    private static async Task<(int X, int Y, int Width, int Height)> GetSavedOrDefaultPositionAsync(ISettingsService settingsService)
+    {
+        WindowSettings? existing = await settingsService.LoadWindowSettingsAsync();
+        return existing is not null
+            ? (existing.X, existing.Y, existing.Width, existing.Height)
+            : (100, 100, 800, 600);
+    }
+
+    private async void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (this.isExitQueued)
         {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+            return;
         }
+
+        args.Cancel = true;
+
+        ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
+        AppWindow appWindow = this.window!.AppWindow;
+        bool isMaximized = appWindow.Presenter is OverlappedPresenter presenter && presenter.State == OverlappedPresenterState.Maximized;
+
+        // When maximized, preserve the previous non-maximized position; otherwise capture current position
+        (int x, int y, int width, int height) = isMaximized
+            ? await GetSavedOrDefaultPositionAsync(settingsService)
+            : (appWindow.Position.X, appWindow.Position.Y, appWindow.Size.Width, appWindow.Size.Height);
+
+        await settingsService.SaveWindowSettingsAsync(new WindowSettings
+        {
+            IsMaximized = isMaximized,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+        });
+
+        this.isExitQueued = true;
+        this.window.Close();
     }
 }

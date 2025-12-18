@@ -17,7 +17,7 @@
   <Properties>
     <DisplayName>TickDown</DisplayName>
     <PublisherDisplayName>User Name</PublisherDisplayName>
-    <Logo>Assets\StoreLogo.png</Logo>
+    <Logo>Assets\SandTimer.svg</Logo>
   </Properties>
 
   <Dependencies>
@@ -37,10 +37,10 @@
         DisplayName="TickDown"
         Description="TickDown"
         BackgroundColor="transparent"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        Square150x150Logo="Assets\SandTimer.svg"
+        Square44x44Logo="Assets\SandTimer.svg">
+        <uap:DefaultTile Wide310x150Logo="Assets\SandTimer.svg" />
+        <uap:SplashScreen Image="Assets\SandTimer.svg" />
       </uap:VisualElements>
     </Application>
   </Applications>

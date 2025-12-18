@@ -1,19 +1,14 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.Core.Services;
 
-using TickDown.Core.Models;
-
-public interface ITimerService
+/// <summary>
+/// Service interface for providing timer tick events.
+/// </summary>
+public interface ITimerService : IDisposable
 {
-    public event EventHandler<CountdownTimer>? TimerTick;
-    public event EventHandler<CountdownTimer>? TimerCompleted;
-
-    public CountdownTimer? CurrentTimer { get; }
-    public bool IsRunning { get; }
-
-    public void SetTimer(TimeSpan duration, string name = "");
-    public void Start();
-    public void Pause();
-    public void Stop();
-    public void Reset();
-    public void SetDuration(TimeSpan duration);
+    /// <summary>
+    /// Occurs when the timer interval has elapsed.
+    /// </summary>
+    event EventHandler? Tick;
 }

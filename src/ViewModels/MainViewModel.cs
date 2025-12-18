@@ -1,208 +1,160 @@
+// Copyright © 2025 HemSoft
+
 namespace TickDown.ViewModels;
 
-using Microsoft.UI.Dispatching;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TickDown.Core.Models;
-using TickDown.Core.Services;
+using global::TickDown.Core.Models;
+using global::TickDown.Core.Services;
 
+/// <summary>
+/// The main view model for the application, managing the collection of timers.
+/// </summary>
 public partial class MainViewModel : ObservableObject
 {
-    private readonly ITimerService _timerService;
-    private readonly DispatcherQueue _dispatcher;
+    private readonly ITimerService timerService;
+    private readonly ISettingsService settingsService;
+    private readonly IThemeService themeService;
+    private readonly IAudioService audioService;
+    private bool isLoading = true;
+    private string currentTheme;
 
-    [ObservableProperty]
-    private string _timeDisplay = "00:00:00";
-
-    [ObservableProperty]
-    private string _timerName = "Timer";
-
-    [ObservableProperty]
-    private bool _isRunning = false;
-
-    [ObservableProperty]
-    private bool _isPaused = false;
-
-    [ObservableProperty]
-    private double _progressPercentage = 0;
-
-    [ObservableProperty]
-    private int _hours = 0;
-
-    [ObservableProperty]
-    private int _minutes = 5;
-
-    [ObservableProperty]
-    private int _seconds = 0;
-
-    public MainViewModel(ITimerService timerService)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainViewModel"/> class.
+    /// </summary>
+    /// <param name="timerService">The timer service.</param>
+    /// <param name="settingsService">The settings service.</param>
+    /// <param name="themeService">The theme service.</param>
+    /// <param name="audioService">The audio service.</param>
+    public MainViewModel(ITimerService timerService, ISettingsService settingsService, IThemeService themeService, IAudioService audioService)
     {
-        _timerService = timerService;
-        // Capture the UI thread dispatcher at construction time (we're on UI thread here)
-        _dispatcher = DispatcherQueue.GetForCurrentThread();
-        _timerService.TimerTick += OnTimerTick;
-        _timerService.TimerCompleted += OnTimerCompleted;
+        this.timerService = timerService;
+        this.settingsService = settingsService;
+        this.themeService = themeService;
+        this.audioService = audioService;
 
-        UpdateTimeDisplay();
+        this.currentTheme = themeService.CurrentTheme;
+        this.themeService.ThemeChanged += this.OnThemeChanged;
+
+        this.Timers.CollectionChanged += this.Timers_CollectionChanged;
+
+        _ = this.LoadTimersAsync();
     }
 
-    [RelayCommand]
-    private void StartTimer()
+    /// <summary>
+    /// Gets the available theme options.
+    /// </summary>
+    public static IReadOnlyList<string> AvailableThemes { get; } = ["Light", "Dark", "System"];
+
+    /// <summary>
+    /// Gets the collection of timer view models.
+    /// </summary>
+    public ObservableCollection<TimerViewModel> Timers { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the current theme.
+    /// </summary>
+    public string CurrentTheme
     {
-        // Simple test: just change the timer name to verify command is working
-        TimerName = "Timer Started!";
-
-        // Force start button behavior regardless of state
-        var duration = new TimeSpan(Hours, Minutes, Seconds);
-
-        // If no duration is set, default to 5 minutes
-        if (duration.TotalSeconds <= 0)
+        get => this.currentTheme;
+        set
         {
-            duration = TimeSpan.FromMinutes(5);
-            Minutes = 5;
-            Hours = 0;
-            Seconds = 0;
-        }
-
-        // Always create a new timer
-        _timerService.SetTimer(duration, TimerName);
-        _timerService.Start();
-
-        UpdateState();
-        UpdateTimeDisplay();
-    }
-
-    [RelayCommand]
-    private void PauseTimer()
-    {
-        _timerService.Pause();
-        UpdateState();
-    }
-
-    [RelayCommand]
-    private void StopTimer()
-    {
-        _timerService.Stop();
-        UpdateState();
-        UpdateTimeDisplay();
-    }
-
-    [RelayCommand]
-    private void ResetTimer()
-    {
-        _timerService.Reset();
-        UpdateState();
-        UpdateTimeDisplay();
-    }
-
-    [RelayCommand]
-    private void SetQuickTimer(object parameter)
-    {
-        if (parameter is string timeStr)
-        {
-            switch (timeStr)
+            if (this.SetProperty(ref this.currentTheme, value))
             {
-                case "1min":
-                    SetTimer(0, 1, 0);
-                    break;
-                case "5min":
-                    SetTimer(0, 5, 0);
-                    break;
-                case "10min":
-                    SetTimer(0, 10, 0);
-                    break;
-                case "15min":
-                    SetTimer(0, 15, 0);
-                    break;
-                case "30min":
-                    SetTimer(0, 30, 0);
-                    break;
-                case "1hour":
-                    SetTimer(1, 0, 0);
-                    break;
+                this.themeService.SetTheme(value);
             }
         }
     }
 
-    private void SetTimer(int hours, int minutes, int seconds)
-    {
-        Hours = hours;
-        Minutes = minutes;
-        Seconds = seconds;
+    private void OnThemeChanged(object? sender, EventArgs e) => this.CurrentTheme = this.themeService.CurrentTheme;
 
-        var duration = new TimeSpan(hours, minutes, seconds);
-        _timerService.SetTimer(duration, TimerName);
-        UpdateTimeDisplay();
-    }
-
-    private void OnTimerTick(object? sender, CountdownTimer timer)
+    private async Task LoadTimersAsync()
     {
-        // Update on UI thread
-        _dispatcher.TryEnqueue(() =>
+        IEnumerable<CountdownTimer> timers = await this.settingsService.LoadTimersAsync();
+        if (timers.Any())
         {
-            UpdateTimeDisplay();
-            ProgressPercentage = timer.ProgressPercentage;
-            UpdateState();
-        });
-    }
-
-    private void OnTimerCompleted(object? sender, CountdownTimer timer)
-    {
-        // Update on UI thread
-        _dispatcher.TryEnqueue(() =>
-        {
-            UpdateState();
-            UpdateTimeDisplay();
-            // TODO: Show notification, play sound, etc.
-        });
-    }
-
-    private void UpdateTimeDisplay()
-    {
-        var timer = _timerService.CurrentTimer;
-        TimeSpan timeToShow;
-
-        if (timer == null || timer.State == TimerState.Stopped)
-        {
-            // Show the input time when no timer is set or when stopped
-            timeToShow = new TimeSpan(Hours, Minutes, Seconds);
+            foreach (CountdownTimer timer in timers)
+            {
+                this.AddTimerInternal(timer);
+            }
         }
         else
         {
-            // Show the remaining time from the active timer
-            timeToShow = timer.Remaining;
+            this.AddTimer();
         }
 
-        TimeDisplay = timeToShow.ToString(@"hh\:mm\:ss");
+        this.isLoading = false;
     }
 
-    private void UpdateState()
+    private void Timers_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        IsRunning = _timerService.IsRunning;
-        IsPaused = _timerService.CurrentTimer?.State == TimerState.Paused;
-    }
-
-    partial void OnHoursChanged(int value)
-    {
-        if (!_timerService.IsRunning)
+        if (e.NewItems != null)
         {
-            UpdateTimeDisplay();
+            foreach (TimerViewModel item in e.NewItems)
+            {
+                item.PropertyChanged += this.Timer_PropertyChanged;
+            }
+        }
+
+        if (e.OldItems != null)
+        {
+            foreach (TimerViewModel item in e.OldItems)
+            {
+                item.PropertyChanged -= this.Timer_PropertyChanged;
+            }
+        }
+
+        this.SaveTimers();
+    }
+
+    private void Timer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(TimerViewModel.Name)
+            or nameof(TimerViewModel.Hours)
+            or nameof(TimerViewModel.Minutes)
+            or nameof(TimerViewModel.Seconds)
+            or nameof(TimerViewModel.IsRunning)
+            or nameof(TimerViewModel.IsPaused)
+            or nameof(TimerViewModel.EnableCompletionColor)
+            or nameof(TimerViewModel.CompletionColor)
+            or nameof(TimerViewModel.EnableAlarm)
+            or nameof(TimerViewModel.AlarmSound)
+            or nameof(TimerViewModel.EnableAlarmRepeat)
+            or nameof(TimerViewModel.AlarmRepeatIntervalSeconds)
+            or nameof(TimerViewModel.AlarmExpirationMinutes))
+        {
+            this.SaveTimers();
         }
     }
 
-    partial void OnMinutesChanged(int value)
+    private void SaveTimers()
     {
-        if (!_timerService.IsRunning)
+        if (this.isLoading)
         {
-            UpdateTimeDisplay();
+            return;
         }
+
+        _ = this.settingsService.SaveTimersAsync(this.Timers.Select(t => t.Model));
     }
 
-    partial void OnSecondsChanged(int value)
+    [RelayCommand]
+    private void AddTimer() => this.AddTimerInternal(null);
+
+    private void AddTimerInternal(CountdownTimer? model)
     {
-        if (!_timerService.IsRunning)
+        TimerViewModel timerVm = new(this.timerService, this.audioService, model);
+        timerVm.RequestRemove += this.OnRemoveTimerRequested;
+        this.Timers.Add(timerVm);
+    }
+
+    private void OnRemoveTimerRequested(object? sender, EventArgs e)
+    {
+        if (sender is TimerViewModel vm)
         {
-            UpdateTimeDisplay();
+            vm.RequestRemove -= this.OnRemoveTimerRequested;
+            _ = this.Timers.Remove(vm);
         }
     }
 }
