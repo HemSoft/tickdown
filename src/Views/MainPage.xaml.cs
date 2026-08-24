@@ -67,7 +67,7 @@ public sealed partial class MainPage : Page
             normalizedValue = Math.Round(args.NewValue, MidpointRounding.AwayFromZero);
         }
 
-        normalizedValue = Math.Max(sender.Minimum, normalizedValue);
+        normalizedValue = Math.Clamp(normalizedValue, sender.Minimum, sender.Maximum);
         if (!double.IsFinite(sender.Value) || Math.Abs(sender.Value - normalizedValue) > double.Epsilon)
         {
             sender.Value = normalizedValue;
