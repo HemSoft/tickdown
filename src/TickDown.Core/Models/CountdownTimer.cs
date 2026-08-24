@@ -25,6 +25,11 @@ public enum TimerState
 /// </summary>
 public class CountdownTimer
 {
+    private int quickSetInterval1Minutes = 1;
+    private int quickSetInterval2Minutes = 5;
+    private int quickSetInterval3Minutes = 10;
+    private int quickSetInterval4Minutes = 15;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CountdownTimer"/> class.
     /// </summary>
@@ -107,6 +112,42 @@ public class CountdownTimer
     /// Gets or sets the duration in minutes after which the alarm stops repeating.
     /// </summary>
     public int AlarmExpirationMinutes { get; set; } = 30;
+
+    /// <summary>
+    /// Gets or sets the first Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval1Minutes
+    {
+        get => this.quickSetInterval1Minutes;
+        set => this.quickSetInterval1Minutes = Math.Max(1, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the second Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval2Minutes
+    {
+        get => this.quickSetInterval2Minutes;
+        set => this.quickSetInterval2Minutes = Math.Max(1, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the third Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval3Minutes
+    {
+        get => this.quickSetInterval3Minutes;
+        set => this.quickSetInterval3Minutes = Math.Max(1, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the fourth Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval4Minutes
+    {
+        get => this.quickSetInterval4Minutes;
+        set => this.quickSetInterval4Minutes = Math.Max(1, value);
+    }
 
     /// <summary>
     /// Gets the progress percentage of the timer (0-100).

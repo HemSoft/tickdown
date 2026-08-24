@@ -69,7 +69,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.name = this.Model.Name;
         if (this.Model.Duration.TotalSeconds > 0)
         {
-            this.hours = this.Model.Duration.Hours;
+            this.hours = (int)this.Model.Duration.TotalHours;
             this.minutes = this.Model.Duration.Minutes;
             this.seconds = this.Model.Duration.Seconds;
         }
@@ -375,6 +375,62 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the first Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval1Minutes
+    {
+        get => this.Model.QuickSetInterval1Minutes;
+        set => this.SetQuickSetInterval(value, this.Model.QuickSetInterval1Minutes, v => this.Model.QuickSetInterval1Minutes = v, nameof(this.QuickSetInterval1Minutes), nameof(this.QuickSetInterval1Label));
+    }
+
+    /// <summary>
+    /// Gets the label for the first Quick Set button.
+    /// </summary>
+    public string QuickSetInterval1Label => $"{this.QuickSetInterval1Minutes}m";
+
+    /// <summary>
+    /// Gets or sets the second Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval2Minutes
+    {
+        get => this.Model.QuickSetInterval2Minutes;
+        set => this.SetQuickSetInterval(value, this.Model.QuickSetInterval2Minutes, v => this.Model.QuickSetInterval2Minutes = v, nameof(this.QuickSetInterval2Minutes), nameof(this.QuickSetInterval2Label));
+    }
+
+    /// <summary>
+    /// Gets the label for the second Quick Set button.
+    /// </summary>
+    public string QuickSetInterval2Label => $"{this.QuickSetInterval2Minutes}m";
+
+    /// <summary>
+    /// Gets or sets the third Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval3Minutes
+    {
+        get => this.Model.QuickSetInterval3Minutes;
+        set => this.SetQuickSetInterval(value, this.Model.QuickSetInterval3Minutes, v => this.Model.QuickSetInterval3Minutes = v, nameof(this.QuickSetInterval3Minutes), nameof(this.QuickSetInterval3Label));
+    }
+
+    /// <summary>
+    /// Gets the label for the third Quick Set button.
+    /// </summary>
+    public string QuickSetInterval3Label => $"{this.QuickSetInterval3Minutes}m";
+
+    /// <summary>
+    /// Gets or sets the fourth Quick Set interval in minutes.
+    /// </summary>
+    public int QuickSetInterval4Minutes
+    {
+        get => this.Model.QuickSetInterval4Minutes;
+        set => this.SetQuickSetInterval(value, this.Model.QuickSetInterval4Minutes, v => this.Model.QuickSetInterval4Minutes = v, nameof(this.QuickSetInterval4Minutes), nameof(this.QuickSetInterval4Label));
+    }
+
+    /// <summary>
+    /// Gets the label for the fourth Quick Set button.
+    /// </summary>
+    public string QuickSetInterval4Label => $"{this.QuickSetInterval4Minutes}m";
+
+    /// <summary>
     /// Gets the completion background brush.
     /// </summary>
     public Brush? CompletionBackgroundBrush { get; private set; }
@@ -555,17 +611,28 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void SetQuickTime(string timeStr)
+    private void SetQuickTime(int minutes)
     {
-        if (this.Model.State != TimerState.Stopped)
+        if (this.Model.State != TimerState.Stopped || minutes <= 0)
         {
             return;
         }
 
-        if (TryParseTime(timeStr, out TimeSpan result))
+        TimeSpan duration = TimeSpan.FromMinutes(minutes);
+        this.SetTime((int)duration.TotalHours, duration.Minutes, duration.Seconds);
+    }
+
+    private void SetQuickSetInterval(int value, int currentValue, Action<int> updateModel, string propertyName, string labelPropertyName)
+    {
+        int validValue = Math.Max(1, value);
+        if (currentValue == validValue && value == validValue)
         {
-            this.SetTime((int)result.TotalHours, result.Minutes, result.Seconds);
+            return;
         }
+
+        updateModel(validValue);
+        this.OnPropertyChanged(propertyName);
+        this.OnPropertyChanged(labelPropertyName);
     }
 
     [RelayCommand]
