@@ -123,7 +123,11 @@ public partial class MainViewModel : ObservableObject
             or nameof(TimerViewModel.AlarmSound)
             or nameof(TimerViewModel.EnableAlarmRepeat)
             or nameof(TimerViewModel.AlarmRepeatIntervalSeconds)
-            or nameof(TimerViewModel.AlarmExpirationMinutes))
+            or nameof(TimerViewModel.AlarmExpirationMinutes)
+            or nameof(TimerViewModel.QuickSetInterval1Minutes)
+            or nameof(TimerViewModel.QuickSetInterval2Minutes)
+            or nameof(TimerViewModel.QuickSetInterval3Minutes)
+            or nameof(TimerViewModel.QuickSetInterval4Minutes))
         {
             this.SaveTimers();
         }

@@ -115,24 +115,24 @@
                                         <StackPanel Orientation="Horizontal"
                                                     HorizontalAlignment="Center"
                                                     Spacing="5">
-                                                <Button Content="1m"
+                                                <Button Content="{Binding QuickSetInterval1Label}"
                                                         Command="{Binding SetQuickTimeCommand}"
-                                                        CommandParameter="1min"
+                                                        CommandParameter="{Binding QuickSetInterval1Minutes}"
                                                         FontSize="12"
                                                         Padding="8,4"/>
-                                                <Button Content="5m"
+                                                <Button Content="{Binding QuickSetInterval2Label}"
                                                         Command="{Binding SetQuickTimeCommand}"
-                                                        CommandParameter="5min"
+                                                        CommandParameter="{Binding QuickSetInterval2Minutes}"
                                                         FontSize="12"
                                                         Padding="8,4"/>
-                                                <Button Content="10m"
+                                                <Button Content="{Binding QuickSetInterval3Label}"
                                                         Command="{Binding SetQuickTimeCommand}"
-                                                        CommandParameter="10min"
+                                                        CommandParameter="{Binding QuickSetInterval3Minutes}"
                                                         FontSize="12"
                                                         Padding="8,4"/>
-                                                <Button Content="15m"
+                                                <Button Content="{Binding QuickSetInterval4Label}"
                                                         Command="{Binding SetQuickTimeCommand}"
-                                                        CommandParameter="15min"
+                                                        CommandParameter="{Binding QuickSetInterval4Minutes}"
                                                         FontSize="12"
                                                         Padding="8,4"/>
                                                 <Button Content="🎯"
@@ -160,7 +160,7 @@
                                                         </Button.Flyout>
                                                 </Button>
                                                 <Button Content="⚙️"
-                                                        ToolTipService.ToolTip="Timer completion settings"
+                                                        ToolTipService.ToolTip="Timer settings"
                                                         FontSize="12"
                                                         Padding="8,4">
                                                         <Button.Flyout>
@@ -168,6 +168,40 @@
                                                                         <StackPanel Spacing="8"
                                                                                     Padding="5"
                                                                                     MinWidth="280">
+                                                                                <TextBlock Text="Quick Set intervals (minutes)"
+                                                                                           FontSize="12"
+                                                                                           FontWeight="SemiBold"
+                                                                                           Opacity="0.8"/>
+                                                                                <StackPanel Orientation="Horizontal"
+                                                                                            Spacing="5">
+                                                                                        <NumberBox Value="{Binding QuickSetInterval1Minutes, Mode=TwoWay}"
+                                                                                                   Minimum="1"
+                                                                                                   SmallChange="1"
+                                                                                                   SpinButtonPlacementMode="Compact"
+                                                                                                   FontSize="11"
+                                                                                                   MinWidth="60"/>
+                                                                                        <NumberBox Value="{Binding QuickSetInterval2Minutes, Mode=TwoWay}"
+                                                                                                   Minimum="1"
+                                                                                                   SmallChange="1"
+                                                                                                   SpinButtonPlacementMode="Compact"
+                                                                                                   FontSize="11"
+                                                                                                   MinWidth="60"/>
+                                                                                        <NumberBox Value="{Binding QuickSetInterval3Minutes, Mode=TwoWay}"
+                                                                                                   Minimum="1"
+                                                                                                   SmallChange="1"
+                                                                                                   SpinButtonPlacementMode="Compact"
+                                                                                                   FontSize="11"
+                                                                                                   MinWidth="60"/>
+                                                                                        <NumberBox Value="{Binding QuickSetInterval4Minutes, Mode=TwoWay}"
+                                                                                                   Minimum="1"
+                                                                                                   SmallChange="1"
+                                                                                                   SpinButtonPlacementMode="Compact"
+                                                                                                   FontSize="11"
+                                                                                                   MinWidth="60"/>
+                                                                                </StackPanel>
+                                                                                <Rectangle Height="1"
+                                                                                           Fill="{ThemeResource SystemControlForegroundBaseLowBrush}"
+                                                                                           Margin="0,2"/>
                                                                                 <TextBlock Text="When Timer Completes"
                                                                                            FontSize="12"
                                                                                            FontWeight="SemiBold"
