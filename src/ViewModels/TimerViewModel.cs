@@ -69,7 +69,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.name = this.Model.Name;
         if (this.Model.Duration.TotalSeconds > 0)
         {
-            this.hours = this.Model.Duration.Hours;
+            this.hours = (int)this.Model.Duration.TotalHours;
             this.minutes = this.Model.Duration.Minutes;
             this.seconds = this.Model.Duration.Seconds;
         }
