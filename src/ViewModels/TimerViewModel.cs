@@ -23,16 +23,6 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         @"^(\d+(?:\.\d+)?)\s*(h|hours?|m|min|s|sec)?$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    private static readonly IReadOnlyList<string> PredefinedColorValues =
-    [
-        "#4CAF50", // Green
-        "#F44336", // Red
-        "#2196F3", // Blue
-        "#FFEB3B", // Yellow
-        "#FF9800", // Orange
-        "#9C27B0", // Purple
-    ];
-
     private readonly ITimerService timerService;
     private readonly IAudioService audioService;
     private readonly DispatcherQueue dispatcher;
@@ -98,7 +88,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets the predefined completion colors.
     /// </summary>
-    public static IReadOnlyList<string> PredefinedColors => PredefinedColorValues;
+    public static IReadOnlyList<string> PredefinedColors => CompletionColorPalette.Colors;
 
     /// <summary>
     /// Gets the underlying countdown timer model.
