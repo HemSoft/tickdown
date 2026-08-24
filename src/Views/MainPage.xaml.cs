@@ -54,6 +54,29 @@ public sealed partial class MainPage : Page
 
     private void ResetZoom() => _ = this.RootScrollViewer.ChangeView(null, null, 1.0f);
 
+    private void OnQuickSetIntervalValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        double normalizedValue = sender.Minimum;
+        if (double.IsFinite(args.OldValue))
+        {
+            normalizedValue = args.OldValue;
+        }
+
+        if (double.IsFinite(args.NewValue))
+        {
+            normalizedValue = Math.Round(args.NewValue, MidpointRounding.AwayFromZero);
+        }
+
+        normalizedValue = Math.Max(sender.Minimum, normalizedValue);
+        if (!double.IsFinite(sender.Value) || Math.Abs(sender.Value - normalizedValue) > double.Epsilon)
+        {
+            sender.Value = normalizedValue;
+        }
+
+        // Touch a field to satisfy S2325 - XAML event handlers must be instance methods
+        _ = this.ViewModel;
+    }
+
     private void OnColorButtonClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is string colorHex)
