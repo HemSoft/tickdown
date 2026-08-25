@@ -11,6 +11,21 @@
         mc:Ignorable="d">
 
         <Page.Resources>
+                <ResourceDictionary>
+                        <ResourceDictionary.ThemeDictionaries>
+                                <ResourceDictionary x:Key="Default">
+                                        <SolidColorBrush x:Key="TimerCardDepthBrush"
+                                                         Color="#FF2A2A2A"/>
+                                </ResourceDictionary>
+                                <ResourceDictionary x:Key="Light">
+                                        <SolidColorBrush x:Key="TimerCardDepthBrush"
+                                                         Color="#50000000"/>
+                                </ResourceDictionary>
+                                <ResourceDictionary x:Key="HighContrast">
+                                        <SolidColorBrush x:Key="TimerCardDepthBrush"
+                                                         Color="{ThemeResource SystemColorWindowTextColor}"/>
+                                </ResourceDictionary>
+                        </ResourceDictionary.ThemeDictionaries>
                 <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
                 <DataTemplate x:Key="TimerTemplate"
@@ -18,10 +33,9 @@
                         <Grid Width="385"
                               Margin="10,8,10,14">
                                 <Border Margin="5,7,0,0"
-                                        Background="Black"
+                                        Background="{ThemeResource TimerCardDepthBrush}"
                                         CornerRadius="16"
-                                        IsHitTestVisible="False"
-                                        Opacity="0.28"/>
+                                        IsHitTestVisible="False"/>
                                 <Grid Margin="0,0,5,7"
                                       Background="{Binding CompletionBackgroundBrush, TargetNullValue={ThemeResource CardBackgroundFillColorDefaultBrush}}"
                                       BorderBrush="{ThemeResource ControlElevationBorderBrush}"
@@ -364,6 +378,7 @@
                                 </Grid>
                         </Grid>
                 </DataTemplate>
+                </ResourceDictionary>
         </Page.Resources>
 
         <ScrollViewer x:Name="RootScrollViewer"
