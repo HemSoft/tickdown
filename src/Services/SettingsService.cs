@@ -20,7 +20,10 @@ public class SettingsService : ISettingsService
     public SettingsService()
     {
         string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string appFolder = Path.Combine(folder, "TickDown");
+        string? isolatedFolder = Environment.GetEnvironmentVariable("TICKDOWN_SETTINGS_DIRECTORY");
+        string appFolder = string.IsNullOrWhiteSpace(isolatedFolder)
+            ? Path.Combine(folder, "TickDown")
+            : Path.GetFullPath(isolatedFolder);
         _ = Directory.CreateDirectory(appFolder);
         this.filePath = Path.Combine(appFolder, "timers.json");
         this.windowSettingsPath = Path.Combine(appFolder, "window.json");
