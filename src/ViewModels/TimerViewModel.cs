@@ -565,6 +565,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     private void Pause()
     {
         this.Model.Pause();
+        this.ProgressPercentage = this.Model.ProgressPercentage;
         if (this.Model.State == TimerState.Completed)
         {
             this.OnTimerCompleted();

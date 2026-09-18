@@ -122,6 +122,7 @@ public class CountdownTimerLifecycleTests
         timer.Pause();
         Assert.Equal(TimerState.Completed, timer.State);
         Assert.Equal(TimeSpan.Zero, timer.Remaining);
+        Assert.Equal(100, timer.ProgressPercentage);
     }
 
     /// <summary>
