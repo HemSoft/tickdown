@@ -118,9 +118,10 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         get => this.name;
         set
         {
-            if (this.SetProperty(ref this.name, value))
+            if (this.name != value)
             {
-                this.OnNameChanged(value);
+                this.Model.Name = value;
+                _ = this.SetProperty(ref this.name, value);
             }
         }
     }
@@ -193,9 +194,11 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         get => this.hours;
         set
         {
-            if (this.SetProperty(ref this.hours, value))
+            if (this.hours != value)
             {
+                this.hours = value;
                 this.UpdateDuration();
+                this.OnPropertyChanged();
             }
         }
     }
@@ -208,9 +211,11 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         get => this.minutes;
         set
         {
-            if (this.SetProperty(ref this.minutes, value))
+            if (this.minutes != value)
             {
+                this.minutes = value;
                 this.UpdateDuration();
+                this.OnPropertyChanged();
             }
         }
     }
@@ -223,9 +228,11 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         get => this.seconds;
         set
         {
-            if (this.SetProperty(ref this.seconds, value))
+            if (this.seconds != value)
             {
+                this.seconds = value;
                 this.UpdateDuration();
+                this.OnPropertyChanged();
             }
         }
     }
@@ -503,8 +510,6 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         return null;
     }
 
-    private void OnNameChanged(string value) => this.Model.Name = value;
-
     private void OnTimeDisplayChanged(string value)
     {
         if (this.isUpdatingTimeDisplay)
@@ -514,9 +519,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
         if (TryParseTime(value, out TimeSpan result))
         {
-            this.Hours = (int)result.TotalHours;
-            this.Minutes = result.Minutes;
-            this.Seconds = result.Seconds;
+            this.SetTime((int)result.TotalHours, result.Minutes, result.Seconds);
         }
         else
         {
@@ -662,13 +665,11 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.minutes = m;
         this.seconds = s;
 
-        // Notify property changes
+        // Commit the complete duration before observers capture a model snapshot.
+        this.UpdateDuration();
         this.OnPropertyChanged(nameof(this.Hours));
         this.OnPropertyChanged(nameof(this.Minutes));
         this.OnPropertyChanged(nameof(this.Seconds));
-
-        // Update duration and display
-        this.UpdateDuration();
     }
 
     private void OnGlobalTick(object? sender, EventArgs e)
