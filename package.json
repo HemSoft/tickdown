@@ -1,0 +1,16 @@
+{
+  "name": "tickdown-quality-tools",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#**/obj/**\" \"#**/bin/**\" \"#node_modules/**\""
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "0.23.2"
+  },
+  "overrides": {
+    "markdownlint-cli2": {
+      "smol-toml": "1.8.0"
+    }
+  }
+}
