@@ -16,7 +16,9 @@ try {
             dotnet list package --outdated --format json
         } { param($json) Test-PackageFindings $json }
         Invoke-QualityCheck 'Markdown' { npm run lint:md }
-        Invoke-QualityCheck 'npm vulnerabilities' { npm audit --audit-level=low }
+        Invoke-QualityCheck 'npm vulnerabilities' {
+            npm audit --audit-level=low --json
+        } { param($json) Test-NpmAuditFindings $json } -FindingExitCodes 1
     )
     $results | Select-Object Name, Status, ExitCode | Format-Table -AutoSize | Out-Host
     if (@($results | Where-Object Status -ne 'Pass').Count -gt 0) { exit 1 }

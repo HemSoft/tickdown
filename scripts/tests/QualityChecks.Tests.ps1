@@ -34,4 +34,17 @@ Assert-Equal 'ToolError' $r.Status 'Command exception'
 $r = Invoke-QualityCheck 'independent check after failure' { 'success' }
 Assert-Equal 'Pass' $r.Status 'Subsequent check executes'
 Assert-Equal 0 $r.ExitCode 'Stale exit code reset'
+$npmInspect = { param($json) Test-NpmAuditFindings $json }
+$npmClean = '{"auditReportVersion":2,"metadata":{"vulnerabilities":{"total":0}}}'
+$npmFindings = '{"auditReportVersion":2,"metadata":{"vulnerabilities":{"total":1}}}'
+$r = Invoke-QualityCheck 'clean npm audit' { $npmClean } $npmInspect -FindingExitCodes 1
+Assert-Equal 'Pass' $r.Status 'Clean npm report'
+$r = Invoke-QualityCheck 'npm vulnerability' { $global:LASTEXITCODE = 1; $npmFindings } $npmInspect -FindingExitCodes 1
+Assert-Equal 'Findings' $r.Status 'npm findings with exit 1'
+$r = Invoke-QualityCheck 'npm registry failure' { $global:LASTEXITCODE = 1; '{"error":{"code":"ENOTFOUND"}}' } $npmInspect -FindingExitCodes 1
+Assert-Equal 'ToolError' $r.Status 'npm registry failure'
+$r = Invoke-QualityCheck 'inconsistent npm exit' { $global:LASTEXITCODE = 1; $npmClean } $npmInspect -FindingExitCodes 1
+Assert-Equal 'ToolError' $r.Status 'Nonzero npm exit without findings'
+$r = Invoke-QualityCheck 'unexpected npm exit' { $global:LASTEXITCODE = 2; $npmFindings } $npmInspect -FindingExitCodes 1
+Assert-Equal 'ToolError' $r.Status 'Unexpected exit remains failure'
 "Passed $passed quality-runner assertions."

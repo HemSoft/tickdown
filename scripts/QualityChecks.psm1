@@ -5,7 +5,8 @@ function Invoke-QualityCheck {
     param(
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][scriptblock]$Command,
-        [scriptblock]$InspectOutput
+        [scriptblock]$InspectOutput,
+        [int[]]$FindingExitCodes = @()
     )
 
     Write-Host "`nChecking $Name..."
@@ -16,11 +17,12 @@ function Invoke-QualityCheck {
         $global:LASTEXITCODE = 0
         $output = (& $Command 2>&1 | Out-String).Trim()
         $exitCode = $LASTEXITCODE
-        if ($exitCode -ne 0) {
-            $status = 'ToolError'
+        if ($InspectOutput -and ($exitCode -eq 0 -or $FindingExitCodes -contains $exitCode)) {
+            if (& $InspectOutput $output) { $status = 'Findings' }
+            elseif ($exitCode -ne 0) { $status = 'ToolError' }
         }
-        elseif ($InspectOutput -and (& $InspectOutput $output)) {
-            $status = 'Findings'
+        elseif ($exitCode -ne 0) {
+            $status = 'ToolError'
         }
     }
     catch {
@@ -65,4 +67,17 @@ function Test-PackageFindings {
     return $false
 }
 
-Export-ModuleMember -Function Invoke-QualityCheck, Test-PackageFindings
+function Test-NpmAuditFindings {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Json)
+
+    $report = ConvertFrom-Json -InputObject $Json -AsHashtable -ErrorAction Stop
+    if ($report.ContainsKey('error') -or $report.auditReportVersion -ne 2 -or
+        !$report.ContainsKey('metadata') -or !$report.metadata.ContainsKey('vulnerabilities') -or
+        !$report.metadata.vulnerabilities.ContainsKey('total')) {
+        throw 'npm audit returned an error or incomplete report.'
+    }
+    return $report.metadata.vulnerabilities.total -gt 0
+}
+
+Export-ModuleMember -Function Invoke-QualityCheck, Test-PackageFindings, Test-NpmAuditFindings
