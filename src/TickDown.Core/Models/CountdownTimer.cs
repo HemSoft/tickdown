@@ -25,6 +25,7 @@ public enum TimerState
 /// </summary>
 public class CountdownTimer
 {
+    private readonly TimeProvider timeProvider = TimeProvider.System;
     private int quickSetInterval1Minutes = 1;
     private int quickSetInterval2Minutes = 5;
     private int quickSetInterval3Minutes = 10;
@@ -41,8 +42,21 @@ public class CountdownTimer
     /// <param name="duration">The duration of the timer.</param>
     /// <param name="name">The name of the timer.</param>
     public CountdownTimer(TimeSpan duration, string name = "")
+        : this(duration, name, TimeProvider.System)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CountdownTimer"/> class with a clock.
+    /// </summary>
+    /// <param name="duration">The duration of the timer.</param>
+    /// <param name="name">The name of the timer.</param>
+    /// <param name="timeProvider">The clock used to sample elapsed time.</param>
+    public CountdownTimer(TimeSpan duration, string name, TimeProvider timeProvider)
         : this()
     {
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        this.timeProvider = timeProvider;
         this.Duration = duration;
         this.Remaining = duration;
         this.Name = name;
@@ -172,12 +186,18 @@ public class CountdownTimer
     /// </summary>
     public void Start()
     {
-        if (this.State == TimerState.Stopped)
+        if (this.State == TimerState.Running)
         {
-            this.StartTime = DateTime.Now;
-            this.EndTime = this.StartTime.Value.Add(this.Remaining);
+            return;
         }
 
+        if (this.State == TimerState.Completed)
+        {
+            this.Remaining = this.Duration;
+        }
+
+        this.StartTime = this.timeProvider.GetLocalNow().DateTime;
+        this.EndTime = this.StartTime.Value.Add(this.Remaining);
         this.State = TimerState.Running;
     }
 
@@ -186,9 +206,11 @@ public class CountdownTimer
     /// </summary>
     public void Pause()
     {
+        this.Tick();
         if (this.State == TimerState.Running)
         {
             this.State = TimerState.Paused;
+            this.EndTime = null;
         }
     }
 
@@ -197,15 +219,7 @@ public class CountdownTimer
     /// </summary>
     public void Stop()
     {
-        if (this.State == TimerState.Running && this.EndTime.HasValue)
-        {
-            this.Remaining = this.EndTime.Value - DateTime.Now;
-            if (this.Remaining < TimeSpan.Zero)
-            {
-                this.Remaining = TimeSpan.Zero;
-            }
-        }
-
+        this.Tick();
         this.State = TimerState.Stopped;
         this.StartTime = null;
         this.EndTime = null;
@@ -231,7 +245,7 @@ public class CountdownTimer
     {
         if (this.State == TimerState.Running && this.EndTime.HasValue)
         {
-            DateTime now = DateTime.Now;
+            DateTime now = this.timeProvider.GetLocalNow().DateTime;
             this.Remaining = this.EndTime.Value - now;
 
             if (this.Remaining <= TimeSpan.Zero)

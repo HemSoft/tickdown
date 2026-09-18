@@ -553,15 +553,26 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
             this.Model.SetDuration(duration);
         }
 
+        this.StopAlarmRepeat();
+        this.IsCompleted = false;
         this.Model.Start();
         this.UpdateState();
+        this.UpdateTimeDisplay();
+        this.ProgressPercentage = this.Model.ProgressPercentage;
     }
 
     [RelayCommand]
     private void Pause()
     {
         this.Model.Pause();
+        this.ProgressPercentage = this.Model.ProgressPercentage;
+        if (this.Model.State == TimerState.Completed)
+        {
+            this.OnTimerCompleted();
+        }
+
         this.UpdateState();
+        this.UpdateTimeDisplay();
     }
 
     [RelayCommand]
@@ -664,14 +675,18 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     {
         if (this.Model.State == TimerState.Running)
         {
-            TimerState previousState = this.Model.State;
-            this.Model.Tick();
             _ = this.dispatcher.TryEnqueue(() =>
             {
+                if (this.Model.State != TimerState.Running)
+                {
+                    return;
+                }
+
+                this.Model.Tick();
                 this.UpdateTimeDisplay();
                 this.ProgressPercentage = this.Model.ProgressPercentage;
 
-                if (this.Model.State == TimerState.Completed && previousState != TimerState.Completed)
+                if (this.Model.State == TimerState.Completed)
                 {
                     this.OnTimerCompleted();
                     this.UpdateState();
