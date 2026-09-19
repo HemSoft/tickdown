@@ -53,7 +53,7 @@ try {
     $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies)
     if ($exclusionViolations.Count -gt 0) { throw "Coverage exclusion attributes are forbidden:`n- $($exclusionViolations -join "`n- ")" }
     $stateMachineMap = Get-StateMachineMap $coveredAssemblies
-    $genericMethodArities = Get-GenericMethodArities $coveredAssemblies
+    $genericMethodArities = Get-MethodGenericArities $coveredAssemblies
     $conversionReturnTypes = Get-ConversionReturnTypes $coveredAssemblies
     $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $stateMachineMap $genericMethodArities $conversionReturnTypes)
     Write-CoverageReports $functions $resultsPath

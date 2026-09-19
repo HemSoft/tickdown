@@ -7,7 +7,7 @@
           <Format>cobertura</Format>
           <Include>[TickDown.Core]*,[TickDown.Tests]TickDown.ViewModels.*,[TickDown.Tests]TickDown.Services.SettingsService*</Include>
           <IncludeTestAssembly>true</IncludeTestAssembly>
-          <ExcludeByFile>**/obj/**,**/*.g.cs,**/*.g.i.cs</ExcludeByFile>
+          <ExcludeByFile>**/obj/**</ExcludeByFile>
           <DeterministicReport>true</DeterministicReport>
         </Configuration>
       </DataCollector>

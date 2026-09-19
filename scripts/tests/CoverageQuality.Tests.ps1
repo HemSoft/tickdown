@@ -34,6 +34,12 @@ try {
       <method name="Generic" signature="(T)" complexity="1"><lines>
         <line number="4" hits="1" branch="False" />
       </lines></method>
+      <method name="Mixed" signature="(System.Int32)" complexity="1"><lines>
+        <line number="4" hits="1" branch="False" />
+      </lines></method>
+      <method name="Mixed" signature="(System.Int32)" complexity="1"><lines>
+        <line number="4" hits="1" branch="False" />
+      </lines></method>
       <method name="op_Implicit" signature="(System.String)" complexity="1"><lines>
         <line number="4" hits="1" branch="False" />
       </lines></method>
@@ -76,13 +82,16 @@ try {
             Class = 'TickDown.Core.Models.CountdownTimer'; Method = 'History'; Signature = '()'
         }
     }
-    $genericArities = @{ 'TickDown.Services.SettingsService::Generic(T)' = @(1) }
+    $genericArities = @{
+        'TickDown.Services.SettingsService::Generic(T)' = @(1)
+        'TickDown.Services.SettingsService::Mixed(System.Int32)' = @(0, 1)
+    }
     $conversionReturns = @{
         'TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32')
         'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)' = @('System.Int64')
     }
     $functions = @(Get-CoverageFunctions $coveragePath $asyncMap $genericArities $conversionReturns)
-    Assert-Equal 10 $functions.Count 'Function count'
+    Assert-Equal 12 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
@@ -102,6 +111,9 @@ try {
     Assert-Equal 'TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
     $generic = $functions | Where-Object Method -eq 'Generic`1'
     Assert-Equal 'TickDown.Services.SettingsService::Generic`1(T)' $generic.Id 'Ordinary generic method arity'
+    $mixed = @($functions | Where-Object Method -Like 'Mixed*')
+    Assert-Equal 'TickDown.Services.SettingsService::Mixed(System.Int32)' $mixed[0].Id 'Nongeneric shared-signature identity'
+    Assert-Equal 'TickDown.Services.SettingsService::Mixed`1(System.Int32)' $mixed[1].Id 'Generic shared-signature identity'
     $module = Get-Module CoverageQuality
     $rankedArrayName = & $module { Format-CoverageTypeName ([int[,]]) }
     Assert-Equal 'System.Int32[,]' $rankedArrayName 'Multidimensional array rank formatting'

@@ -24,7 +24,8 @@ Cobertura report, evaluates every measured function against
 cannot be loaded as an ordinary test assembly, so the collector also instruments
 only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
 source files linked into the test project. Test namespaces and presentation test
-doubles are not included. Generated XAML files are excluded by file path. The
+doubles are not included. Only generated output beneath `obj` is excluded by file
+path; a hand-written `*.g.cs` file under `src` remains measured. The
 runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
 attribute both in hand-written production source and in compiled assemblies,
 types, and members. The source check prevents generated-marker spoofing; the
@@ -32,8 +33,9 @@ metadata check also catches aliases. Only WinUI and CommunityToolkit artifacts
 outside hand-written source are recognized as generated. Async, iterator, and
 async-iterator state-machine `MoveNext` bodies are retained and mapped from every
 covered assembly through the corresponding state-machine attribute to unique
-source signatures. Ordinary generic functions carry reflected generic arity, and
-user-defined regular and checked conversions carry reflected target types, so
+source signatures. Reflection records zero as well as nonzero generic arity for
+every ordinary method, so generic and nongeneric overloads sharing a parameter
+signature remain distinct. User-defined regular and checked conversions carry reflected target types, so
 legal overloads cannot share a baseline key. Reported compiler-generated callback
 and local-function bodies are retained instead of
 being filtered with their closure classes. Callback sequence points that Coverlet

@@ -33,7 +33,7 @@ function Format-CoverageTypeName([Type]$Type) {
     return $Type.FullName.Replace('+', '/')
 }
 
-function Get-GenericMethodArities([string[]]$AssemblyPath) {
+function Get-MethodGenericArities([string[]]$AssemblyPath) {
     $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
     $map = @{}
     foreach ($path in $AssemblyPath) {
@@ -42,7 +42,6 @@ function Get-GenericMethodArities([string[]]$AssemblyPath) {
         foreach ($type in $assembly.GetTypes()) {
             foreach ($method in $type.GetMethods($flags)) {
                 $arity = $method.GetGenericArguments().Count
-                if ($arity -eq 0) { continue }
                 $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
                 $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
                 if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[int]]::new() }
@@ -218,8 +217,8 @@ function Get-CoverageFunctions(
                 if ($GenericMethodArities.ContainsKey($genericKey)) {
                     $occurrence = if ($genericOccurrences.ContainsKey($genericKey)) { $genericOccurrences[$genericKey] } else { 0 }
                     $arities = @($GenericMethodArities[$genericKey])
-                    if ($occurrence -ge $arities.Count) { throw "No unused generic arity found for $genericKey." }
-                    $methodName = "$methodName``$($arities[$occurrence])"
+                    if ($occurrence -ge $arities.Count) { throw "No unused method identity found for $genericKey." }
+                    if ($arities[$occurrence] -gt 0) { $methodName = "$methodName``$($arities[$occurrence])" }
                     $genericOccurrences[$genericKey] = $occurrence + 1
                 }
                 if ($ConversionReturnTypes.ContainsKey($genericKey)) {
@@ -334,4 +333,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Resolve-CoverageResultsPath, Get-GenericMethodArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Resolve-CoverageResultsPath, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
