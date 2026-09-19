@@ -28,9 +28,11 @@ output beside the current test assembly, and a coverage-only test loads that exa
 candidate so Coverlet can instrument App, views, converters, and all services.
 The two current ViewModel files and SettingsService file are linked explicitly into
 the test assembly and compiled with the x64 Release app's effective preprocessor
-symbols rather than duplicating their unexecuted app copies.
-Those exclusions match each exact type plus its `/`-delimited generated nested
-types; they do not use sibling-matching prefixes. A new ViewModel or service type,
+symbols rather than duplicating their unexecuted app copies. Coverlet requires a
+trailing wildcard to collect each linked outer type and its generated nested types;
+a reflection guard rejects any sibling that also matches one of those prefixes
+before the report is accepted. The app exclusions match each exact type plus its
+`/`-delimited generated nested types; they do not use sibling-matching prefixes. A new ViewModel or service type,
 including one whose name starts with an existing type name, is measured from the
 app candidate by default. Before collection, the runner scans the entire `src`
 tree with Roslyn using the x64 Release app's effective preprocessor symbols. It
@@ -43,8 +45,8 @@ included; there is no namespace-wide `Microsoft.*` exclusion. Only generated out
 beneath `obj` is excluded by file path; every hand-written C# file under `src`,
 including `*.g.cs`, remains measured. The runner parses active C# attribute syntax
 and rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent without mistaking
-comments or strings for attributes; aliases and verbatim/escaped identifiers are
-resolved as well. It independently
+comments or strings for attributes; local and cross-file global aliases plus
+verbatim/escaped identifiers are resolved as well. It independently
 inspects the production assemblies and the three exact source-linked test types
 for assembly, type, and member metadata while ignoring generated test-host
 scaffolding. An exclusion is trusted only on one of the explicit current

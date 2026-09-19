@@ -57,7 +57,11 @@ try {
     $appOutputDirectory = Split-Path $appAssemblyPath -Parent
     Get-ChildItem $appOutputDirectory -File | Where-Object Extension -in '.dll', '.pdb' |
         Copy-Item -Destination $testOutputDirectory -Force
-
+    $sourceLinkedTestTypes = @(
+        'TickDown.ViewModels.MainViewModel'
+        'TickDown.ViewModels.TimerViewModel'
+        'TickDown.Services.SettingsService'
+    )
     $previousCoverageAssembly = $env:TICKDOWN_COVERAGE_APP_ASSEMBLY
     try {
         $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $coverageAppAssembly
@@ -69,6 +73,10 @@ try {
         $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $previousCoverageAssembly
     }
     if ($LASTEXITCODE -ne 0) { throw "Coverage test run failed:`n$testOutput" }
+    $unexpectedLinkedTypes = @(Get-UnexpectedSourceLinkedTypes $testAssemblyPath $sourceLinkedTestTypes)
+    if ($unexpectedLinkedTypes.Count -gt 0) {
+        throw "Broad collector filters matched unexpected test types:`n- $($unexpectedLinkedTypes -join "`n- ")"
+    }
 
     $coverageFiles = @(Get-ChildItem $resultsPath -Filter coverage.cobertura.xml -Recurse)
     if ($coverageFiles.Count -ne 1) { throw "Expected one Cobertura report, found $($coverageFiles.Count)." }
@@ -95,11 +103,6 @@ try {
         'TickDown.ViewModels.TimerViewModel.DismissCommand'
         'TickDown.ViewModels.TimerViewModel.SetQuickTimeCommand'
         'TickDown.ViewModels.TimerViewModel.SetEndTimeCommand'
-    )
-    $sourceLinkedTestTypes = @(
-        'TickDown.ViewModels.MainViewModel'
-        'TickDown.ViewModels.TimerViewModel'
-        'TickDown.Services.SettingsService'
     )
     $exclusionViolations = @(
         Get-CoverageExclusionViolations $coveredAssemblies $trustedGeneratedMembers $sourceLinkedTestTypes

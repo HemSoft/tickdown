@@ -5,7 +5,7 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Include>[TickDown.Core]*,[TickDown]*,[TickDown.Tests]TickDown.ViewModels.*,[TickDown.Tests]TickDown.Services.SettingsService*</Include>
+          <Include>[TickDown.Core]*,[TickDown]*,[TickDown.Tests]TickDown.ViewModels.MainViewModel*,[TickDown.Tests]TickDown.ViewModels.TimerViewModel*,[TickDown.Tests]TickDown.Services.SettingsService*</Include>
           <Exclude>[TickDown]TickDown.ViewModels.MainViewModel,[TickDown]TickDown.ViewModels.MainViewModel/*,[TickDown]TickDown.ViewModels.TimerViewModel,[TickDown]TickDown.ViewModels.TimerViewModel/*,[TickDown]TickDown.Services.SettingsService,[TickDown]TickDown.Services.SettingsService/*,[TickDown]Microsoft.Windows.ApplicationModel.WindowsAppRuntime.Common.AutoInitialize,[TickDown]Microsoft.Windows.ApplicationModel.DynamicDependency.BootstrapCS.AutoInitialize</Exclude>
           <IncludeTestAssembly>true</IncludeTestAssembly>
           <ExcludeByFile>**/obj/**</ExcludeByFile>

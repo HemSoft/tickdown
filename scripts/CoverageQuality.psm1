@@ -90,28 +90,60 @@ function Resolve-CoveredAssemblyPaths([string[]]$AssemblyNames, [string]$TestAss
     )
 }
 
+function Get-UnexpectedSourceLinkedTypes([string]$AssemblyPath, [string[]]$AllowedOuterTypes) {
+    if (!(Test-Path $AssemblyPath -PathType Leaf)) { throw "Source-linked assembly not found: $AssemblyPath" }
+    $assembly = [Reflection.Assembly]::LoadFrom($AssemblyPath)
+    return @(
+        foreach ($type in $assembly.GetTypes()) {
+            foreach ($outerType in $AllowedOuterTypes) {
+                if (!$type.FullName.StartsWith($outerType, [StringComparison]::Ordinal)) { continue }
+                if ($type.FullName -ne $outerType -and !$type.FullName.StartsWith("$outerType+", [StringComparison]::Ordinal)) {
+                    "$($type.FullName) matches the $outerType* collection filter but is not that type or one of its nested types"
+                }
+                break
+            }
+        }
+    )
+}
+
 function Get-CoverageSourceExclusionViolations([string]$SourceRoot, [string[]]$PreprocessorSymbols = @()) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
     Add-Type -AssemblyName Microsoft.CodeAnalysis.CSharp
     $parseOptions = [Microsoft.CodeAnalysis.CSharp.CSharpParseOptions]::Default.WithPreprocessorSymbols($PreprocessorSymbols)
     $forbiddenNames = @('ExcludeFromCodeCoverage', 'ExcludeFromCoverage')
+    $documents = @(
+        foreach ($file in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]') {
+            $tree = [Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree]::ParseText([string](Get-Content $file.FullName -Raw), $parseOptions)
+            [pscustomobject]@{ File = $file; Tree = $tree; Root = $tree.GetRoot() }
+        }
+    )
+    $globalForbiddenAliases = @{}
+    foreach ($document in $documents) {
+        foreach ($usingDirective in $document.Root.DescendantNodes() | Where-Object {
+                $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax] -and $_.GlobalKeyword.RawKind -ne 0
+            }) {
+            if ($null -eq $usingDirective.Alias) { continue }
+            $targetName = Get-CSharpQualifiedName $usingDirective.Name
+            $targetSimpleName = ($targetName -split '\.')[-1] -replace 'Attribute$', ''
+            if ($targetSimpleName -in $forbiddenNames) { $globalForbiddenAliases[$usingDirective.Alias.Name.Identifier.ValueText] = $true }
+        }
+    }
     $violations = [Collections.Generic.List[string]]::new()
-    foreach ($file in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]') {
-        $tree = [Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree]::ParseText([string](Get-Content $file.FullName -Raw), $parseOptions)
-        $root = $tree.GetRoot()
+    foreach ($document in $documents) {
         $forbiddenAliases = @{}
-        foreach ($usingDirective in $root.DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax] }) {
+        foreach ($alias in $globalForbiddenAliases.Keys) { $forbiddenAliases[$alias] = $true }
+        foreach ($usingDirective in $document.Root.DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax] }) {
             if ($null -eq $usingDirective.Alias) { continue }
             $targetName = Get-CSharpQualifiedName $usingDirective.Name
             $targetSimpleName = ($targetName -split '\.')[-1] -replace 'Attribute$', ''
             if ($targetSimpleName -in $forbiddenNames) { $forbiddenAliases[$usingDirective.Alias.Name.Identifier.ValueText] = $true }
         }
-        foreach ($attribute in $root.DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax] }) {
+        foreach ($attribute in $document.Root.DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax] }) {
             $attributeName = Get-CSharpQualifiedName $attribute.Name
             $simpleName = ($attributeName -split '\.')[-1] -replace 'Attribute$', ''
             if ($simpleName -notin $forbiddenNames -and !$forbiddenAliases.ContainsKey($simpleName)) { continue }
-            $lineNumber = 1 + $tree.GetLineSpan($attribute.Span).StartLinePosition.Line
-            $violations.Add("$($file.FullName):$lineNumber uses $attributeName")
+            $lineNumber = 1 + $document.Tree.GetLineSpan($attribute.Span).StartLinePosition.Line
+            $violations.Add("$($document.File.FullName):$lineNumber uses $attributeName")
         }
     }
     return $violations.ToArray()
@@ -432,4 +464,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Resolve-CoverageResultsPath, Resolve-CoveredAssemblyPaths, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-UnlinkedPartialTypeViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Resolve-CoverageResultsPath, Resolve-CoveredAssemblyPaths, Get-UnexpectedSourceLinkedTypes, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-UnlinkedPartialTypeViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports

@@ -190,15 +190,21 @@ try {
     Assert-Equal $false $excludeFilter.Contains('TimerViewModel*') 'TimerViewModel exclusion anchored'
     Assert-Equal $false $excludeFilter.Contains('SettingsService*') 'SettingsService exclusion anchored'
     Assert-Equal $false $excludeFilter.Contains('[TickDown]Microsoft.*') 'No namespace-wide Microsoft exclusion'
+    Assert-Equal $false $runsettings.Contains('[TickDown.Tests]TickDown.ViewModels.*') 'No namespace-wide test ViewModel inclusion'
+    Assert-Equal $true $runsettings.Contains('[TickDown.Tests]TickDown.ViewModels.MainViewModel*') 'MainViewModel collector prefix'
+    Assert-Equal $true $runsettings.Contains('[TickDown.Tests]TickDown.Services.SettingsService*') 'SettingsService collector prefix'
     Assert-Equal $true ($null -ne (Get-Command Get-CoverageExclusionViolations)) 'Compiled exclusion guard exported'
+    Assert-Equal $true ($null -ne (Get-Command Get-UnexpectedSourceLinkedTypes)) 'Collector boundary guard exported'
     $sourceRoot = Join-Path $temp 'src'
     New-Item $sourceRoot -ItemType Directory | Out-Null
     '[ExcludeFromCodeCoverage] class Hidden {}' | Set-Content (Join-Path $sourceRoot 'Hidden.cs')
     Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
     'using Hidden = System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute; [Hidden] class Aliased {}' | Set-Content (Join-Path $sourceRoot 'Aliased.cs')
     Assert-Equal 2 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Direct and aliased source exclusion rejection'
+    'global using GlobalHidden = System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute;' | Set-Content (Join-Path $sourceRoot 'GlobalAlias.cs')
+    'class GloballyAliased { [GlobalHidden] void Hidden() {} }' | Set-Content (Join-Path $sourceRoot 'GlobalAliasUse.cs')
     'class Verbatim { [@ExcludeFromCodeCoverageAttribute] void Hidden() {} }' | Set-Content (Join-Path $sourceRoot 'Verbatim.cs')
-    Assert-Equal 3 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Verbatim attribute rejection'
+    Assert-Equal 4 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Global alias and verbatim attribute rejection'
     Remove-Item (Join-Path $sourceRoot '*.cs')
     '// ExcludeFromCodeCoverage is forbidden.' | Set-Content (Join-Path $sourceRoot 'Comment.cs')
     'class Documented { const string Policy = "ExcludeFromCoverage"; }' | Set-Content (Join-Path $sourceRoot 'String.cs')
@@ -228,6 +234,11 @@ try {
     Assert-Equal $false $testProject.Contains('src\ViewModels\*.cs') 'No broad ViewModel source-link glob'
     Assert-Equal $true $testProject.Contains('src\ViewModels\MainViewModel.cs') 'MainViewModel exact source link'
     Assert-Equal $true $testProject.Contains('src\ViewModels\TimerViewModel.cs') 'TimerViewModel exact source link'
+    $collectorFixture = Join-Path $temp 'collector-fixture.dll'
+    Add-Type -TypeDefinition 'namespace TickDown.ViewModels { public class MainViewModel { public class Nested {} } public class MainViewModelFake {} }' -OutputAssembly $collectorFixture
+    $collectorViolations = @(Get-UnexpectedSourceLinkedTypes $collectorFixture @('TickDown.ViewModels.MainViewModel'))
+    Assert-Equal 1 $collectorViolations.Count 'Collector sibling-prefix rejection'
+    Assert-Equal $true $collectorViolations[0].Contains('MainViewModelFake') 'Collector violation identity'
     $ownedResults = Resolve-CoverageResultsPath $temp 'artifacts/coverage/run'
     Assert-Equal $true $ownedResults.EndsWith('artifacts\coverage\run') 'Owned result path acceptance'
     $dangerousPathRejected = $false
