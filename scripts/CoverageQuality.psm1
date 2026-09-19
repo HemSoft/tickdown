@@ -1,0 +1,165 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Get-RelativeSourcePath([string]$Path) {
+    $normalized = $Path.Replace('\', '/')
+    $sourceIndex = $normalized.LastIndexOf('/src/', [StringComparison]::OrdinalIgnoreCase)
+    if ($sourceIndex -ge 0) { return $normalized.Substring($sourceIndex + 1) }
+    return $normalized
+}
+
+function Get-CoverageFunctions([string]$CoveragePath) {
+    if (!(Test-Path $CoveragePath -PathType Leaf)) { throw "Coverage file not found: $CoveragePath" }
+    [xml]$coverage = Get-Content $CoveragePath -Raw
+    $results = [Collections.Generic.List[object]]::new()
+
+    foreach ($class in $coverage.coverage.packages.package.classes.class) {
+        $className = [string]$class.name
+        $isAsyncStateMachine = $className -match '^(?<owner>.+)/<(?<asyncMethod>[^>]+)>d__\d+(?:`\d+)?$'
+        if ($isAsyncStateMachine) {
+            $reportedClass = $Matches.owner
+            $reportedMethod = $Matches.asyncMethod
+        }
+        elseif ($className -match '/<') {
+            continue
+        }
+        else {
+            $reportedClass = $className
+            $reportedMethod = $null
+        }
+
+        $source = Get-RelativeSourcePath ([string]$class.filename)
+        foreach ($method in @($class.methods.method)) {
+            if ($null -eq $method -or ($isAsyncStateMachine -and [string]$method.name -ne 'MoveNext')) { continue }
+            $coveredBranches = 0
+            $validBranches = 0
+            $coveredLines = 0
+            $validLines = 0
+            foreach ($line in @($method.lines.line)) {
+                if ($null -eq $line) { continue }
+                $validLines++
+                if ([int]$line.hits -gt 0) { $coveredLines++ }
+                if ([string]$line.branch -eq 'True' -and [string]$line.'condition-coverage' -match '\((\d+)/(\d+)\)') {
+                    $coveredBranches += [int]$Matches[1]
+                    $validBranches += [int]$Matches[2]
+                }
+            }
+
+            if ($validBranches -gt 0) {
+                $basis = 'branch'
+                $coverageRate = $coveredBranches / $validBranches
+            }
+            elseif ($validLines -gt 0) {
+                $basis = 'line'
+                $coverageRate = $coveredLines / $validLines
+            }
+            else {
+                throw "Method $($class.name)::$($method.name) has no measurable lines."
+            }
+
+            $complexity = [double]::Parse([string]$method.complexity, [Globalization.CultureInfo]::InvariantCulture)
+            $crap = ($complexity * $complexity * [Math]::Pow(1 - $coverageRate, 3)) + $complexity
+            $signature = if ($isAsyncStateMachine) { '(async)' } else { [string]$method.signature }
+            $methodName = if ($isAsyncStateMachine) { $reportedMethod } else { [string]$method.name }
+            $results.Add([pscustomobject]@{
+                Id = "${reportedClass}::${methodName}${signature}"
+                Class = $reportedClass
+                Method = $methodName
+                Signature = $signature
+                Source = $source
+                Complexity = $complexity
+                CoverageBasis = $basis
+                Coverage = [Math]::Round($coverageRate, 6)
+                Crap = [Math]::Round($crap, 4)
+            })
+        }
+    }
+
+    if ($results.Count -eq 0) { throw 'Coverage report contains no functions.' }
+    return $results.ToArray()
+}
+
+function Test-CoverageBaseline([object[]]$Functions, [string]$BaselinePath) {
+    if (!(Test-Path $BaselinePath -PathType Leaf)) { throw "Coverage baseline not found: $BaselinePath" }
+    $baseline = Get-Content $BaselinePath -Raw | ConvertFrom-Json -AsHashtable
+    if ($baseline.version -ne 1) { throw "Unsupported coverage baseline version: $($baseline.version)" }
+
+    $failures = [Collections.Generic.List[string]]::new()
+    foreach ($prefix in $baseline.requiredSourcePrefixes) {
+        if (!($Functions.Source | Where-Object { $_.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) })) {
+            $failures.Add("Coverage is missing required production source prefix '$prefix'.")
+        }
+    }
+    foreach ($source in $baseline.requiredSources) {
+        if ($source -notin $Functions.Source) {
+            $failures.Add("Coverage is missing baseline source '$source'.")
+        }
+    }
+
+    $currentIds = @{}
+    foreach ($function in $Functions) { $currentIds[$function.Id] = $true }
+    foreach ($functionId in $baseline.functions.Keys) {
+        if (!$currentIds.ContainsKey($functionId)) {
+            $failures.Add("Coverage is missing baseline function $functionId.")
+        }
+    }
+
+    foreach ($function in $Functions) {
+        if ($baseline.functions.ContainsKey($function.Id)) {
+            $allowed = [double]$baseline.allowedCrapIncrease
+            $previous = [double]$baseline.functions[$function.Id].crap
+            if ($function.Crap -gt $previous + $allowed) {
+                $failures.Add("Existing function $($function.Id) increased CRAP from $previous to $($function.Crap).")
+            }
+        }
+        elseif ($function.Crap -gt [double]$baseline.maxNewFunctionCrap) {
+            $failures.Add("New function $($function.Id) has CRAP $($function.Crap), above $($baseline.maxNewFunctionCrap).")
+        }
+    }
+
+    return $failures.ToArray()
+}
+
+function Write-CoverageBaseline([object[]]$Functions, [string]$Path) {
+    $entries = [ordered]@{}
+    foreach ($function in $Functions | Sort-Object Id) {
+        $entries[$function.Id] = [ordered]@{
+            crap = $function.Crap
+            complexity = $function.Complexity
+            coverage = $function.Coverage
+            coverageBasis = $function.CoverageBasis
+            source = $function.Source
+        }
+    }
+    $baseline = [ordered]@{
+        version = 1
+        formula = 'complexity^2 * (1 - coverage)^3 + complexity'
+        maxNewFunctionCrap = 30
+        allowedCrapIncrease = 0.01
+        requiredSourcePrefixes = @('src/TickDown.Core/', 'src/ViewModels/', 'src/Services/')
+        requiredSources = @($Functions.Source | Sort-Object -Unique)
+        functions = $entries
+    }
+    $baseline | ConvertTo-Json -Depth 8 | Set-Content $Path -Encoding utf8
+}
+
+function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
+    New-Item $OutputDirectory -ItemType Directory -Force | Out-Null
+    $ordered = @($Functions | Sort-Object -Property @{ Expression = 'Crap'; Descending = $true }, @{ Expression = 'Id'; Descending = $false })
+    $ordered | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $OutputDirectory 'function-risk.json') -Encoding utf8
+
+    $lines = [Collections.Generic.List[string]]::new()
+    $lines.Add('# Worst function risk')
+    $lines.Add('')
+    $lines.Add('| Function | Complexity | Coverage | Basis | CRAP |')
+    $lines.Add('|---|---:|---:|---|---:|')
+    foreach ($function in $ordered | Select-Object -First 25) {
+        $coveragePercent = ($function.Coverage * 100).ToString('0.##', [Globalization.CultureInfo]::InvariantCulture)
+        $lines.Add("| ``$($function.Id)`` | $($function.Complexity) | $coveragePercent% | $($function.CoverageBasis) | $($function.Crap) |")
+    }
+    $lines.Add('')
+    $lines.Add('CRAP uses branch coverage when the function has branches; otherwise it uses line coverage.')
+    $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
+}
+
+Export-ModuleMember -Function Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports

@@ -1,0 +1,100 @@
+#Requires -Version 7.0
+$ErrorActionPreference = 'Stop'
+$root = Resolve-Path "$PSScriptRoot/../.."
+Import-Module (Join-Path $root 'scripts/CoverageQuality.psm1') -Force
+$temp = Join-Path ([IO.Path]::GetTempPath()) "tickdown-coverage-$([Guid]::NewGuid())"
+New-Item $temp -ItemType Directory | Out-Null
+$passed = 0
+
+function Assert-Equal($Expected, $Actual, [string]$Name) {
+    if ($Expected -ne $Actual) { throw "$Name expected '$Expected', got '$Actual'" }
+    $script:passed++
+}
+
+try {
+    $coveragePath = Join-Path $temp 'coverage.cobertura.xml'
+    @'
+<coverage>
+  <packages><package name="Synthetic"><classes>
+    <class name="TickDown.Core.Models.CountdownTimer" filename="D:/repo/src/TickDown.Core/Models/CountdownTimer.cs"><methods>
+      <method name="Stop" signature="()" complexity="6"><lines>
+        <line number="1" hits="0" branch="True" condition-coverage="0% (0/2)" />
+      </lines></method>
+    </methods></class>
+    <class name="TickDown.ViewModels.TimerViewModel" filename="D:/repo/src/ViewModels/TimerViewModel.cs"><methods>
+      <method name="Tick" signature="()" complexity="6"><lines>
+        <line number="2" hits="0" branch="True" condition-coverage="0% (0/2)" />
+      </lines></method>
+    </methods></class>
+    <class name="TickDown.Services.SettingsService" filename="D:/repo/src/Services/SettingsService.cs"><methods>
+      <method name="Load" signature="()" complexity="2"><lines>
+        <line number="3" hits="1" branch="False" />
+        <line number="4" hits="0" branch="False" />
+      </lines></method>
+    </methods></class>
+    <class name="TickDown.Services.SettingsService/&lt;FlushAsync&gt;d__5" filename="D:/repo/src/Services/SettingsService.cs"><methods>
+      <method name="MoveNext" signature="()" complexity="3"><lines>
+        <line number="5" hits="1" branch="True" condition-coverage="100% (2/2)" />
+      </lines></method>
+    </methods></class>
+    <class name="TickDown.Services.SettingsService/&lt;ReadAsync&gt;d__6`1" filename="D:/repo/src/Services/SettingsService.cs"><methods>
+      <method name="MoveNext" signature="()" complexity="2"><lines>
+        <line number="6" hits="1" branch="False" />
+      </lines></method>
+    </methods></class>
+  </classes></package></packages>
+</coverage>
+'@ | Set-Content $coveragePath -Encoding utf8
+
+    $functions = @(Get-CoverageFunctions $coveragePath)
+    Assert-Equal 5 $functions.Count 'Function count'
+    $stop = $functions | Where-Object Method -eq 'Stop'
+    $tick = $functions | Where-Object Method -eq 'Tick'
+    $load = $functions | Where-Object Method -eq 'Load'
+    Assert-Equal 42 $stop.Crap 'Stop uncovered CRAP'
+    Assert-Equal 42 $tick.Crap 'Tick uncovered CRAP'
+    Assert-Equal 'branch' $tick.CoverageBasis 'Tick coverage basis'
+    Assert-Equal 2.5 $load.Crap 'Line fallback CRAP'
+    Assert-Equal 'line' $load.CoverageBasis 'Load coverage basis'
+    $flush = $functions | Where-Object Method -eq 'FlushAsync'
+    Assert-Equal 'TickDown.Services.SettingsService::FlushAsync(async)' $flush.Id 'Async state-machine mapping'
+    Assert-Equal 3 $flush.Crap 'Async state-machine CRAP'
+    $read = $functions | Where-Object Method -eq 'ReadAsync'
+    Assert-Equal 'TickDown.Services.SettingsService::ReadAsync(async)' $read.Id 'Generic async state-machine mapping'
+
+    $healthy = @($functions | ForEach-Object {
+        [pscustomobject]@{
+            Id = $_.Id; Class = $_.Class; Method = $_.Method; Signature = $_.Signature
+            Source = $_.Source; Complexity = $_.Complexity; CoverageBasis = $_.CoverageBasis
+            Coverage = if ($_.CoverageBasis -eq 'branch') { 1 } else { $_.Coverage }
+            Crap = if ($_.CoverageBasis -eq 'branch') { $_.Complexity } else { $_.Crap }
+        }
+    })
+    $baselinePath = Join-Path $temp 'baseline.json'
+    Write-CoverageBaseline $healthy $baselinePath
+    $regressions = @(Test-CoverageBaseline $functions $baselinePath)
+    Assert-Equal 2 $regressions.Count 'Uncovered branch regressions'
+    $missingFunction = @($healthy | Where-Object Method -ne 'FlushAsync')
+    Assert-Equal 1 (@(Test-CoverageBaseline $missingFunction $baselinePath)).Count 'Missing baseline function rejection'
+
+    $newHigh = [pscustomobject]@{
+        Id = 'TickDown.Core.Models.NewRisk::Run()'; Class = 'NewRisk'; Method = 'Run'; Signature = '()'
+        Source = 'src/TickDown.Core/Models/NewRisk.cs'; Complexity = 6; CoverageBasis = 'branch'; Coverage = 0; Crap = 42
+    }
+    $newHighFailures = @(Test-CoverageBaseline ($healthy + $newHigh) $baselinePath)
+    Assert-Equal 1 $newHighFailures.Count 'New high-risk rejection'
+
+    $newLow = $newHigh.PSObject.Copy()
+    $newLow.Id = 'TickDown.Core.Models.NewRisk::Safe()'
+    $newLow.Crap = 30
+    Assert-Equal 0 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath)).Count 'New threshold acceptance'
+
+    $reportPath = Join-Path $temp 'reports'
+    Write-CoverageReports $functions $reportPath
+    Assert-Equal $true (Test-Path (Join-Path $reportPath 'function-risk.json')) 'JSON report'
+    Assert-Equal $true (Test-Path (Join-Path $reportPath 'function-risk.md')) 'Markdown report'
+    "Passed $passed coverage-quality assertions."
+}
+finally {
+    Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
+}
