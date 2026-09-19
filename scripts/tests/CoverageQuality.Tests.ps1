@@ -171,6 +171,7 @@ try {
     Assert-Equal $false $excludeFilter.Contains('MainViewModel*') 'MainViewModel exclusion anchored'
     Assert-Equal $false $excludeFilter.Contains('TimerViewModel*') 'TimerViewModel exclusion anchored'
     Assert-Equal $false $excludeFilter.Contains('SettingsService*') 'SettingsService exclusion anchored'
+    Assert-Equal $false $excludeFilter.Contains('[TickDown]Microsoft.*') 'No namespace-wide Microsoft exclusion'
     Assert-Equal $true ($null -ne (Get-Command Get-CoverageExclusionViolations)) 'Compiled exclusion guard exported'
     $sourceRoot = Join-Path $temp 'src'
     New-Item $sourceRoot -ItemType Directory | Out-Null
@@ -178,6 +179,13 @@ try {
     Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
     Remove-Item (Join-Path $sourceRoot 'Hidden.cs')
     Assert-Equal 0 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Clean source acceptance'
+    $linkedSources = Join-Path $temp 'ViewModels'
+    $nestedSources = Join-Path $linkedSources 'Dialogs'
+    New-Item $nestedSources -ItemType Directory | Out-Null
+    'public partial class MainViewModel {}' | Set-Content (Join-Path $nestedSources 'MainViewModel.Extra.cs')
+    Assert-Equal 1 @(Get-UnlinkedPartialTypeViolations $linkedSources @('MainViewModel', 'TimerViewModel')).Count 'Nested partial rejection'
+    Remove-Item (Join-Path $nestedSources 'MainViewModel.Extra.cs')
+    Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $linkedSources @('MainViewModel', 'TimerViewModel')).Count 'Linked partial acceptance'
     $ownedResults = Resolve-CoverageResultsPath $temp 'artifacts/coverage/run'
     Assert-Equal $true $ownedResults.EndsWith('artifacts\coverage\run') 'Owned result path acceptance'
     $dangerousPathRejected = $false

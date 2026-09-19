@@ -95,6 +95,18 @@ function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
     )
 }
 
+function Get-UnlinkedPartialTypeViolations([string]$LinkedSourceDirectory, [string[]]$TypeNames) {
+    if (!(Test-Path $LinkedSourceDirectory -PathType Container)) { throw "Linked source directory not found: $LinkedSourceDirectory" }
+    $escapedNames = @($TypeNames | ForEach-Object { [regex]::Escape($_) }) -join '|'
+    $pattern = "\bpartial\s+class\s+(?:$escapedNames)\b"
+    return @(
+        Get-ChildItem $LinkedSourceDirectory -Filter *.cs -File -Recurse |
+            Where-Object DirectoryName -ne ([IO.Path]::GetFullPath($LinkedSourceDirectory)) |
+            Select-String -Pattern $pattern |
+            ForEach-Object { "$($_.Path):$($_.LineNumber) declares an excluded partial type outside the linked top-level glob" }
+    )
+}
+
 function Get-StateMachineMap([string[]]$AssemblyPath) {
     $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
     $stateMachineAttributes = 'AsyncStateMachineAttribute', 'IteratorStateMachineAttribute', 'AsyncIteratorStateMachineAttribute'
@@ -369,4 +381,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Resolve-CoverageResultsPath, Resolve-CoveredAssemblyPaths, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Resolve-CoverageResultsPath, Resolve-CoveredAssemblyPaths, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-UnlinkedPartialTypeViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
