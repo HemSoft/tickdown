@@ -97,21 +97,19 @@ function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
 
 function Get-UnlinkedPartialTypeViolations([string]$SourceRoot, [hashtable]$LinkedTypePatterns) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
-    $escapedNames = @($LinkedTypePatterns.Keys | ForEach-Object { [regex]::Escape($_) }) -join '|'
-    $pattern = "\bpartial\b(?:(?![;{}]).)*?\bclass\s+(?<name>$escapedNames)\b"
+    Add-Type -AssemblyName Microsoft.CodeAnalysis.CSharp
+    $partialKind = [Microsoft.CodeAnalysis.CSharp.SyntaxKind]::PartialKeyword
     $violations = [Collections.Generic.List[string]]::new()
     foreach ($file in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]') {
-        $content = [string](Get-Content $file.FullName -Raw)
-        $contentWithoutComments = [regex]::Replace(
-            $content,
-            '(?s)/\*.*?\*/|(?m)//[^\r\n]*',
-            [Text.RegularExpressions.MatchEvaluator]{ param($comment) [regex]::Replace($comment.Value, '[^\r\n]', ' ') }
-        )
-        foreach ($match in [regex]::Matches($contentWithoutComments, $pattern, [Text.RegularExpressions.RegexOptions]::Singleline)) {
-            $typeName = $match.Groups['name'].Value
+        $tree = [Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree]::ParseText([string](Get-Content $file.FullName -Raw))
+        $declarations = @($tree.GetRoot().DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax] })
+        foreach ($declaration in $declarations) {
+            $isPartial = @($declaration.Modifiers | Where-Object { $_.RawKind -eq $partialKind }).Count -gt 0
+            $typeName = $declaration.Identifier.ValueText
+            if (!$isPartial -or !$LinkedTypePatterns.ContainsKey($typeName)) { continue }
             $relativePath = [IO.Path]::GetRelativePath($SourceRoot, $file.FullName).Replace('\', '/')
-            if ($relativePath -notlike $LinkedTypePatterns[$typeName]) {
-                $lineNumber = 1 + [regex]::Matches($content.Substring(0, $match.Index), "`n").Count
+            if ($relativePath -ne $LinkedTypePatterns[$typeName]) {
+                $lineNumber = 1 + $tree.GetLineSpan($declaration.Span).StartLinePosition.Line
                 $violations.Add("$($file.FullName):$lineNumber declares excluded partial $typeName outside linked path $($LinkedTypePatterns[$typeName])")
             }
         }
@@ -154,7 +152,7 @@ function Get-StateMachineMap([string[]]$AssemblyPath) {
     return $map
 }
 
-function Get-CoverageExclusionViolations([string[]]$AssemblyPath) {
+function Get-CoverageExclusionViolations([string[]]$AssemblyPath, [string[]]$TrustedGeneratedMembers = @()) {
     $violations = [Collections.Generic.List[string]]::new()
     $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
     foreach ($path in $AssemblyPath) {
@@ -176,12 +174,12 @@ function Get-CoverageExclusionViolations([string[]]$AssemblyPath) {
             foreach ($member in $type.GetMembers($flags)) {
                 $memberAttributes = @($member.GetCustomAttributesData())
                 $generatedAttributes = @($memberAttributes | Where-Object { $_.AttributeType.Name -eq 'GeneratedCodeAttribute' })
+                $memberIdentity = "$($type.FullName).$($member.Name)"
                 $memberIsTrustedGenerated = $typeIsTrustedGenerated -or (
-                    $member.MemberType -eq [Reflection.MemberTypes]::Property -and
-                    $member.Name.EndsWith('Command', [StringComparison]::Ordinal) -and
+                    $memberIdentity -in $TrustedGeneratedMembers -and
                     @($generatedAttributes | Where-Object {
                             $_.ConstructorArguments.Count -gt 0 -and
-                            ([string]$_.ConstructorArguments[0].Value).StartsWith('CommunityToolkit.Mvvm.SourceGenerators.', [StringComparison]::Ordinal)
+                            ([string]$_.ConstructorArguments[0].Value) -eq 'CommunityToolkit.Mvvm.SourceGenerators.RelayCommandGenerator'
                         }).Count -gt 0
                 )
                 foreach ($attribute in $memberAttributes) {

@@ -186,14 +186,20 @@ try {
     'public partial class MainViewModel {}' | Set-Content (Join-Path $viewModelSources 'MainViewModel.cs')
     'public unsafe partial class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Extra.cs')
     'public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'SettingsService.Extra.cs')
-    "public partial`nclass MainViewModel {}" | Set-Content (Join-Path $nestedSources 'MainViewModel.Multiline.cs')
+    ('[Description("//")] public partial' + "`n" + 'class MainViewModel {}') | Set-Content (Join-Path $nestedSources 'MainViewModel.Multiline.cs')
     'public partial /* split declaration */ class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Commented.cs')
     $linkedPatterns = @{
-        MainViewModel = 'ViewModels/*.cs'; TimerViewModel = 'ViewModels/*.cs'; SettingsService = 'Services/SettingsService.cs'
+        MainViewModel = 'ViewModels/MainViewModel.cs'
+        TimerViewModel = 'ViewModels/TimerViewModel.cs'
+        SettingsService = 'Services/SettingsService.cs'
     }
     Assert-Equal 4 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Whole-tree, multiline, and commented partial rejection'
     Remove-Item $nestedSources -Recurse
     Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Linked partial acceptance'
+    $testProject = Get-Content (Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj') -Raw
+    Assert-Equal $false $testProject.Contains('src\ViewModels\*.cs') 'No broad ViewModel source-link glob'
+    Assert-Equal $true $testProject.Contains('src\ViewModels\MainViewModel.cs') 'MainViewModel exact source link'
+    Assert-Equal $true $testProject.Contains('src\ViewModels\TimerViewModel.cs') 'TimerViewModel exact source link'
     $ownedResults = Resolve-CoverageResultsPath $temp 'artifacts/coverage/run'
     Assert-Equal $true $ownedResults.EndsWith('artifacts\coverage\run') 'Owned result path acceptance'
     $dangerousPathRejected = $false

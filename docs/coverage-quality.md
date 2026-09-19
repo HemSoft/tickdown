@@ -32,8 +32,8 @@ Those exclusions match each exact type plus its `/`-delimited generated nested
 types; they do not use sibling-matching prefixes. A new ViewModel or service type,
 including one whose name starts with an existing type name, is measured from the
 app candidate by default. Before collection, the runner scans the entire `src`
-tree for single-line, multiline, or comment-split partial declarations of all
-three excluded types and requires each file to match its actual linked path (`ViewModels/*.cs` or the exact SettingsService
+tree with Roslyn for partial declarations of all three excluded types and requires
+each file to match its exact linked path (`ViewModels/*.cs` or the exact SettingsService
 file). Test namespaces, presentation doubles, and the two exact
 package-generated bootstrap types are not included; there is no namespace-wide
 `Microsoft.*` exclusion. Only
@@ -43,9 +43,9 @@ runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
 attribute both in hand-written production source and in compiled assemblies,
 types, and members. The source check prevents generated-marker spoofing; the
 metadata check also catches aliases. An exclusion is trusted only on the exact
-WinUI generated entry point or a `*Command` property carrying the expected
-CommunityToolkit RelayCommand generator provenance; a generic generated marker
-does not bypass inspection. Async, iterator, and
+WinUI generated entry point or one of the explicit current RelayCommand properties
+carrying the exact CommunityToolkit generator identity; property names and
+user-controlled generated markers cannot expand that allowlist. Async, iterator, and
 async-iterator state-machine bodies are retained and mapped from every covered
 assembly through the corresponding state-machine attribute to unique source
 signatures. All source-bearing helper methods in a state machine, including

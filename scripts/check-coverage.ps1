@@ -16,8 +16,8 @@ if ($sourceExclusionViolations.Count -gt 0) {
     throw "Coverage exclusion attributes are forbidden in production source:`n- $($sourceExclusionViolations -join "`n- ")"
 }
 $linkedTypePatterns = @{
-    MainViewModel = 'ViewModels/*.cs'
-    TimerViewModel = 'ViewModels/*.cs'
+    MainViewModel = 'ViewModels/MainViewModel.cs'
+    TimerViewModel = 'ViewModels/TimerViewModel.cs'
     SettingsService = 'Services/SettingsService.cs'
 }
 $partialTypeViolations = @(
@@ -78,7 +78,18 @@ try {
     if ($missingAssemblies.Count -gt 0) { throw "Covered assemblies missing from Cobertura: $($missingAssemblies -join ', ')." }
 
     $coveredAssemblies = @(Resolve-CoveredAssemblyPaths $expectedAssemblyNames $testAssemblyPath)
-    $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies)
+    $trustedGeneratedMembers = @(
+        'TickDown.ViewModels.MainViewModel.AddTimerCommand'
+        'TickDown.ViewModels.TimerViewModel.StartCommand'
+        'TickDown.ViewModels.TimerViewModel.PauseCommand'
+        'TickDown.ViewModels.TimerViewModel.StopCommand'
+        'TickDown.ViewModels.TimerViewModel.ResetCommand'
+        'TickDown.ViewModels.TimerViewModel.RemoveCommand'
+        'TickDown.ViewModels.TimerViewModel.DismissCommand'
+        'TickDown.ViewModels.TimerViewModel.SetQuickTimeCommand'
+        'TickDown.ViewModels.TimerViewModel.SetEndTimeCommand'
+    )
+    $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies $trustedGeneratedMembers)
     if ($exclusionViolations.Count -gt 0) { throw "Coverage exclusion attributes are forbidden:`n- $($exclusionViolations -join "`n- ")" }
     $stateMachineMap = Get-StateMachineMap $coveredAssemblies
     $genericMethodArities = Get-MethodGenericArities $coveredAssemblies
