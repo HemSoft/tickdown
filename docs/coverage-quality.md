@@ -32,8 +32,9 @@ metadata check also catches aliases. Only WinUI and CommunityToolkit artifacts
 outside hand-written source are recognized as generated. Async, iterator, and
 async-iterator state-machine `MoveNext` bodies are retained and mapped from every
 covered assembly through the corresponding state-machine attribute to unique
-source signatures. Ordinary generic functions also carry reflected generic arity,
-so overloads cannot share a baseline key. Reported compiler-generated callback
+source signatures. Ordinary generic functions carry reflected generic arity, and
+user-defined conversions carry reflected target types, so legal overloads cannot
+share a baseline key. Reported compiler-generated callback
 and local-function bodies are retained instead of
 being filtered with their closure classes. Callback sequence points that Coverlet
 folds into their containing function remain part of that function's line rate.

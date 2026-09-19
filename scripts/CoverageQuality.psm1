@@ -53,6 +53,24 @@ function Get-GenericMethodArities([string[]]$AssemblyPath) {
     return $map
 }
 
+function Get-ConversionReturnTypes([string[]]$AssemblyPath) {
+    $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
+    $map = @{}
+    foreach ($path in $AssemblyPath) {
+        if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
+        $assembly = [Reflection.Assembly]::LoadFrom($path)
+        foreach ($type in $assembly.GetTypes()) {
+            foreach ($method in $type.GetMethods($flags) | Where-Object { $_.Name -in 'op_Implicit', 'op_Explicit' }) {
+                $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
+                $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
+                if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[string]]::new() }
+                $map[$key].Add((Format-CoverageTypeName $method.ReturnType))
+            }
+        }
+    }
+    return $map
+}
+
 function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
     return @(
@@ -132,12 +150,14 @@ function Get-CoverageExclusionViolations([string[]]$AssemblyPath) {
 function Get-CoverageFunctions(
     [string]$CoveragePath,
     [hashtable]$StateMachineMap = @{},
-    [hashtable]$GenericMethodArities = @{}
+    [hashtable]$GenericMethodArities = @{},
+    [hashtable]$ConversionReturnTypes = @{}
 ) {
     if (!(Test-Path $CoveragePath -PathType Leaf)) { throw "Coverage file not found: $CoveragePath" }
     [xml]$coverage = Get-Content $CoveragePath -Raw
     $results = [Collections.Generic.List[object]]::new()
     $genericOccurrences = @{}
+    $conversionOccurrences = @{}
 
     foreach ($class in $coverage.coverage.packages.package.classes.class) {
         $className = [string]$class.name
@@ -199,6 +219,13 @@ function Get-CoverageFunctions(
                     if ($occurrence -ge $arities.Count) { throw "No unused generic arity found for $genericKey." }
                     $methodName = "$methodName``$($arities[$occurrence])"
                     $genericOccurrences[$genericKey] = $occurrence + 1
+                }
+                if ($ConversionReturnTypes.ContainsKey($genericKey)) {
+                    $occurrence = if ($conversionOccurrences.ContainsKey($genericKey)) { $conversionOccurrences[$genericKey] } else { 0 }
+                    $returnTypes = @($ConversionReturnTypes[$genericKey])
+                    if ($occurrence -ge $returnTypes.Count) { throw "No unused conversion return type found for $genericKey." }
+                    $signature = "$signature->$($returnTypes[$occurrence])"
+                    $conversionOccurrences[$genericKey] = $occurrence + 1
                 }
             }
             $results.Add([pscustomobject]@{
@@ -305,4 +332,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Resolve-CoverageResultsPath, Get-GenericMethodArities, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Resolve-CoverageResultsPath, Get-GenericMethodArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
