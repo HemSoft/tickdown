@@ -17,6 +17,7 @@ try {
     $candidate = (& git rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the candidate revision.' }
     $dirty = (& git status --porcelain --untracked-files=all | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Could not inspect the candidate working tree.' }
     if (!$AllowDirty -and $dirty) { throw "Mutation results require a clean candidate tree:`n$dirty" }
     if ($env:GITHUB_SHA -and $env:GITHUB_SHA -ne $candidate) {
         throw "Checked-out candidate $candidate does not match GITHUB_SHA $env:GITHUB_SHA."
