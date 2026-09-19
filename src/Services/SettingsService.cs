@@ -106,6 +106,24 @@ public class SettingsService : ISettingsService
         return JsonSerializer.Deserialize<T>(json) ?? throw new JsonException("A settings document cannot be null.");
     }
 
+    private static void PreserveCorruptPrimaryBestEffort(string path)
+    {
+        try
+        {
+            File.Copy(path, path + ".corrupt." + Guid.NewGuid().ToString("N"));
+            File.Delete(path);
+        }
+        catch (IOException)
+        {
+            // A validated backup is still usable. Keep the original if archiving
+            // or removing it is blocked rather than discarding recovered data.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // A read-only primary can remain alongside its valid backup.
+        }
+    }
+
     private Task GetPendingWrites()
     {
         lock (this.sync)
@@ -231,17 +249,10 @@ public class SettingsService : ISettingsService
         {
             try
             {
-                if (exception is JsonException)
-                {
-                    File.Copy(path, path + ".corrupt." + Guid.NewGuid().ToString("N"));
-                }
-
                 T? recovered = await ReadAsync<T>(path + ".bak").ConfigureAwait(false);
                 if (exception is JsonException)
                 {
-                    // Only remove a corrupt primary after a valid backup is known.
-                    // Without one, subsequent loads must keep reporting failure.
-                    File.Delete(path);
+                    PreserveCorruptPrimaryBestEffort(path);
                 }
 
                 this.PersistenceFailed?.Invoke(this, new SettingsFailureEventArgs($"Loaded {Path.GetFileName(path)} from backup. Original data was preserved.", exception, true));

@@ -72,8 +72,6 @@ public class SettingsServiceTests
         using Fixture fixture = new();
         await File.WriteAllTextAsync(fixture.TimersPath, "{broken");
         _ = await Assert.ThrowsAsync<IOException>(fixture.Store.LoadTimersAsync);
-        string archive = Assert.Single(Directory.GetFiles(fixture.Directory, "timers.json.corrupt.*"));
-        Assert.Equal("{broken", await File.ReadAllTextAsync(archive));
         Assert.False(Assert.Single(fixture.Errors).IsRecovered);
         Assert.Equal("{broken", await File.ReadAllTextAsync(fixture.TimersPath));
         _ = await Assert.ThrowsAsync<IOException>(fixture.Store.LoadTimersAsync);
@@ -158,6 +156,23 @@ public class SettingsServiceTests
         Assert.Equal("latest", Assert.Single(await fixture.Store.LoadTimersAsync()).Name);
     }
 
+    /// <summary>
+    /// Verifies a read-only corrupt primary cannot hide its valid backup.
+    /// </summary>
+    /// <returns>The test completion task.</returns>
+    [Fact]
+    public async Task ReadOnlyCorruptPrimaryStillLoadsValidBackup()
+    {
+        using Fixture fixture = new();
+        await fixture.SaveNamedAsync("backup");
+        await fixture.SaveNamedAsync("current");
+        await File.WriteAllTextAsync(fixture.TimersPath, "{corrupt");
+        File.SetAttributes(fixture.TimersPath, FileAttributes.ReadOnly);
+        Assert.Equal("backup", Assert.Single(await fixture.Store.LoadTimersAsync()).Name);
+        Assert.True(Assert.Single(fixture.Errors).IsRecovered);
+        Assert.Equal("{corrupt", await File.ReadAllTextAsync(fixture.TimersPath));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public Fixture()
@@ -178,6 +193,14 @@ public class SettingsServiceTests
 
         public Task SaveNamedAsync(string name) => this.Store.SaveTimersAsync([new CountdownTimer(TimeSpan.FromMinutes(5), name)]);
 
-        public void Dispose() => System.IO.Directory.Delete(this.Directory, recursive: true);
+        public void Dispose()
+        {
+            foreach (string path in System.IO.Directory.GetFiles(this.Directory))
+            {
+                File.SetAttributes(path, FileAttributes.Normal);
+            }
+
+            System.IO.Directory.Delete(this.Directory, recursive: true);
+        }
     }
 }

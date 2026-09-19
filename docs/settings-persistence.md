@@ -13,9 +13,11 @@ hardware failure.
 
 A missing file is a normal first run. Malformed JSON and access failures are not
 empty settings. When a valid backup exists, TickDown loads it and shows a message.
-Malformed data is copied to a `.corrupt.<identifier>` file before recovery. Without
-a valid backup, the original remains in place and subsequent loads still report
-the failure. Do not remove these files until recovery is complete.
+When possible, recovery copies malformed data to a `.corrupt.<identifier>` file.
+If archiving or removal is blocked, the corrupt primary stays in place and the
+validated backup remains usable. Without a valid backup, the original remains
+in place and subsequent loads still report the failure. Do not remove these
+files until recovery is complete.
 
 The settings banner records the latest failure or backup recovery for the current
 session. A save failure leaves the prior committed data available. After fixing
