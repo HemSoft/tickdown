@@ -2,6 +2,7 @@
 
 namespace TickDown.Services;
 
+using System.Security.Cryptography;
 using System.Text.Json;
 using global::TickDown.Core.Models;
 using global::TickDown.Core.Services;
@@ -110,7 +111,14 @@ public class SettingsService : ISettingsService
     {
         try
         {
-            File.Copy(path, path + ".corrupt." + Guid.NewGuid().ToString("N"));
+            byte[] source = File.ReadAllBytes(path);
+            string fingerprint = Convert.ToHexStringLower(SHA256.HashData(source));
+            string archive = $"{path}.corrupt.{fingerprint}";
+            if (!File.Exists(archive) || !File.ReadAllBytes(archive).SequenceEqual(source))
+            {
+                File.WriteAllBytes(archive, source);
+            }
+
             File.Delete(path);
         }
         catch (IOException)
@@ -120,7 +128,7 @@ public class SettingsService : ISettingsService
         }
         catch (UnauthorizedAccessException)
         {
-            // A read-only primary can remain alongside its valid backup.
+            // A read-only primary can remain alongside one content-addressed archive.
         }
     }
 

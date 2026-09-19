@@ -169,8 +169,13 @@ public class SettingsServiceTests
         await File.WriteAllTextAsync(fixture.TimersPath, "{corrupt");
         File.SetAttributes(fixture.TimersPath, FileAttributes.ReadOnly);
         Assert.Equal("backup", Assert.Single(await fixture.Store.LoadTimersAsync()).Name);
-        Assert.True(Assert.Single(fixture.Errors).IsRecovered);
+        Assert.Equal("backup", Assert.Single(await fixture.Store.LoadTimersAsync()).Name);
+        SettingsService reopened = new(fixture.Directory);
+        Assert.Equal("backup", Assert.Single(await reopened.LoadTimersAsync()).Name);
+        Assert.Equal(2, fixture.Errors.Count);
+        Assert.All(fixture.Errors, error => Assert.True(error.IsRecovered));
         Assert.Equal("{corrupt", await File.ReadAllTextAsync(fixture.TimersPath));
+        _ = Assert.Single(Directory.GetFiles(fixture.Directory, "timers.json.corrupt.*"));
     }
 
     private sealed class Fixture : IDisposable
