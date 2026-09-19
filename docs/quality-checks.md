@@ -1,10 +1,11 @@
 # Local quality checks
 
-Use PowerShell 7, .NET 10 and Node.js 22 or later on Windows.
+Use PowerShell 7, the exact .NET SDK selected by `global.json`, and Node.js 22 or later on Windows.
 
 ```powershell
 npm ci --ignore-scripts
-dotnet restore TickDown.sln
+dotnet restore TickDown.sln --locked-mode
+pwsh -NoProfile -File scripts/tests/DependencyResolution.Tests.ps1
 dotnet build src/TickDown.csproj
 pwsh -NoProfile -File scripts/check-quality.ps1
 pwsh -NoProfile -File scripts/tests/QualityChecks.Tests.ps1

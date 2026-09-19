@@ -19,9 +19,11 @@ using Windows.UI;
 /// </summary>
 public sealed partial class TimerViewModel : ObservableObject, IDisposable
 {
+    private const int MaxTimeInputLength = 64;
     private static readonly Regex TimePattern = new(
         @"^(\d+(?:\.\d+)?)\s*(h|hours?|m|min|s|sec)?$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking,
+        TimeSpan.FromMilliseconds(100));
 
     private readonly ITimerService timerService;
     private readonly IAudioService audioService;
@@ -443,12 +445,25 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     private static bool TryParseTime(string value, out TimeSpan result)
     {
         value = value.Trim();
+        if (value.Length > MaxTimeInputLength)
+        {
+            result = default;
+            return false;
+        }
 
-        Match match = TimePattern.Match(value);
-        bool parsed = match.Success
-            ? TryParseUnitTime(match, out result)
-            : TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
-        return parsed && TryGetDeadline(result, out _);
+        try
+        {
+            Match match = TimePattern.Match(value);
+            bool parsed = match.Success
+                ? TryParseUnitTime(match, out result)
+                : TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
+            return parsed && TryGetDeadline(result, out _);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            result = default;
+            return false;
+        }
     }
 
     private static bool TryParseUnitTime(Match match, out TimeSpan result)
