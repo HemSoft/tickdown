@@ -125,6 +125,12 @@ try {
     $runsettings = Get-Content (Join-Path $root 'coverage.runsettings') -Raw
     Assert-Equal $false $runsettings.Contains('ExcludeByAttribute') 'No attribute-based coverage escape hatch'
     Assert-Equal $true ($null -ne (Get-Command Get-CoverageExclusionViolations)) 'Compiled exclusion guard exported'
+    $sourceRoot = Join-Path $temp 'src'
+    New-Item $sourceRoot -ItemType Directory | Out-Null
+    '[ExcludeFromCodeCoverage] class Hidden {}' | Set-Content (Join-Path $sourceRoot 'Hidden.cs')
+    Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
+    Remove-Item (Join-Path $sourceRoot 'Hidden.cs')
+    Assert-Equal 0 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Clean source acceptance'
     "Passed $passed coverage-quality assertions."
 }
 finally {

@@ -22,9 +22,10 @@ only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
 source files linked into the test project. Test namespaces and presentation test
 doubles are not included. Generated XAML files are excluded by file path. The
 runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
-attribute from compiled hand-written production assemblies, types, and members;
-only WinUI and CommunityToolkit source-generated artifacts are recognized as
-generated. Async, iterator, and async-iterator state-machine `MoveNext` bodies are
+attribute both in hand-written production source and in compiled assemblies,
+types, and members. The source check prevents generated-marker spoofing; the
+metadata check also catches aliases. Only WinUI and CommunityToolkit artifacts
+outside hand-written source are recognized as generated. Async, iterator, and async-iterator state-machine `MoveNext` bodies are
 retained and mapped from every covered assembly through the corresponding
 state-machine attribute to unique source signatures, including generic arity and
 parameter types. Reported

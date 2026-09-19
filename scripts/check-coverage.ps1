@@ -11,6 +11,10 @@ $root = Resolve-Path "$PSScriptRoot/.."
 $resultsPath = [IO.Path]::GetFullPath((Join-Path $root $ResultsDirectory))
 $baselinePath = Join-Path $PSScriptRoot 'function-risk-baseline.json'
 Import-Module (Join-Path $PSScriptRoot 'CoverageQuality.psm1') -Force
+$sourceExclusionViolations = @(Get-CoverageSourceExclusionViolations (Join-Path $root 'src'))
+if ($sourceExclusionViolations.Count -gt 0) {
+    throw "Coverage exclusion attributes are forbidden in production source:`n- $($sourceExclusionViolations -join "`n- ")"
+}
 
 Push-Location $root
 try {

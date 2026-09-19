@@ -8,6 +8,16 @@ function Get-RelativeSourcePath([string]$Path) {
     return $normalized
 }
 
+function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
+    if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
+    return @(
+        Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse |
+            Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]' |
+            Select-String -Pattern '\bExcludeFrom(?:Code)?Coverage(?:Attribute)?\b' |
+            ForEach-Object { "$($_.Path):$($_.LineNumber) uses $($_.Matches[0].Value)" }
+    )
+}
+
 function Get-StateMachineMap([string[]]$AssemblyPath) {
     $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
     $stateMachineAttributes = 'AsyncStateMachineAttribute', 'IteratorStateMachineAttribute', 'AsyncIteratorStateMachineAttribute'
@@ -235,4 +245,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
