@@ -35,6 +35,9 @@ public sealed partial class SoundPickerDialog : ContentDialog
 
     private void OnPreviewClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(e);
+
         if (!string.IsNullOrEmpty(this.SelectedSound))
         {
             this.audioService.PlaySound(this.SelectedSound);

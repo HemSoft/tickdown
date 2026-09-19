@@ -16,7 +16,7 @@ csharp_using_directive_placement = inside_namespace:warning
 dotnet_diagnostic.IDE0005.severity = warning
 # Organize usings
 dotnet_separate_import_directive_groups = false
-dotnet_sort_system_directives_first = false
+dotnet_sort_system_directives_first = true
 
 # Modifiers
 # Order modifiers (e.g. public static)
@@ -94,15 +94,17 @@ dotnet_diagnostic.CA1822.severity = warning
 dotnet_diagnostic.S3776.severity = warning
 
 # Parameter preferences
-dotnet_code_quality_unused_parameters = all:warning
+dotnet_code_quality_unused_parameters = all
+dotnet_diagnostic.IDE0060.severity = warning
 
 #### .NET Coding Conventions (General) ####
 
 # this. and Me. preferences
-dotnet_style_qualification_for_event = false:warning
-dotnet_style_qualification_for_field = false:warning
-dotnet_style_qualification_for_method = false:warning
-dotnet_style_qualification_for_property = false:warning
+# Match StyleCop SA1101 and the established source convention.
+dotnet_style_qualification_for_event = true:warning
+dotnet_style_qualification_for_field = true:warning
+dotnet_style_qualification_for_method = true:warning
+dotnet_style_qualification_for_property = true:warning
 
 # Language keywords vs BCL types preferences
 dotnet_style_predefined_type_for_locals_parameters_members = true:warning
