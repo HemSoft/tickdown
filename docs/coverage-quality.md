@@ -27,7 +27,8 @@ production assemblies. The runner builds the x64 app candidate, stages its manag
 output beside the current test assembly, and a coverage-only test loads that exact
 candidate so Coverlet can instrument App, views, converters, and all services.
 The two current ViewModel files and SettingsService file are linked explicitly into
-the test assembly rather than duplicating their unexecuted app copies.
+the test assembly and compiled with the x64 Release app's effective preprocessor
+symbols rather than duplicating their unexecuted app copies.
 Those exclusions match each exact type plus its `/`-delimited generated nested
 types; they do not use sibling-matching prefixes. A new ViewModel or service type,
 including one whose name starts with an existing type name, is measured from the
@@ -35,19 +36,18 @@ app candidate by default. Before collection, the runner scans the entire `src`
 tree with Roslyn using the x64 Release app's effective preprocessor symbols. It
 composes all block/file-scoped namespace ancestors plus containing types and the
 identifier for each partial declaration, then
-requires each excluded identity to come from its exact linked file (`ViewModels/*.cs` or the exact SettingsService
-file). Test namespaces, presentation doubles, and the two exact
-package-generated bootstrap types are not included; there is no namespace-wide
-`Microsoft.*` exclusion. Only
-generated output beneath `obj` is excluded by file path; every hand-written C# file
-under `src`, including `*.g.cs`, remains measured. The
-runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
-attribute both in hand-written production source and in compiled assemblies,
-types, and members. The source check prevents generated-marker spoofing; the
-metadata check also catches aliases. An exclusion is trusted only on the exact
-WinUI generated entry point or one of the explicit current RelayCommand properties
-carrying the exact CommunityToolkit generator identity; property names and
-user-controlled generated markers cannot expand that allowlist. Async, iterator, and
+requires each excluded identity to come from its exact linked file. Test namespaces,
+presentation doubles, and the two exact package-generated bootstrap types are not
+included; there is no namespace-wide `Microsoft.*` exclusion. Only generated output
+beneath `obj` is excluded by file path; every hand-written C# file under `src`,
+including `*.g.cs`, remains measured. The runner parses active C# attribute syntax
+and rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent without mistaking
+comments or strings for attributes; aliases are resolved as well. It independently
+inspects the production assemblies and the three exact source-linked test types
+for assembly, type, and member metadata while ignoring generated test-host
+scaffolding. An exclusion is trusted only on one of the explicit current
+RelayCommand properties carrying the exact CommunityToolkit generator identity;
+property names and user-controlled generated markers cannot expand that allowlist. Async, iterator, and
 async-iterator state-machine bodies are retained and mapped from every covered
 assembly through the corresponding state-machine attribute to unique source
 signatures. All source-bearing helper methods in a state machine, including

@@ -17,7 +17,8 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($defineConstantsOutput)
     throw "Could not resolve the application preprocessor symbols:`n$defineConstantsOutput"
 }
 $defineConstants = @($defineConstantsOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim() -split ';'
-$sourceExclusionViolations = @(Get-CoverageSourceExclusionViolations (Join-Path $root 'src'))
+$encodedDefineConstants = $defineConstants -join '%3B'
+$sourceExclusionViolations = @(Get-CoverageSourceExclusionViolations (Join-Path $root 'src') $defineConstants)
 if ($sourceExclusionViolations.Count -gt 0) {
     throw "Coverage exclusion attributes are forbidden in production source:`n- $($sourceExclusionViolations -join "`n- ")"
 }
@@ -44,7 +45,7 @@ try {
     }
     $appAssemblyPath = @($appAssemblyOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim()
     $testProject = Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj'
-    $testBuildOutput = (& dotnet build $testProject --configuration Release --no-restore 2>&1 | Out-String).Trim()
+    $testBuildOutput = (& dotnet build $testProject --configuration Release --no-restore "-p:DefineConstants=$encodedDefineConstants" 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0) { throw "Coverage test build failed:`n$testBuildOutput" }
     $testAssemblyOutput = (& dotnet msbuild $testProject -getProperty:TargetPath -p:Configuration=Release -nologo 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($testAssemblyOutput)) {
@@ -61,7 +62,7 @@ try {
     try {
         $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $coverageAppAssembly
         $testOutput = (& dotnet test $testProject --configuration Release --no-restore --no-build `
-            --collect:'XPlat Code Coverage' --settings coverage.runsettings `
+            "-p:DefineConstants=$encodedDefineConstants" --collect:'XPlat Code Coverage' --settings coverage.runsettings `
             --results-directory $resultsPath 2>&1 | Out-String).Trim()
     }
     finally {
@@ -95,7 +96,14 @@ try {
         'TickDown.ViewModels.TimerViewModel.SetQuickTimeCommand'
         'TickDown.ViewModels.TimerViewModel.SetEndTimeCommand'
     )
-    $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies $trustedGeneratedMembers)
+    $sourceLinkedTestTypes = @(
+        'TickDown.ViewModels.MainViewModel'
+        'TickDown.ViewModels.TimerViewModel'
+        'TickDown.Services.SettingsService'
+    )
+    $exclusionViolations = @(
+        Get-CoverageExclusionViolations $coveredAssemblies $trustedGeneratedMembers $sourceLinkedTestTypes
+    )
     if ($exclusionViolations.Count -gt 0) { throw "Coverage exclusion attributes are forbidden:`n- $($exclusionViolations -join "`n- ")" }
     $stateMachineMap = Get-StateMachineMap $coveredAssemblies
     $genericMethodArities = Get-MethodGenericArities $coveredAssemblies

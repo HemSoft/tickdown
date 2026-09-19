@@ -181,8 +181,12 @@ try {
     New-Item $sourceRoot -ItemType Directory | Out-Null
     '[ExcludeFromCodeCoverage] class Hidden {}' | Set-Content (Join-Path $sourceRoot 'Hidden.cs')
     Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
-    Remove-Item (Join-Path $sourceRoot 'Hidden.cs')
-    Assert-Equal 0 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Clean source acceptance'
+    'using Hidden = System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute; [Hidden] class Aliased {}' | Set-Content (Join-Path $sourceRoot 'Aliased.cs')
+    Assert-Equal 2 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Direct and aliased source exclusion rejection'
+    Remove-Item (Join-Path $sourceRoot '*.cs')
+    '// ExcludeFromCodeCoverage is forbidden.' | Set-Content (Join-Path $sourceRoot 'Comment.cs')
+    'class Documented { const string Policy = "ExcludeFromCoverage"; }' | Set-Content (Join-Path $sourceRoot 'String.cs')
+    Assert-Equal 0 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Comments and strings are not attributes'
     $partialSourceRoot = Join-Path $temp 'partial-src'
     $viewModelSources = Join-Path $partialSourceRoot 'ViewModels'
     $nestedSources = Join-Path $partialSourceRoot 'Other'
