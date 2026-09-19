@@ -8,24 +8,50 @@ function Get-RelativeSourcePath([string]$Path) {
     return $normalized
 }
 
-function Get-CoverageFunctions([string]$CoveragePath) {
+function Get-AsyncStateMachineMap([string]$AssemblyPath) {
+    if (!(Test-Path $AssemblyPath -PathType Leaf)) { throw "Test assembly not found: $AssemblyPath" }
+    $assembly = [Reflection.Assembly]::LoadFrom($AssemblyPath)
+    $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
+    $map = @{}
+    foreach ($type in $assembly.GetTypes()) {
+        foreach ($method in $type.GetMethods($flags)) {
+            $attribute = $method.GetCustomAttributesData() |
+                Where-Object AttributeType -eq ([Runtime.CompilerServices.AsyncStateMachineAttribute])
+            if ($null -eq $attribute) { continue }
+            $stateType = $attribute.ConstructorArguments[0].Value
+            $stateTypeName = $stateType.FullName.Replace('+', '/')
+            $genericSuffix = if ($method.GetGenericArguments().Count -gt 0) { "``$($method.GetGenericArguments().Count)" } else { '' }
+            $parameters = @($method.GetParameters() | ForEach-Object { $_.ParameterType.ToString() }) -join ','
+            $map[$stateTypeName] = [pscustomobject]@{
+                Class = $type.FullName.Replace('+', '/')
+                Method = "$($method.Name)$genericSuffix"
+                Signature = "($parameters)"
+            }
+        }
+    }
+    return $map
+}
+
+function Get-CoverageFunctions([string]$CoveragePath, [hashtable]$AsyncStateMachineMap = @{}) {
     if (!(Test-Path $CoveragePath -PathType Leaf)) { throw "Coverage file not found: $CoveragePath" }
     [xml]$coverage = Get-Content $CoveragePath -Raw
     $results = [Collections.Generic.List[object]]::new()
 
     foreach ($class in $coverage.coverage.packages.package.classes.class) {
         $className = [string]$class.name
-        $isAsyncStateMachine = $className -match '^(?<owner>.+)/<(?<asyncMethod>[^>]+)>d__\d+(?:`\d+)?$'
+        $isAsyncStateMachine = $className -match '/<[^>]+>d__\d+(?:`\d+)?$'
         if ($isAsyncStateMachine) {
-            $reportedClass = $Matches.owner
-            $reportedMethod = $Matches.asyncMethod
-        }
-        elseif ($className -match '/<') {
-            continue
+            if (!$AsyncStateMachineMap.ContainsKey($className)) {
+                throw "No source method signature found for async state machine $className."
+            }
+            $reportedClass = $AsyncStateMachineMap[$className].Class
+            $reportedMethod = $AsyncStateMachineMap[$className].Method
+            $reportedSignature = $AsyncStateMachineMap[$className].Signature
         }
         else {
             $reportedClass = $className
             $reportedMethod = $null
+            $reportedSignature = $null
         }
 
         $source = Get-RelativeSourcePath ([string]$class.filename)
@@ -46,8 +72,10 @@ function Get-CoverageFunctions([string]$CoveragePath) {
             }
 
             if ($validBranches -gt 0) {
-                $basis = 'branch'
-                $coverageRate = $coveredBranches / $validBranches
+                $basis = 'branch+line'
+                $branchRate = $coveredBranches / $validBranches
+                $lineRate = $coveredLines / $validLines
+                $coverageRate = [Math]::Min($branchRate, $lineRate)
             }
             elseif ($validLines -gt 0) {
                 $basis = 'line'
@@ -59,7 +87,7 @@ function Get-CoverageFunctions([string]$CoveragePath) {
 
             $complexity = [double]::Parse([string]$method.complexity, [Globalization.CultureInfo]::InvariantCulture)
             $crap = ($complexity * $complexity * [Math]::Pow(1 - $coverageRate, 3)) + $complexity
-            $signature = if ($isAsyncStateMachine) { '(async)' } else { [string]$method.signature }
+            $signature = if ($isAsyncStateMachine) { $reportedSignature } else { [string]$method.signature }
             $methodName = if ($isAsyncStateMachine) { $reportedMethod } else { [string]$method.name }
             $results.Add([pscustomobject]@{
                 Id = "${reportedClass}::${methodName}${signature}"
@@ -82,7 +110,7 @@ function Get-CoverageFunctions([string]$CoveragePath) {
 function Test-CoverageBaseline([object[]]$Functions, [string]$BaselinePath) {
     if (!(Test-Path $BaselinePath -PathType Leaf)) { throw "Coverage baseline not found: $BaselinePath" }
     $baseline = Get-Content $BaselinePath -Raw | ConvertFrom-Json -AsHashtable
-    if ($baseline.version -ne 1) { throw "Unsupported coverage baseline version: $($baseline.version)" }
+    if ($baseline.version -ne 2) { throw "Unsupported coverage baseline version: $($baseline.version)" }
 
     $failures = [Collections.Generic.List[string]]::new()
     foreach ($prefix in $baseline.requiredSourcePrefixes) {
@@ -132,7 +160,7 @@ function Write-CoverageBaseline([object[]]$Functions, [string]$Path) {
         }
     }
     $baseline = [ordered]@{
-        version = 1
+        version = 2
         formula = 'complexity^2 * (1 - coverage)^3 + complexity'
         maxNewFunctionCrap = 30
         allowedCrapIncrease = 0.01
@@ -162,4 +190,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Get-AsyncStateMachineMap, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports

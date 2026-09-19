@@ -42,32 +42,47 @@ try {
         <line number="6" hits="1" branch="False" />
       </lines></method>
     </methods></class>
+    <class name="TickDown.ViewModels.TimerViewModel/&lt;&gt;c" filename="D:/repo/src/ViewModels/TimerViewModel.cs"><methods>
+      <method name="&lt;Save&gt;b__1_0" signature="(TickDown.ViewModels.TimerViewModel)" complexity="1"><lines>
+        <line number="7" hits="1" branch="False" />
+      </lines></method>
+    </methods></class>
   </classes></package></packages>
 </coverage>
 '@ | Set-Content $coveragePath -Encoding utf8
 
-    $functions = @(Get-CoverageFunctions $coveragePath)
-    Assert-Equal 5 $functions.Count 'Function count'
+    $asyncMap = @{
+        'TickDown.Services.SettingsService/<FlushAsync>d__5' = [pscustomobject]@{
+            Class = 'TickDown.Services.SettingsService'; Method = 'FlushAsync'; Signature = '(System.Threading.CancellationToken)'
+        }
+        'TickDown.Services.SettingsService/<ReadAsync>d__6`1' = [pscustomobject]@{
+            Class = 'TickDown.Services.SettingsService'; Method = 'ReadAsync`1'; Signature = '(System.String)'
+        }
+    }
+    $functions = @(Get-CoverageFunctions $coveragePath $asyncMap)
+    Assert-Equal 6 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
     Assert-Equal 42 $stop.Crap 'Stop uncovered CRAP'
     Assert-Equal 42 $tick.Crap 'Tick uncovered CRAP'
-    Assert-Equal 'branch' $tick.CoverageBasis 'Tick coverage basis'
+    Assert-Equal 'branch+line' $tick.CoverageBasis 'Tick coverage basis'
     Assert-Equal 2.5 $load.Crap 'Line fallback CRAP'
     Assert-Equal 'line' $load.CoverageBasis 'Load coverage basis'
     $flush = $functions | Where-Object Method -eq 'FlushAsync'
-    Assert-Equal 'TickDown.Services.SettingsService::FlushAsync(async)' $flush.Id 'Async state-machine mapping'
+    Assert-Equal 'TickDown.Services.SettingsService::FlushAsync(System.Threading.CancellationToken)' $flush.Id 'Async state-machine mapping'
     Assert-Equal 3 $flush.Crap 'Async state-machine CRAP'
-    $read = $functions | Where-Object Method -eq 'ReadAsync'
-    Assert-Equal 'TickDown.Services.SettingsService::ReadAsync(async)' $read.Id 'Generic async state-machine mapping'
+    $read = $functions | Where-Object Method -eq 'ReadAsync`1'
+    Assert-Equal 'TickDown.Services.SettingsService::ReadAsync`1(System.String)' $read.Id 'Generic async state-machine mapping'
+    $callback = $functions | Where-Object Method -eq '<Save>b__1_0'
+    Assert-Equal 'TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
 
     $healthy = @($functions | ForEach-Object {
         [pscustomobject]@{
             Id = $_.Id; Class = $_.Class; Method = $_.Method; Signature = $_.Signature
             Source = $_.Source; Complexity = $_.Complexity; CoverageBasis = $_.CoverageBasis
-            Coverage = if ($_.CoverageBasis -eq 'branch') { 1 } else { $_.Coverage }
-            Crap = if ($_.CoverageBasis -eq 'branch') { $_.Complexity } else { $_.Crap }
+            Coverage = if ($_.CoverageBasis -eq 'branch+line') { 1 } else { $_.Coverage }
+            Crap = if ($_.CoverageBasis -eq 'branch+line') { $_.Complexity } else { $_.Crap }
         }
     })
     $baselinePath = Join-Path $temp 'baseline.json'

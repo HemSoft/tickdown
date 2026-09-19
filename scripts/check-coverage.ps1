@@ -22,7 +22,13 @@ try {
 
     $coverageFiles = @(Get-ChildItem $resultsPath -Filter coverage.cobertura.xml -Recurse)
     if ($coverageFiles.Count -ne 1) { throw "Expected one Cobertura report, found $($coverageFiles.Count)." }
-    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName)
+    $testAssemblies = @(
+        Get-ChildItem (Join-Path $root 'tests/TickDown.Tests/bin/Release') -Filter TickDown.Tests.dll -File -Recurse |
+            Where-Object FullName -NotMatch '[\\/]ref[\\/]'
+    )
+    if ($testAssemblies.Count -ne 1) { throw "Expected one built TickDown.Tests.dll, found $($testAssemblies.Count)." }
+    $asyncStateMachineMap = Get-AsyncStateMachineMap $testAssemblies[0].FullName
+    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $asyncStateMachineMap)
     Write-CoverageReports $functions $resultsPath
     Copy-Item $coverageFiles[0].FullName (Join-Path $resultsPath 'coverage.cobertura.xml') -Force
 

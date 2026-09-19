@@ -22,9 +22,13 @@ only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
 source files linked into the test project. Test namespaces and presentation test
 doubles are not included. Generated-code and explicit coverage-exclusion
 attributes plus generated XAML files are excluded. Async compiler state-machine
-`MoveNext` bodies are retained and mapped back to stable source-method identities;
-unrelated compiler helper classes are omitted. The required Core, ViewModels, and
-Services source prefixes make an accidentally empty or narrowed report fail.
+`MoveNext` bodies are retained and mapped through `AsyncStateMachineAttribute` to
+unique source signatures, including generic arity and parameter types. Reported
+compiler-generated callback and local-function bodies are retained instead of
+being filtered with their closure classes. Callback sequence points that Coverlet
+folds into their containing function remain part of that function's line rate.
+The required Core, ViewModels, and Services source prefixes make an accidentally
+empty or narrowed report fail.
 
 ## CRAP calculation
 
@@ -34,11 +38,13 @@ For each function:
 CRAP = complexity² × (1 - coverage)³ + complexity
 ```
 
-Cyclomatic complexity comes from Cobertura. Branch coverage is used whenever
-the function contains measured branches. Functions without branches use line
-coverage as the documented fallback. The checked-in test fixture confirms that
-complexity 6 with zero branch coverage produces CRAP 42 for both `Stop` and
-`Tick`, matching the audit calculation.
+Cyclomatic complexity comes from Cobertura. For a function with measured
+branches, coverage is the lower of its branch and line rates. This keeps branch
+coverage authoritative without letting uncovered callback sequence points folded
+into the containing method disappear behind a covered outer branch. Functions
+without branches use line coverage as the documented fallback. The checked-in
+test fixture confirms that complexity 6 with zero branch coverage produces CRAP
+42 for both `Stop` and `Tick`, matching the audit calculation.
 
 The current focused lifecycle tests cover `CountdownTimer.Stop` and every branch
 of `CountdownTimer.Tick`; their scores are now 1 and 6. The gate deliberately
@@ -61,6 +67,7 @@ hiding them behind an aggregate percentage.
 
 Never update the baseline merely to accept a regression. Add focused behavior
 coverage or reduce complexity, then inspect both function-risk reports before
-review. `scripts/tests/CoverageQuality.Tests.ps1` proves the formula, branch and
-line fallback, new-function threshold, report generation, and a deliberately
-uncovered branch regression.
+review. `scripts/tests/CoverageQuality.Tests.ps1` proves the formula, branch/line
+floor, line fallback, generated-callback retention, unique async identities,
+new-function threshold, report generation, and a deliberately uncovered branch
+regression.
