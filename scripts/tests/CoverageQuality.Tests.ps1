@@ -179,13 +179,19 @@ try {
     Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
     Remove-Item (Join-Path $sourceRoot 'Hidden.cs')
     Assert-Equal 0 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Clean source acceptance'
-    $linkedSources = Join-Path $temp 'ViewModels'
-    $nestedSources = Join-Path $linkedSources 'Dialogs'
-    New-Item $nestedSources -ItemType Directory | Out-Null
-    'public partial class MainViewModel {}' | Set-Content (Join-Path $nestedSources 'MainViewModel.Extra.cs')
-    Assert-Equal 1 @(Get-UnlinkedPartialTypeViolations $linkedSources @('MainViewModel', 'TimerViewModel')).Count 'Nested partial rejection'
-    Remove-Item (Join-Path $nestedSources 'MainViewModel.Extra.cs')
-    Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $linkedSources @('MainViewModel', 'TimerViewModel')).Count 'Linked partial acceptance'
+    $partialSourceRoot = Join-Path $temp 'partial-src'
+    $viewModelSources = Join-Path $partialSourceRoot 'ViewModels'
+    $nestedSources = Join-Path $partialSourceRoot 'Other'
+    New-Item $viewModelSources, $nestedSources -ItemType Directory | Out-Null
+    'public partial class MainViewModel {}' | Set-Content (Join-Path $viewModelSources 'MainViewModel.cs')
+    'public unsafe partial class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Extra.cs')
+    'public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'SettingsService.Extra.cs')
+    $linkedPatterns = @{
+        MainViewModel = 'ViewModels/*.cs'; TimerViewModel = 'ViewModels/*.cs'; SettingsService = 'Services/SettingsService.cs'
+    }
+    Assert-Equal 2 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Whole-tree partial rejection'
+    Remove-Item $nestedSources -Recurse
+    Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Linked partial acceptance'
     $ownedResults = Resolve-CoverageResultsPath $temp 'artifacts/coverage/run'
     Assert-Equal $true $ownedResults.EndsWith('artifacts\coverage\run') 'Owned result path acceptance'
     $dangerousPathRejected = $false

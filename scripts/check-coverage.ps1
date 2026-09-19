@@ -15,8 +15,13 @@ $sourceExclusionViolations = @(Get-CoverageSourceExclusionViolations (Join-Path 
 if ($sourceExclusionViolations.Count -gt 0) {
     throw "Coverage exclusion attributes are forbidden in production source:`n- $($sourceExclusionViolations -join "`n- ")"
 }
+$linkedTypePatterns = @{
+    MainViewModel = 'ViewModels/*.cs'
+    TimerViewModel = 'ViewModels/*.cs'
+    SettingsService = 'Services/SettingsService.cs'
+}
 $partialTypeViolations = @(
-    Get-UnlinkedPartialTypeViolations (Join-Path $root 'src/ViewModels') @('MainViewModel', 'TimerViewModel')
+    Get-UnlinkedPartialTypeViolations (Join-Path $root 'src') $linkedTypePatterns
 )
 if ($partialTypeViolations.Count -gt 0) {
     throw "Source-linked partial declarations must stay in the linked top-level glob:`n- $($partialTypeViolations -join "`n- ")"

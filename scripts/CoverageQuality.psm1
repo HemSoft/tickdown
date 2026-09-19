@@ -95,16 +95,19 @@ function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
     )
 }
 
-function Get-UnlinkedPartialTypeViolations([string]$LinkedSourceDirectory, [string[]]$TypeNames) {
-    if (!(Test-Path $LinkedSourceDirectory -PathType Container)) { throw "Linked source directory not found: $LinkedSourceDirectory" }
-    $escapedNames = @($TypeNames | ForEach-Object { [regex]::Escape($_) }) -join '|'
-    $pattern = "\bpartial\s+class\s+(?:$escapedNames)\b"
-    return @(
-        Get-ChildItem $LinkedSourceDirectory -Filter *.cs -File -Recurse |
-            Where-Object DirectoryName -ne ([IO.Path]::GetFullPath($LinkedSourceDirectory)) |
-            Select-String -Pattern $pattern |
-            ForEach-Object { "$($_.Path):$($_.LineNumber) declares an excluded partial type outside the linked top-level glob" }
-    )
+function Get-UnlinkedPartialTypeViolations([string]$SourceRoot, [hashtable]$LinkedTypePatterns) {
+    if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
+    $escapedNames = @($LinkedTypePatterns.Keys | ForEach-Object { [regex]::Escape($_) }) -join '|'
+    $pattern = "\bpartial\b[^\r\n{;]*\bclass\s+(?<name>$escapedNames)\b"
+    $violations = [Collections.Generic.List[string]]::new()
+    foreach ($match in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Select-String -Pattern $pattern) {
+        $typeName = $match.Matches[0].Groups['name'].Value
+        $relativePath = [IO.Path]::GetRelativePath($SourceRoot, $match.Path).Replace('\', '/')
+        if ($relativePath -notlike $LinkedTypePatterns[$typeName]) {
+            $violations.Add("$($match.Path):$($match.LineNumber) declares excluded partial $typeName outside linked path $($LinkedTypePatterns[$typeName])")
+        }
+    }
+    return $violations.ToArray()
 }
 
 function Get-StateMachineMap([string[]]$AssemblyPath) {

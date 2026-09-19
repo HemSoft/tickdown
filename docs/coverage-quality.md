@@ -31,9 +31,10 @@ copies in the test assembly rather than duplicating their unexecuted app copies.
 Those exclusions match each exact type plus its `/`-delimited generated nested
 types; they do not use sibling-matching prefixes. A new ViewModel or service type,
 including one whose name starts with an existing type name, is measured from the
-app candidate by default. Additional partial declarations for an excluded type
-must remain in the linked top-level source glob; the runner rejects nested partial
-files before collection. Test namespaces, presentation doubles, and the two exact
+app candidate by default. Before collection, the runner scans the entire `src`
+tree for partial declarations of all three excluded types and requires each file
+to match its actual linked path (`ViewModels/*.cs` or the exact SettingsService
+file). Test namespaces, presentation doubles, and the two exact
 package-generated bootstrap types are not included; there is no namespace-wide
 `Microsoft.*` exclusion. Only
 generated output beneath `obj` is excluded by file path; every hand-written C# file
