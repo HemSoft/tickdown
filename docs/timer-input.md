@@ -15,6 +15,8 @@ forms such as `01:02:03` and `1.02:03:04`. Fractional seconds are truncated to t
 whole-second precision of the existing timer editor. Zero remains accepted;
 starting a zero-duration timer retains the existing five-minute default.
 
-Validation checks bounds before multiplication or conversion. Starting and
-formatting a deadline also check calendar feasibility, so a loaded or formerly
-valid duration outside the current calendar range does not overflow those paths.
+Validation checks bounds before multiplication or conversion. Starting computes
+and validates the deadline from one clock sample inside the timer model, so time
+advancing after text validation cannot overflow startup. Deadline formatting has
+its own calendar check. A loaded or formerly valid duration outside the current
+calendar range therefore cannot overflow either path.
