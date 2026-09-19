@@ -15,6 +15,12 @@ forms such as `01:02:03` and `1.02:03:04`. Fractional seconds are truncated to t
 whole-second precision of the existing timer editor. Zero remains accepted;
 starting a zero-duration timer retains the existing five-minute default.
 
+After trimming outer whitespace, the parser rejects input longer than 64
+characters before regular-expression matching. That limit exceeds every supported
+canonical value that can produce a representable deadline and prevents an
+unbounded paste from occupying the UI parser. A defensive regular-expression
+timeout is also treated as ordinary invalid input.
+
 Validation checks bounds before multiplication or conversion. Starting computes
 and validates the deadline from one clock sample inside the timer model, so time
 advancing after text validation cannot overflow startup. Deadline formatting has

@@ -1,0 +1,4 @@
+# The fake must preserve the exact external WinUI API name consumed by linked
+# production view models. Keep CA1711 active for every other declared type.
+[DispatcherQueue.cs]
+dotnet_code_quality.CA1711.allowed_suffixes = Queue
