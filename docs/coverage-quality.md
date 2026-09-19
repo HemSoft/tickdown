@@ -38,9 +38,9 @@ including one whose name starts with an existing type name, is measured from the
 app candidate by default. Before collection, the runner scans the entire `src`
 tree with Roslyn using the x64 Release app's effective preprocessor symbols. It
 composes all block/file-scoped namespace ancestors plus containing types and the
-identifier for each partial declaration from Roslyn token values, so verbatim and
-escaped identifiers normalize to their metadata names, then
-requires each excluded identity to come from its exact linked file. Test namespaces,
+identifier and generic arity for each partial declaration from Roslyn token
+values, so verbatim and escaped identifiers normalize to their metadata names
+without conflating generic and nongeneric types, then requires each excluded identity to come from its exact linked file. Test namespaces,
 presentation doubles, and the two exact package-generated bootstrap types are not
 included; there is no namespace-wide `Microsoft.*` exclusion. Only generated output
 beneath `obj` is excluded by file path; every hand-written C# file under `src`,
@@ -63,7 +63,9 @@ every ordinary method, so generic and nongeneric overloads sharing a parameter
 signature remain distinct. Function IDs and every reflection lookup key begin with
 the Cobertura assembly name; baseline schema version 3 therefore cannot collide
 when separate production projects reuse a fully qualified type and method name.
-Duplicate IDs within one assembly fail rather than overwrite baseline data.
+Duplicate IDs within one assembly fail rather than overwrite baseline data. Source
+documents are normalized relative to the repository root, including project files
+outside a directory named `src`, so baseline paths do not depend on the checkout.
 User-defined regular and checked conversions bypass generic-occurrence matching and carry reflected target types, so legal target
 overloads cannot share a baseline key. Reported compiler-generated callback and
 local-function bodies are retained instead of being filtered with their closure classes. Callback sequence points that Coverlet

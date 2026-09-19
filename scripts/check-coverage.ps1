@@ -154,7 +154,9 @@ try {
     $stateMachineMap = Get-StateMachineMap $coveredAssemblies
     $genericMethodArities = Get-MethodGenericArities $coveredAssemblies
     $conversionReturnTypes = Get-ConversionReturnTypes $coveredAssemblies
-    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $stateMachineMap $genericMethodArities $conversionReturnTypes)
+    $functions = @(
+        Get-CoverageFunctions $coverageFiles[0].FullName $stateMachineMap $genericMethodArities $conversionReturnTypes $root
+    )
     Write-CoverageReports $functions $resultsPath
     Copy-Item $coverageFiles[0].FullName (Join-Path $resultsPath 'coverage.cobertura.xml') -Force
 

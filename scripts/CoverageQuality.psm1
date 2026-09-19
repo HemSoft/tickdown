@@ -1,7 +1,10 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Get-RelativeSourcePath([string]$Path) {
+function Get-RelativeSourcePath([string]$Path, [string]$RepoRoot = '') {
+    if (![string]::IsNullOrWhiteSpace($RepoRoot) -and [IO.Path]::IsPathFullyQualified($Path)) {
+        return [IO.Path]::GetRelativePath([IO.Path]::GetFullPath($RepoRoot), [IO.Path]::GetFullPath($Path)).Replace('\', '/')
+    }
     $normalized = $Path.Replace('\', '/')
     $sourceIndex = $normalized.LastIndexOf('/src/', [StringComparison]::OrdinalIgnoreCase)
     if ($sourceIndex -ge 0) { return $normalized.Substring($sourceIndex + 1) }
@@ -11,6 +14,11 @@ function Get-RelativeSourcePath([string]$Path) {
 function Get-CSharpQualifiedName($Name) {
     $identifierKind = [Microsoft.CodeAnalysis.CSharp.SyntaxKind]::IdentifierToken
     return @($Name.DescendantTokens() | Where-Object { $_.RawKind -eq $identifierKind } | ForEach-Object ValueText) -join '.'
+}
+
+function Get-CSharpTypeDeclarationName($Declaration) {
+    $arity = if ($null -eq $Declaration.TypeParameterList) { 0 } else { $Declaration.TypeParameterList.Parameters.Count }
+    return $Declaration.Identifier.ValueText + $(if ($arity -gt 0) { "``$arity" } else { '' })
 }
 
 function Resolve-CoverageResultsPath([string]$RepoRoot, [string]$ResultsDirectory) {
@@ -176,8 +184,8 @@ function Get-UnlinkedPartialTypeViolations(
             [array]::Reverse($containingTypes)
             $identityParts = [Collections.Generic.List[string]]::new()
             foreach ($namespaceNode in $namespaceNodes) { $identityParts.Add((Get-CSharpQualifiedName $namespaceNode.Name)) }
-            foreach ($containingType in $containingTypes) { $identityParts.Add($containingType.Identifier.ValueText) }
-            $identityParts.Add($declaration.Identifier.ValueText)
+            foreach ($containingType in $containingTypes) { $identityParts.Add((Get-CSharpTypeDeclarationName $containingType)) }
+            $identityParts.Add((Get-CSharpTypeDeclarationName $declaration))
             $typeIdentity = $identityParts -join '.'
             if (!$LinkedTypePatterns.ContainsKey($typeIdentity)) { continue }
             $relativePath = [IO.Path]::GetRelativePath($SourceRoot, $file.FullName).Replace('\', '/')
@@ -274,7 +282,8 @@ function Get-CoverageFunctions(
     [string]$CoveragePath,
     [hashtable]$StateMachineMap = @{},
     [hashtable]$GenericMethodArities = @{},
-    [hashtable]$ConversionReturnTypes = @{}
+    [hashtable]$ConversionReturnTypes = @{},
+    [string]$RepoRoot = ''
 ) {
     if (!(Test-Path $CoveragePath -PathType Leaf)) { throw "Coverage file not found: $CoveragePath" }
     [xml]$coverage = Get-Content $CoveragePath -Raw
@@ -300,7 +309,7 @@ function Get-CoverageFunctions(
             $reportedSignature = $null
         }
 
-        $source = Get-RelativeSourcePath ([string]$class.filename)
+        $source = Get-RelativeSourcePath ([string]$class.filename) $RepoRoot
         $methods = @($class.methods.method | Where-Object { $null -ne $_ })
         $methodGroups = if ($isStateMachine) {
             , [pscustomobject]@{

@@ -148,7 +148,7 @@ try {
     $multiAssemblyPath = Join-Path $temp 'multi-assembly.xml'
     @'
 <coverage><packages>
-  <package name="Alpha"><classes><class name="Shared.Type" filename="D:/repo/src/Alpha.cs"><methods>
+  <package name="Alpha"><classes><class name="Shared.Type" filename="D:/repo/shared/Alpha.cs"><methods>
     <method name="Run" signature="()" complexity="1"><lines><line number="1" hits="1" branch="False" /></lines></method>
   </methods></class></classes></package>
   <package name="Beta"><classes><class name="Shared.Type" filename="D:/repo/src/Beta.cs"><methods>
@@ -156,8 +156,9 @@ try {
   </methods></class></classes></package>
 </packages></coverage>
 '@ | Set-Content $multiAssemblyPath -Encoding utf8
-    $multiAssemblyFunctions = @(Get-CoverageFunctions $multiAssemblyPath)
+    $multiAssemblyFunctions = @(Get-CoverageFunctions $multiAssemblyPath @{} @{} @{} 'D:/repo')
     Assert-Equal 2 $multiAssemblyFunctions.Count 'Cross-assembly identity count'
+    Assert-Equal 'shared/Alpha.cs' $multiAssemblyFunctions[0].Source 'Repository-relative source outside src'
     Assert-Equal '[Alpha]Shared.Type::Run()' $multiAssemblyFunctions[0].Id 'First assembly-qualified identity'
     Assert-Equal '[Beta]Shared.Type::Run()' $multiAssemblyFunctions[1].Id 'Second assembly-qualified identity'
 
@@ -244,12 +245,13 @@ try {
     'namespace Other; public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'UnrelatedSettingsService.cs')
     'namespace TickDown { namespace ViewModels { public partial class MainViewModel {} } }' | Set-Content (Join-Path $nestedSources 'MainViewModel.NestedNamespace.cs')
     'namespace TickDown.@ViewModels; public partial class MainViewModel {}' | Set-Content (Join-Path $nestedSources 'MainViewModel.VerbatimNamespace.cs')
+    'namespace TickDown.ViewModels; public partial class MainViewModel<T> {}' | Set-Content (Join-Path $nestedSources 'UnrelatedGenericMainViewModel.cs')
     $linkedPatterns = @{
         'TickDown.ViewModels.MainViewModel' = 'ViewModels/MainViewModel.cs'
         'TickDown.ViewModels.TimerViewModel' = 'ViewModels/TimerViewModel.cs'
         'TickDown.Services.SettingsService' = 'Services/SettingsService.cs'
     }
-    Assert-Equal 7 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, normalized, conditional, and trivia-rich partial rejection'
+    Assert-Equal 7 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, arity-aware, conditional, and trivia-rich partial rejection'
     Remove-Item $nestedSources -Recurse
     Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Linked partial acceptance'
     $testProject = Get-Content (Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj') -Raw
