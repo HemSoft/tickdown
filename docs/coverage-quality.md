@@ -7,6 +7,10 @@ percentage. Run it after locked restore:
 pwsh -NoProfile -File scripts/check-coverage.ps1
 ```
 
+`-ResultsDirectory` is accepted only for the owned `artifacts/coverage` directory
+or one of its descendants. The runner rejects shared artifact directories and
+repository paths before performing cleanup.
+
 The command runs Release tests with `coverage.runsettings`, finds the one
 Cobertura report, evaluates every measured function against
 `scripts/function-risk-baseline.json`, and writes these CI-ready files under
@@ -25,11 +29,12 @@ runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
 attribute both in hand-written production source and in compiled assemblies,
 types, and members. The source check prevents generated-marker spoofing; the
 metadata check also catches aliases. Only WinUI and CommunityToolkit artifacts
-outside hand-written source are recognized as generated. Async, iterator, and async-iterator state-machine `MoveNext` bodies are
-retained and mapped from every covered assembly through the corresponding
-state-machine attribute to unique source signatures, including generic arity and
-parameter types. Reported
-compiler-generated callback and local-function bodies are retained instead of
+outside hand-written source are recognized as generated. Async, iterator, and
+async-iterator state-machine `MoveNext` bodies are retained and mapped from every
+covered assembly through the corresponding state-machine attribute to unique
+source signatures. Ordinary generic functions also carry reflected generic arity,
+so overloads cannot share a baseline key. Reported compiler-generated callback
+and local-function bodies are retained instead of
 being filtered with their closure classes. Callback sequence points that Coverlet
 folds into their containing function remain part of that function's line rate.
 The required Core, ViewModels, and Services source prefixes make an accidentally

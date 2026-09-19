@@ -31,6 +31,9 @@ try {
         <line number="3" hits="1" branch="False" />
         <line number="4" hits="0" branch="False" />
       </lines></method>
+      <method name="Generic" signature="(T)" complexity="1"><lines>
+        <line number="4" hits="1" branch="False" />
+      </lines></method>
     </methods></class>
     <class name="TickDown.Services.SettingsService/&lt;FlushAsync&gt;d__5" filename="D:/repo/src/Services/SettingsService.cs"><methods>
       <method name="MoveNext" signature="()" complexity="3"><lines>
@@ -67,8 +70,9 @@ try {
             Class = 'TickDown.Core.Models.CountdownTimer'; Method = 'History'; Signature = '()'
         }
     }
-    $functions = @(Get-CoverageFunctions $coveragePath $asyncMap)
-    Assert-Equal 7 $functions.Count 'Function count'
+    $genericArities = @{ 'TickDown.Services.SettingsService::Generic(T)' = @(1) }
+    $functions = @(Get-CoverageFunctions $coveragePath $asyncMap $genericArities)
+    Assert-Equal 8 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
@@ -86,6 +90,8 @@ try {
     Assert-Equal 'TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
     $iterator = $functions | Where-Object Method -eq 'History'
     Assert-Equal 'TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
+    $generic = $functions | Where-Object Method -eq 'Generic`1'
+    Assert-Equal 'TickDown.Services.SettingsService::Generic`1(T)' $generic.Id 'Ordinary generic method arity'
 
     $healthy = @($functions | ForEach-Object {
         [pscustomobject]@{
@@ -133,6 +139,11 @@ try {
     Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
     Remove-Item (Join-Path $sourceRoot 'Hidden.cs')
     Assert-Equal 0 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Clean source acceptance'
+    $ownedResults = Resolve-CoverageResultsPath $temp 'artifacts/coverage/run'
+    Assert-Equal $true $ownedResults.EndsWith('artifacts\coverage\run') 'Owned result path acceptance'
+    $dangerousPathRejected = $false
+    try { $null = Resolve-CoverageResultsPath $temp 'artifacts' } catch { $dangerousPathRejected = $true }
+    Assert-Equal $true $dangerousPathRejected 'Shared result path rejection'
     "Passed $passed coverage-quality assertions."
 }
 finally {

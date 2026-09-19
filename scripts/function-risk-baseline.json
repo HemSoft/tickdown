@@ -389,7 +389,7 @@
       "coverageBasis": "branch+line",
       "source": "src/Services/SettingsService.cs"
     },
-    "TickDown.Services.SettingsService::LoadAsync(System.String)": {
+    "TickDown.Services.SettingsService::LoadAsync`1(System.String)": {
       "crap": 1.0,
       "complexity": 1.0,
       "coverage": 1.0,
@@ -438,7 +438,7 @@
       "coverageBasis": "branch+line",
       "source": "src/Services/SettingsService.cs"
     },
-    "TickDown.Services.SettingsService::SaveAsync(System.String,T)": {
+    "TickDown.Services.SettingsService::SaveAsync`1(System.String,T)": {
       "crap": 1.037,
       "complexity": 1.0,
       "coverage": 0.666667,

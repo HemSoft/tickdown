@@ -8,6 +8,48 @@ function Get-RelativeSourcePath([string]$Path) {
     return $normalized
 }
 
+function Resolve-CoverageResultsPath([string]$RepoRoot, [string]$ResultsDirectory) {
+    $ownedRoot = [IO.Path]::GetFullPath((Join-Path $RepoRoot 'artifacts/coverage'))
+    $candidate = [IO.Path]::GetFullPath((Join-Path $RepoRoot $ResultsDirectory))
+    $ownedPrefix = $ownedRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    if ($candidate -ne $ownedRoot -and !$candidate.StartsWith($ownedPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Coverage results must stay within the owned directory $ownedRoot; received $candidate."
+    }
+    return $candidate
+}
+
+function Format-CoverageTypeName([Type]$Type) {
+    if ($Type.IsGenericParameter) { return $Type.Name }
+    if ($Type.IsArray) { return "$(Format-CoverageTypeName $Type.GetElementType())[]" }
+    if ($Type.IsByRef) { return "$(Format-CoverageTypeName $Type.GetElementType())&" }
+    if ($Type.IsGenericType) {
+        $definition = $Type.GetGenericTypeDefinition().FullName.Replace('+', '/')
+        $arguments = @($Type.GetGenericArguments() | ForEach-Object { Format-CoverageTypeName $_ }) -join ','
+        return "$definition<$arguments>"
+    }
+    return $Type.FullName.Replace('+', '/')
+}
+
+function Get-GenericMethodArities([string[]]$AssemblyPath) {
+    $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
+    $map = @{}
+    foreach ($path in $AssemblyPath) {
+        if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
+        $assembly = [Reflection.Assembly]::LoadFrom($path)
+        foreach ($type in $assembly.GetTypes()) {
+            foreach ($method in $type.GetMethods($flags)) {
+                $arity = $method.GetGenericArguments().Count
+                if ($arity -eq 0) { continue }
+                $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
+                $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
+                if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[int]]::new() }
+                $map[$key].Add($arity)
+            }
+        }
+    }
+    return $map
+}
+
 function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
     return @(
@@ -84,10 +126,15 @@ function Get-CoverageExclusionViolations([string[]]$AssemblyPath) {
     return $violations
 }
 
-function Get-CoverageFunctions([string]$CoveragePath, [hashtable]$StateMachineMap = @{}) {
+function Get-CoverageFunctions(
+    [string]$CoveragePath,
+    [hashtable]$StateMachineMap = @{},
+    [hashtable]$GenericMethodArities = @{}
+) {
     if (!(Test-Path $CoveragePath -PathType Leaf)) { throw "Coverage file not found: $CoveragePath" }
     [xml]$coverage = Get-Content $CoveragePath -Raw
     $results = [Collections.Generic.List[object]]::new()
+    $genericOccurrences = @{}
 
     foreach ($class in $coverage.coverage.packages.package.classes.class) {
         $className = [string]$class.name
@@ -141,6 +188,16 @@ function Get-CoverageFunctions([string]$CoveragePath, [hashtable]$StateMachineMa
             $crap = ($complexity * $complexity * [Math]::Pow(1 - $coverageRate, 3)) + $complexity
             $signature = if ($isStateMachine) { $reportedSignature } else { [string]$method.signature }
             $methodName = if ($isStateMachine) { $reportedMethod } else { [string]$method.name }
+            if (!$isStateMachine) {
+                $genericKey = "${reportedClass}::${methodName}${signature}"
+                if ($GenericMethodArities.ContainsKey($genericKey)) {
+                    $occurrence = if ($genericOccurrences.ContainsKey($genericKey)) { $genericOccurrences[$genericKey] } else { 0 }
+                    $arities = @($GenericMethodArities[$genericKey])
+                    if ($occurrence -ge $arities.Count) { throw "No unused generic arity found for $genericKey." }
+                    $methodName = "$methodName``$($arities[$occurrence])"
+                    $genericOccurrences[$genericKey] = $occurrence + 1
+                }
+            }
             $results.Add([pscustomobject]@{
                 Id = "${reportedClass}::${methodName}${signature}"
                 Class = $reportedClass
@@ -245,4 +302,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Resolve-CoverageResultsPath, Get-GenericMethodArities, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports

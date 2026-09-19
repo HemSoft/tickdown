@@ -8,9 +8,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $root = Resolve-Path "$PSScriptRoot/.."
-$resultsPath = [IO.Path]::GetFullPath((Join-Path $root $ResultsDirectory))
 $baselinePath = Join-Path $PSScriptRoot 'function-risk-baseline.json'
 Import-Module (Join-Path $PSScriptRoot 'CoverageQuality.psm1') -Force
+$resultsPath = Resolve-CoverageResultsPath $root $ResultsDirectory
 $sourceExclusionViolations = @(Get-CoverageSourceExclusionViolations (Join-Path $root 'src'))
 if ($sourceExclusionViolations.Count -gt 0) {
     throw "Coverage exclusion attributes are forbidden in production source:`n- $($sourceExclusionViolations -join "`n- ")"
@@ -53,7 +53,8 @@ try {
     $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies)
     if ($exclusionViolations.Count -gt 0) { throw "Coverage exclusion attributes are forbidden:`n- $($exclusionViolations -join "`n- ")" }
     $stateMachineMap = Get-StateMachineMap $coveredAssemblies
-    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $stateMachineMap)
+    $genericMethodArities = Get-GenericMethodArities $coveredAssemblies
+    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $stateMachineMap $genericMethodArities)
     Write-CoverageReports $functions $resultsPath
     Copy-Item $coverageFiles[0].FullName (Join-Path $resultsPath 'coverage.cobertura.xml') -Force
 
