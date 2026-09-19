@@ -191,13 +191,16 @@ public class CountdownTimer
             return;
         }
 
-        if (this.State == TimerState.Completed)
+        TimeSpan remainingToStart = this.State == TimerState.Completed ? this.Duration : this.Remaining;
+        DateTime startTime = this.timeProvider.GetLocalNow().DateTime;
+        if (remainingToStart < TimeSpan.Zero || remainingToStart > DateTime.MaxValue - startTime)
         {
-            this.Remaining = this.Duration;
+            return;
         }
 
-        this.StartTime = this.timeProvider.GetLocalNow().DateTime;
-        this.EndTime = this.StartTime.Value.Add(this.Remaining);
+        this.Remaining = remainingToStart;
+        this.StartTime = startTime;
+        this.EndTime = startTime.Add(remainingToStart);
         this.State = TimerState.Running;
     }
 

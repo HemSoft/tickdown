@@ -126,6 +126,29 @@ public class CountdownTimerLifecycleTests
     }
 
     /// <summary>
+    /// Verifies startup validates and assigns a deadline from one clock sample.
+    /// </summary>
+    /// <param name="state">The state before the rejected start.</param>
+    [Theory]
+    [InlineData(TimerState.Stopped)]
+    [InlineData(TimerState.Paused)]
+    [InlineData(TimerState.Completed)]
+    public void StartRejectsDeadlineBeyondClockCalendar(TimerState state)
+    {
+        ManualClock clock = new(new DateTimeOffset(DateTime.MaxValue.AddSeconds(-1), TimeSpan.Zero));
+        CountdownTimer timer = new(TimeSpan.FromSeconds(2), "Test", clock)
+        {
+            State = state,
+            Remaining = state == TimerState.Completed ? TimeSpan.Zero : TimeSpan.FromSeconds(2),
+        };
+        timer.Start();
+        Assert.Equal(state, timer.State);
+        Assert.Equal(state == TimerState.Completed ? TimeSpan.Zero : TimeSpan.FromSeconds(2), timer.Remaining);
+        Assert.Null(timer.StartTime);
+        Assert.Null(timer.EndTime);
+    }
+
+    /// <summary>
     /// Verifies the injectable clock does not become part of the persisted model.
     /// </summary>
     [Fact]
@@ -144,9 +167,9 @@ public class CountdownTimerLifecycleTests
         Assert.True(restored.EndTime.HasValue);
     }
 
-    private sealed class ManualClock : TimeProvider
+    private sealed class ManualClock(DateTimeOffset? initialNow = null) : TimeProvider
     {
-        private DateTimeOffset now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        private DateTimeOffset now = initialNow ?? new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
         public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
 
