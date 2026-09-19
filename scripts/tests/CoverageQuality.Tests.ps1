@@ -92,6 +92,9 @@ try {
     Assert-Equal 'TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
     $generic = $functions | Where-Object Method -eq 'Generic`1'
     Assert-Equal 'TickDown.Services.SettingsService::Generic`1(T)' $generic.Id 'Ordinary generic method arity'
+    $module = Get-Module CoverageQuality
+    $rankedArrayName = & $module { Format-CoverageTypeName ([int[,]]) }
+    Assert-Equal 'System.Int32[,]' $rankedArrayName 'Multidimensional array rank formatting'
 
     $healthy = @($functions | ForEach-Object {
         [pscustomobject]@{

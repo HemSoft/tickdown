@@ -20,7 +20,10 @@ function Resolve-CoverageResultsPath([string]$RepoRoot, [string]$ResultsDirector
 
 function Format-CoverageTypeName([Type]$Type) {
     if ($Type.IsGenericParameter) { return $Type.Name }
-    if ($Type.IsArray) { return "$(Format-CoverageTypeName $Type.GetElementType())[]" }
+    if ($Type.IsArray) {
+        $rankMarker = ',' * ($Type.GetArrayRank() - 1)
+        return "$(Format-CoverageTypeName $Type.GetElementType())[$rankMarker]"
+    }
     if ($Type.IsByRef) { return "$(Format-CoverageTypeName $Type.GetElementType())&" }
     if ($Type.IsGenericType) {
         $definition = $Type.GetGenericTypeDefinition().FullName.Replace('+', '/')
