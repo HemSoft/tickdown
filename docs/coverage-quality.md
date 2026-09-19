@@ -22,8 +22,9 @@ outputs elsewhere under `bin` cannot change the result:
 - `function-risk.json` with every measured function; and
 - `function-risk.md` with the 25 worst CRAP scores.
 
-`TickDown.Core` and the complete `TickDown` application assembly are included as
-production assemblies. The runner builds the x64 app candidate, stages its managed
+The runner queries MSBuild for the x64 Release app project's transitive
+`ProjectReference` closure and creates effective collector filters for every
+resulting production assembly. It builds that app candidate and stages its managed
 output beside the current test assembly, and a coverage-only test loads that exact
 candidate so Coverlet can instrument App, views, converters, and all services.
 The two current ViewModel files and SettingsService file are linked explicitly into

@@ -7,11 +7,48 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
+
+function Get-ProductionProjectInventory([string]$RootProject) {
+    $pending = [Collections.Generic.Queue[string]]::new()
+    $pending.Enqueue([IO.Path]::GetFullPath($RootProject))
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $inventory = [Collections.Generic.List[object]]::new()
+    while ($pending.Count -gt 0) {
+        $project = $pending.Dequeue()
+        if (!$seen.Add($project)) { continue }
+        $queryOutput = (& dotnet msbuild $project -getProperty:TargetPath -getItem:ProjectReference `
+            -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($queryOutput)) {
+            throw "Could not resolve production project inventory for $project`:`n$queryOutput"
+        }
+        try { $query = $queryOutput | ConvertFrom-Json -Depth 20 }
+        catch { throw "Invalid MSBuild project inventory for $project`:`n$queryOutput" }
+        $targetPath = [string]$query.Properties.TargetPath
+        if ([string]::IsNullOrWhiteSpace($targetPath)) { throw "Project did not return TargetPath: $project" }
+        $inventory.Add([pscustomobject]@{
+                ProjectPath = $project
+                TargetPath = [IO.Path]::GetFullPath($targetPath)
+                AssemblyName = [IO.Path]::GetFileNameWithoutExtension($targetPath)
+            })
+        foreach ($reference in @($query.Items.ProjectReference)) {
+            if ($null -ne $reference -and ![string]::IsNullOrWhiteSpace([string]$reference.FullPath)) {
+                $pending.Enqueue([IO.Path]::GetFullPath([string]$reference.FullPath))
+            }
+        }
+    }
+    return $inventory.ToArray()
+}
 $root = Resolve-Path "$PSScriptRoot/.."
 $baselinePath = Join-Path $PSScriptRoot 'function-risk-baseline.json'
 Import-Module (Join-Path $PSScriptRoot 'CoverageQuality.psm1') -Force
 $resultsPath = Resolve-CoverageResultsPath $root $ResultsDirectory
 $appProject = Join-Path $root 'src/TickDown.csproj'
+$productionProjects = @(Get-ProductionProjectInventory $appProject)
+$productionAssemblyNames = @($productionProjects.AssemblyName)
+$duplicateAssemblyNames = @($productionAssemblyNames | Group-Object | Where-Object Count -gt 1 | ForEach-Object Name)
+if ($duplicateAssemblyNames.Count -gt 0) {
+    throw "Production projects have duplicate assembly names: $($duplicateAssemblyNames -join ', ')."
+}
 $defineConstantsOutput = (& dotnet msbuild $appProject -getProperty:DefineConstants -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($defineConstantsOutput)) {
     throw "Could not resolve the application preprocessor symbols:`n$defineConstantsOutput"
@@ -37,13 +74,13 @@ if ($partialTypeViolations.Count -gt 0) {
 Push-Location $root
 try {
     if (Test-Path $resultsPath) { Remove-Item $resultsPath -Recurse -Force }
+    New-Item $resultsPath -ItemType Directory | Out-Null
     $appBuildOutput = (& dotnet build $appProject --configuration Release --no-restore -p:Platform=x64 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0) { throw "Coverage application build failed:`n$appBuildOutput" }
-    $appAssemblyOutput = (& dotnet msbuild $appProject -getProperty:TargetPath -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($appAssemblyOutput)) {
-        throw "Could not resolve the current Release application assembly:`n$appAssemblyOutput"
+    $appAssemblyPath = @($productionProjects | Where-Object ProjectPath -eq ([IO.Path]::GetFullPath($appProject)))[0].TargetPath
+    if (!(Test-Path $appAssemblyPath -PathType Leaf)) {
+        throw "Current Release application assembly was not produced: $appAssemblyPath"
     }
-    $appAssemblyPath = @($appAssemblyOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim()
     $testProject = Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj'
     $testBuildOutput = (& dotnet build $testProject --configuration Release --no-restore "-p:DefineConstants=$encodedDefineConstants" 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0) { throw "Coverage test build failed:`n$testBuildOutput" }
@@ -62,11 +99,19 @@ try {
         'TickDown.ViewModels.TimerViewModel'
         'TickDown.Services.SettingsService'
     )
+    [xml]$effectiveSettings = Get-Content (Join-Path $root 'coverage.runsettings') -Raw
+    $productionFilters = @($productionAssemblyNames | ForEach-Object { "[$_]*" })
+    $linkedTestFilters = @($sourceLinkedTestTypes | ForEach-Object { "[TickDown.Tests]$_*" })
+    $effectiveSettings.RunSettings.DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include =
+        ($productionFilters + $linkedTestFilters) -join ','
+    $effectiveSettingsPath = Join-Path $resultsPath 'effective.runsettings'
+    $effectiveSettings.Save($effectiveSettingsPath)
+
     $previousCoverageAssembly = $env:TICKDOWN_COVERAGE_APP_ASSEMBLY
     try {
         $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $coverageAppAssembly
         $testOutput = (& dotnet test $testProject --configuration Release --no-restore --no-build `
-            "-p:DefineConstants=$encodedDefineConstants" --collect:'XPlat Code Coverage' --settings coverage.runsettings `
+            "-p:DefineConstants=$encodedDefineConstants" --collect:'XPlat Code Coverage' --settings $effectiveSettingsPath `
             --results-directory $resultsPath 2>&1 | Out-String).Trim()
     }
     finally {
@@ -81,13 +126,7 @@ try {
     $coverageFiles = @(Get-ChildItem $resultsPath -Filter coverage.cobertura.xml -Recurse)
     if ($coverageFiles.Count -ne 1) { throw "Expected one Cobertura report, found $($coverageFiles.Count)." }
     [xml]$coverageDocument = Get-Content $coverageFiles[0].FullName -Raw
-    [xml]$runsettings = Get-Content (Join-Path $root 'coverage.runsettings') -Raw
-    $includeFilter = [string]$runsettings.RunSettings.DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include
-    $expectedAssemblyNames = @(
-        [regex]::Matches($includeFilter, '\[([^]]+)\]') |
-            ForEach-Object { $_.Groups[1].Value } |
-            Sort-Object -Unique
-    )
+    $expectedAssemblyNames = @($productionAssemblyNames + 'TickDown.Tests' | Sort-Object -Unique)
     $reportedAssemblyNames = @($coverageDocument.coverage.packages.package.name | Sort-Object -Unique)
     $missingAssemblies = @($expectedAssemblyNames | Where-Object { $_ -notin $reportedAssemblyNames })
     if ($missingAssemblies.Count -gt 0) { throw "Covered assemblies missing from Cobertura: $($missingAssemblies -join ', ')." }

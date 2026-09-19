@@ -195,6 +195,10 @@ try {
     Assert-Equal $true $runsettings.Contains('[TickDown.Tests]TickDown.Services.SettingsService*') 'SettingsService collector prefix'
     Assert-Equal $true ($null -ne (Get-Command Get-CoverageExclusionViolations)) 'Compiled exclusion guard exported'
     Assert-Equal $true ($null -ne (Get-Command Get-UnexpectedSourceLinkedTypes)) 'Collector boundary guard exported'
+    $coverageRunner = Get-Content (Join-Path $root 'scripts/check-coverage.ps1') -Raw
+    Assert-Equal $true $coverageRunner.Contains('-getItem:ProjectReference') 'MSBuild project-reference inventory query'
+    Assert-Equal $true $coverageRunner.Contains('$productionAssemblyNames') 'Dynamic production assembly filter input'
+    Assert-Equal $false $coverageRunner.Contains('$expectedAssemblyNames = @([regex]::Matches') 'Expected assemblies not derived from static filters'
     $sourceRoot = Join-Path $temp 'src'
     New-Item $sourceRoot -ItemType Directory | Out-Null
     '[ExcludeFromCodeCoverage] class Hidden {}' | Set-Content (Join-Path $sourceRoot 'Hidden.cs')
