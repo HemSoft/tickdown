@@ -66,6 +66,9 @@ try {
       <method name="MoveNext" signature="()" complexity="2"><lines>
         <line number="8" hits="1" branch="False" />
       </lines></method>
+      <method name="&lt;&gt;m__Finally1" signature="()" complexity="2"><lines>
+        <line number="9" hits="0" branch="True" condition-coverage="0% (0/2)" />
+      </lines></method>
     </methods></class>
   </classes></package></packages>
 </coverage>
@@ -109,6 +112,7 @@ try {
     Assert-Equal 'TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
     $iterator = $functions | Where-Object Method -eq 'History'
     Assert-Equal 'TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
+    Assert-Equal 12 $iterator.Crap 'Iterator finally-helper aggregation'
     $generic = $functions | Where-Object Method -eq 'Generic`1'
     Assert-Equal 'TickDown.Services.SettingsService::Generic`1(T)' $generic.Id 'Ordinary generic method arity'
     $mixed = @($functions | Where-Object Method -Like 'Mixed*')
@@ -133,7 +137,7 @@ try {
     $baselinePath = Join-Path $temp 'baseline.json'
     Write-CoverageBaseline $healthy $baselinePath
     $regressions = @(Test-CoverageBaseline $functions $baselinePath)
-    Assert-Equal 2 $regressions.Count 'Uncovered branch regressions'
+    Assert-Equal 3 $regressions.Count 'Uncovered branch regressions'
     $missingFunction = @($healthy | Where-Object Method -ne 'FlushAsync')
     Assert-Equal 1 (@(Test-CoverageBaseline $missingFunction $baselinePath)).Count 'Missing baseline function rejection'
 

@@ -31,9 +31,11 @@ attribute both in hand-written production source and in compiled assemblies,
 types, and members. The source check prevents generated-marker spoofing; the
 metadata check also catches aliases. Only WinUI and CommunityToolkit artifacts
 outside hand-written source are recognized as generated. Async, iterator, and
-async-iterator state-machine `MoveNext` bodies are retained and mapped from every
-covered assembly through the corresponding state-machine attribute to unique
-source signatures. Reflection records zero as well as nonzero generic arity for
+async-iterator state-machine bodies are retained and mapped from every covered
+assembly through the corresponding state-machine attribute to unique source
+signatures. All source-bearing helper methods in a state machine, including
+iterator `finally` bodies, are aggregated into that source function's complexity
+and coverage. Reflection records zero as well as nonzero generic arity for
 every ordinary method, so generic and nongeneric overloads sharing a parameter
 signature remain distinct. User-defined regular and checked conversions carry reflected target types, so
 legal overloads cannot share a baseline key. Reported compiler-generated callback

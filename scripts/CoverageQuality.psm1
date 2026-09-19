@@ -178,19 +178,36 @@ function Get-CoverageFunctions(
         }
 
         $source = Get-RelativeSourcePath ([string]$class.filename)
-        foreach ($method in @($class.methods.method)) {
-            if ($null -eq $method -or ($isStateMachine -and [string]$method.name -ne 'MoveNext')) { continue }
+        $methods = @($class.methods.method | Where-Object { $null -ne $_ })
+        $methodGroups = if ($isStateMachine) {
+            , [pscustomobject]@{
+                Methods = @($methods | Where-Object { @($_.lines.line | Where-Object { $null -ne $_ }).Count -gt 0 })
+                Name = $reportedMethod
+                Signature = $reportedSignature
+            }
+        }
+        else {
+            @($methods | ForEach-Object { [pscustomobject]@{ Methods = @($_); Name = [string]$_.name; Signature = [string]$_.signature } })
+        }
+
+        foreach ($group in $methodGroups) {
+            if ($group.Methods.Count -eq 0) { throw "State machine $className has no source-bearing methods." }
             $coveredBranches = 0
             $validBranches = 0
             $coveredLines = 0
             $validLines = 0
-            foreach ($line in @($method.lines.line)) {
-                if ($null -eq $line) { continue }
-                $validLines++
-                if ([int]$line.hits -gt 0) { $coveredLines++ }
-                if ([string]$line.branch -eq 'True' -and [string]$line.'condition-coverage' -match '\((\d+)/(\d+)\)') {
-                    $coveredBranches += [int]$Matches[1]
-                    $validBranches += [int]$Matches[2]
+            $complexity = 1.0
+            foreach ($method in $group.Methods) {
+                $methodComplexity = [double]::Parse([string]$method.complexity, [Globalization.CultureInfo]::InvariantCulture)
+                $complexity += [Math]::Max(0, $methodComplexity - 1)
+                foreach ($line in @($method.lines.line)) {
+                    if ($null -eq $line) { continue }
+                    $validLines++
+                    if ([int]$line.hits -gt 0) { $coveredLines++ }
+                    if ([string]$line.branch -eq 'True' -and [string]$line.'condition-coverage' -match '\((\d+)/(\d+)\)') {
+                        $coveredBranches += [int]$Matches[1]
+                        $validBranches += [int]$Matches[2]
+                    }
                 }
             }
 
@@ -205,13 +222,12 @@ function Get-CoverageFunctions(
                 $coverageRate = $coveredLines / $validLines
             }
             else {
-                throw "Method $($class.name)::$($method.name) has no measurable lines."
+                throw "Method $($class.name)::$($group.Name) has no measurable lines."
             }
 
-            $complexity = [double]::Parse([string]$method.complexity, [Globalization.CultureInfo]::InvariantCulture)
             $crap = ($complexity * $complexity * [Math]::Pow(1 - $coverageRate, 3)) + $complexity
-            $signature = if ($isStateMachine) { $reportedSignature } else { [string]$method.signature }
-            $methodName = if ($isStateMachine) { $reportedMethod } else { [string]$method.name }
+            $signature = $group.Signature
+            $methodName = $group.Name
             if (!$isStateMachine) {
                 $genericKey = "${reportedClass}::${methodName}${signature}"
                 if ($GenericMethodArities.ContainsKey($genericKey)) {
