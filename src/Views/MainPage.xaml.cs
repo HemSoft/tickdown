@@ -79,6 +79,8 @@ public sealed partial class MainPage : Page
 
     private void OnColorButtonClick(object sender, RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(e);
+
         if (sender is Button button && button.Tag is string colorHex)
         {
             FrameworkElement? element = button;
@@ -116,6 +118,8 @@ public sealed partial class MainPage : Page
 
     private async void OnSelectSoundClick(object sender, RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(e);
+
         if (sender is not FrameworkElement element)
         {
             return;

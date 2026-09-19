@@ -6,11 +6,16 @@ Use PowerShell 7, the exact .NET SDK selected by `global.json`, and Node.js 22 o
 npm ci --ignore-scripts
 dotnet restore TickDown.sln --locked-mode
 pwsh -NoProfile -File scripts/tests/DependencyResolution.Tests.ps1
+pwsh -NoProfile -File scripts/tests/StylePolicy.Tests.ps1
 dotnet build src/TickDown.csproj
 pwsh -NoProfile -File scripts/check-quality.ps1
 pwsh -NoProfile -File scripts/tests/QualityChecks.Tests.ps1
 dotnet test TickDown.sln --configuration Release
 ```
+
+The C# conventions and formatter contract are documented in
+[`code-style.md`](code-style.md). The style-policy assertions prevent the Roslyn
+and StyleCop import and member-qualification settings from diverging again.
 
 The quality runner executes every independent check and prints a final summary.
 `Pass` means the command succeeded without findings. `Findings` means a valid
