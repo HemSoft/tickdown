@@ -104,14 +104,6 @@ public partial class App : Application
         }
     }
 
-    private static async Task<(int X, int Y, int Width, int Height)> GetSavedOrDefaultPositionAsync(ISettingsService settingsService)
-    {
-        WindowSettings? existing = await settingsService.LoadWindowSettingsAsync();
-        return existing is not null
-            ? (existing.X, existing.Y, existing.Width, existing.Height)
-            : (100, 100, 800, 600);
-    }
-
     private async void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (this.isExitQueued)
@@ -134,19 +126,21 @@ public partial class App : Application
             AppWindow appWindow = this.window.AppWindow;
             bool isMaximized = appWindow.Presenter is OverlappedPresenter presenter && presenter.State == OverlappedPresenterState.Maximized;
 
-            // Preserve the previous non-maximized position when maximized.
-            (int x, int y, int width, int height) = isMaximized
-                ? await GetSavedOrDefaultPositionAsync(settingsService)
-                : (appWindow.Position.X, appWindow.Position.Y, appWindow.Size.Width, appWindow.Size.Height);
-
-            await settingsService.SaveWindowSettingsAsync(new WindowSettings
+            WindowSettings settings = await settingsService.LoadWindowSettingsAsync() ?? new WindowSettings
             {
-                IsMaximized = isMaximized,
-                X = x,
-                Y = y,
-                Width = width,
-                Height = height,
-            });
+                X = 100,
+                Y = 100,
+                Width = 800,
+                Height = 600,
+            };
+            settings.UpdateWindowState(
+                isMaximized,
+                appWindow.Position.X,
+                appWindow.Position.Y,
+                appWindow.Size.Width,
+                appWindow.Size.Height);
+
+            await settingsService.SaveWindowSettingsAsync(settings);
             await settingsService.FlushAsync();
             this.isExitQueued = true;
             this.window.Close();

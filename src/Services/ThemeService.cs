@@ -48,6 +48,7 @@ public sealed class ThemeService : IThemeService
         }
 
         this.ApplyTheme();
+        this.ThemeChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <inheritdoc/>

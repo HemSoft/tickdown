@@ -89,13 +89,27 @@ public class TimerPersistenceTests
         Assert.Equal("Test save failure", fixture.Main.PersistenceError);
     }
 
+    /// <summary>
+    /// Verifies delayed theme initialization updates the already-created selector model.
+    /// </summary>
+    /// <returns>The test completion task.</returns>
+    [Fact]
+    public async Task DelayedThemeInitializationUpdatesSelector()
+    {
+        using Fixture fixture = new();
+        Assert.Equal("System", fixture.Main.CurrentTheme);
+        fixture.Theme.InitializedTheme = "Dark";
+        await fixture.Theme.InitializeAsync();
+        Assert.Equal("Dark", fixture.Main.CurrentTheme);
+    }
+
     private sealed class Fixture : IDisposable
     {
         private readonly TestTimerService ticks = new();
 
         public Fixture()
         {
-            this.Main = new(this.ticks, this.Settings, new TestThemeService(), new TestAudioService());
+            this.Main = new(this.ticks, this.Settings, this.Theme, new TestAudioService());
             this.Timer = Assert.Single(this.Main.Timers);
             this.ticks.RaiseTick();
             Assert.Empty(this.Settings.Snapshots);
@@ -106,6 +120,8 @@ public class TimerPersistenceTests
         public TimerViewModel Timer { get; }
 
         public MainViewModel Main { get; }
+
+        public TestThemeService Theme { get; } = new();
 
         public void Dispose()
         {
@@ -178,12 +194,24 @@ public class TimerPersistenceTests
 
         public string CurrentTheme { get; private set; } = "System";
 
+        public string InitializedTheme { get; set; } = "System";
+
         public void SetTheme(string theme)
         {
+            if (this.CurrentTheme == theme)
+            {
+                return;
+            }
+
             this.CurrentTheme = theme;
             this.ThemeChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public Task InitializeAsync() => Task.CompletedTask;
+        public Task InitializeAsync()
+        {
+            this.CurrentTheme = this.InitializedTheme;
+            this.ThemeChanged?.Invoke(this, EventArgs.Empty);
+            return Task.CompletedTask;
+        }
     }
 }
