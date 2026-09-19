@@ -551,6 +551,14 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         }
         else
         {
+            _ = this.dispatcher.TryEnqueue(() => this.RestoreRejectedTime(value));
+        }
+    }
+
+    private void RestoreRejectedTime(string rejectedValue)
+    {
+        if (this.TimeDisplay == rejectedValue)
+        {
             this.UpdateTimeDisplay();
         }
     }
