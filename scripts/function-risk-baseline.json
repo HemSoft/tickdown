@@ -1,0 +1,1514 @@
+{
+  "version": 3,
+  "formula": "complexity^2 * (1 - coverage)^3 + complexity",
+  "maxNewFunctionCrap": 30,
+  "allowedCrapIncrease": 0.01,
+  "requiredSourcePrefixes": [
+    "src/TickDown.Core/",
+    "src/ViewModels/",
+    "src/Services/"
+  ],
+  "requiredSources": [
+    "src/App.xaml.cs",
+    "src/Converters/BoolToVisibilityConverter.cs",
+    "src/Services/AudioService.cs",
+    "src/Services/ServiceCollectionExtensions.cs",
+    "src/Services/SettingsService.cs",
+    "src/Services/ThemeService.cs",
+    "src/Services/TimerService.cs",
+    "src/TickDown.Core/Models/CompletionColorPalette.cs",
+    "src/TickDown.Core/Models/CountdownTimer.cs",
+    "src/TickDown.Core/Models/WindowSettings.cs",
+    "src/TickDown.Core/Services/SettingsFailureEventArgs.cs",
+    "src/ViewModels/MainViewModel.cs",
+    "src/ViewModels/TimerViewModel.cs",
+    "src/Views/MainPage.xaml.cs",
+    "src/Views/SoundPickerDialog.xaml.cs"
+  ],
+  "functions": {
+    "[TickDown]TickDown.App::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::get_MainWindow()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::get_Services()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::LoadWindowSettingsObservedAsync(TickDown.Core.Services.ISettingsService)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow,Microsoft.UI.Windowing.AppWindowClosingEventArgs)": {
+      "crap": 110.0,
+      "complexity": 10.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::OnNavigationFailed(System.Object,Microsoft.UI.Xaml.Navigation.NavigationFailedEventArgs)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.Converters.BoolToVisibilityConverter::Convert(System.Object,System.Type,System.Object,System.String)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Converters/BoolToVisibilityConverter.cs"
+    },
+    "[TickDown]TickDown.Converters.BoolToVisibilityConverter::ConvertBack(System.Object,System.Type,System.Object,System.String)": {
+      "crap": 42.0,
+      "complexity": 6.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Converters/BoolToVisibilityConverter.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CompletionColorPalette::.cctor()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CompletionColorPalette.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CompletionColorPalette::get_Colors()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CompletionColorPalette.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::.ctor()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::.ctor(System.TimeSpan,System.String,System.TimeProvider)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::.ctor(System.TimeSpan,System.String)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_AlarmExpirationMinutes()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_AlarmRepeatIntervalSeconds()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_AlarmSound()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_CompletionColor()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_Duration()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_EnableAlarm()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_EnableAlarmRepeat()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_EnableCompletionColor()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_EndTime()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_Name()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_ProgressPercentage()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_QuickSetInterval1Minutes()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_QuickSetInterval2Minutes()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_QuickSetInterval3Minutes()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_QuickSetInterval4Minutes()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_Remaining()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_StartTime()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::get_State()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::Pause()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::Reset()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::set_QuickSetInterval1Minutes(System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::set_QuickSetInterval2Minutes(System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::set_QuickSetInterval3Minutes(System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::set_QuickSetInterval4Minutes(System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::SetDuration(System.TimeSpan)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::Start()": {
+      "crap": 8.125,
+      "complexity": 8.0,
+      "coverage": 0.875,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::Stop()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.CountdownTimer::Tick()": {
+      "crap": 6.0,
+      "complexity": 6.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_Height()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_IsMaximized()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_IsPositionSet()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_Theme()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_Width()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_X()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_Y()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::UpdateWindowState(System.Boolean,System.Int32,System.Int32,System.Int32,System.Int32)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Services.SettingsFailureEventArgs::.ctor(System.String,System.Exception,System.Boolean)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Services/SettingsFailureEventArgs.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Services.SettingsFailureEventArgs::get_Exception()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Services/SettingsFailureEventArgs.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Services.SettingsFailureEventArgs::get_IsRecovered()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Services/SettingsFailureEventArgs.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Services.SettingsFailureEventArgs::get_Message()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Services/SettingsFailureEventArgs.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::.cctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::Dispose()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::get_AvailableSounds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::PlaySound(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::StopCurrentPlayback()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.ServiceCollectionExtensions::AddAppServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ServiceCollectionExtensions.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::.ctor(System.String)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::FailAfterAsync(System.Threading.Tasks.Task,System.String,System.Exception)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::FlushAsync()": {
+      "crap": 4.25,
+      "complexity": 4.0,
+      "coverage": 0.75,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::GetPendingWrites()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::GetSettingsDirectory()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::IsStorageFailure(System.Exception)": {
+      "crap": 16.0,
+      "complexity": 8.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::LoadAfterAsync`1(System.Threading.Tasks.Task,System.String)": {
+      "crap": 6.1667,
+      "complexity": 6.0,
+      "coverage": 0.833333,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::LoadAsync`1(System.String)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::LoadTimersAsync()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::LoadWindowSettingsAsync()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::ObservePreviousWriteAsync(System.Threading.Tasks.Task)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::PreserveCorruptPrimaryBestEffort(System.String)": {
+      "crap": 4.0,
+      "complexity": 4.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::ReadAsync`1(System.String)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::RecordWriteFailure(System.String,System.Exception)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::SaveAsync`1(System.String,T)": {
+      "crap": 1.037,
+      "complexity": 1.0,
+      "coverage": 0.666667,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::SaveTimersAsync(System.Collections.Generic.IEnumerable`1<TickDown.Core.Models.CountdownTimer>)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::SaveWindowSettingsAsync(TickDown.Core.Models.WindowSettings)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown.Tests]TickDown.Services.SettingsService::WriteAfterAsync(System.Threading.Tasks.Task,System.String,System.String)": {
+      "crap": 4.0,
+      "complexity": 4.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/SettingsService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::.ctor(TickDown.Core.Services.ISettingsService)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::ApplyTheme()": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::get_CurrentTheme()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::GetRootElement()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::InitializeAsync()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::OnSystemThemeChanged(Windows.UI.ViewManagement.UISettings,System.Object)": {
+      "crap": 42.0,
+      "complexity": 6.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::SaveThemeAsync()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::SetTheme(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.TimerService::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "[TickDown]TickDown.Services.TimerService::Dispose()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "[TickDown]TickDown.Services.TimerService::OnTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::.ctor(TickDown.Core.Services.ITimerService,TickDown.Core.Services.ISettingsService,TickDown.Core.Services.IThemeService,TickDown.Core.Services.IAudioService)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::AddTimer()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::AddTimerInternal(TickDown.Core.Models.CountdownTimer)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::get_AvailableThemes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::get_CurrentTheme()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::get_HasPersistenceError()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::get_PersistenceError()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::get_Timers()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::LoadTimersAsync()": {
+      "crap": 4.432,
+      "complexity": 4.0,
+      "coverage": 0.7,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::OnPersistenceFailed(System.Object,TickDown.Core.Services.SettingsFailureEventArgs)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::OnRemoveTimerRequested(System.Object,System.EventArgs)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::OnThemeChanged(System.Object,System.EventArgs)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::SaveTimers()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::SaveTimersObservedAsync()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::set_CurrentTheme(System.String)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::set_PersistenceError(System.String)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::Timer_PropertyChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)": {
+      "crap": 291.0704,
+      "complexity": 71.0,
+      "coverage": 0.647887,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel::Timers_CollectionChanged(System.Object,System.Collections.Specialized.NotifyCollectionChangedEventArgs)": {
+      "crap": 8.0,
+      "complexity": 8.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.MainViewModel/<>c::<SaveTimersObservedAsync>b__29_0(TickDown.ViewModels.TimerViewModel)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/MainViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::.cctor()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::.ctor(TickDown.Core.Services.ITimerService,TickDown.Core.Services.IAudioService,TickDown.Core.Models.CountdownTimer)": {
+      "crap": 4.25,
+      "complexity": 4.0,
+      "coverage": 0.75,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::CreateBrushFromHex(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Dismiss()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Dispose()": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::FormatEndTime(System.DateTime)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmExpirationMinutes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmRepeatIntervalSeconds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmSound()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AvailableSounds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_CompletionBackgroundBrush()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_CompletionColor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EnableAlarm()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EnableAlarmRepeat()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EnableCompletionColor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EndTimeDisplay()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_Hours()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_IsCompleted()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_IsPaused()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_IsRunning()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_Minutes()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_MinYear()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_Model()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_Name()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_PredefinedColors()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_ProgressBarBrush()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_ProgressPercentage()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval1Label()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval1Minutes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval2Label()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval2Minutes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval3Label()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval3Minutes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval4Label()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_QuickSetInterval4Minutes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_Seconds()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_TargetDate()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_TargetTime()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_TimeDisplay()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::GetDaySuffix(System.Int32)": {
+      "crap": 44.3,
+      "complexity": 10.0,
+      "coverage": 0.3,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::GetTimeZoneAbbreviation(System.String)": {
+      "crap": 10.75,
+      "complexity": 4.0,
+      "coverage": 0.25,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnAlarmRepeatTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnGlobalTick(System.Object,System.EventArgs)": {
+      "crap": 4.8651,
+      "complexity": 2.0,
+      "coverage": 0.105263,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnTimeDisplayChanged(System.String)": {
+      "crap": 4.0,
+      "complexity": 4.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnTimerCompleted()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Pause()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Remove()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Reset()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::RestoreRejectedTime(System.String)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_AlarmExpirationMinutes(System.Int32)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_AlarmRepeatIntervalSeconds(System.Int32)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_AlarmSound(System.String)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_CompletionColor(System.String)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_EnableAlarm(System.Boolean)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_EnableAlarmRepeat(System.Boolean)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_EnableCompletionColor(System.Boolean)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_EndTimeDisplay(System.String)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_Hours(System.Int32)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_IsCompleted(System.Boolean)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_IsPaused(System.Boolean)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_IsRunning(System.Boolean)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_Minutes(System.Int32)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_Name(System.String)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_ProgressPercentage(System.Double)": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_QuickSetInterval1Minutes(System.Int32)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_QuickSetInterval2Minutes(System.Int32)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_QuickSetInterval3Minutes(System.Int32)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_QuickSetInterval4Minutes(System.Int32)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_Seconds(System.Int32)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_TargetDate(System.DateTimeOffset)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_TargetTime(System.TimeSpan)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_TimeDisplay(System.String)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::SetEndTime()": {
+      "crap": 6.0,
+      "complexity": 4.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::SetQuickSetInterval(System.Int32,System.Int32,System.Action`1<System.Int32>,System.String,System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::SetQuickTime(System.Int32)": {
+      "crap": 6.0,
+      "complexity": 4.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::SetTime(System.Int32,System.Int32,System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Start()": {
+      "crap": 10.9331,
+      "complexity": 10.0,
+      "coverage": 0.789474,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::StartAlarmRepeat()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Stop()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::StopAlarmRepeat()": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::TryGetDeadline(System.TimeSpan,System.DateTime&)": {
+      "crap": 4.0,
+      "complexity": 4.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::TryParseTime(System.String,System.TimeSpan&)": {
+      "crap": 6.0,
+      "complexity": 6.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::TryParseUnitTime(System.Text.RegularExpressions.Match,System.TimeSpan&)": {
+      "crap": 16.0625,
+      "complexity": 16.0,
+      "coverage": 0.9375,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateCompletionBackground()": {
+      "crap": 10.75,
+      "complexity": 4.0,
+      "coverage": 0.25,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateDuration()": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateEndTimeDisplay()": {
+      "crap": 6.0,
+      "complexity": 6.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateProgressBarColor()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateState()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateTimeDisplay()": {
+      "crap": 6.1667,
+      "complexity": 6.0,
+      "coverage": 0.833333,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::AddAccelerator(Windows.System.VirtualKey,System.Action)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::get_ViewModel()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::OnColorButtonClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 156.0,
+      "complexity": 12.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::OnCustomColorChanged(Microsoft.UI.Xaml.Controls.ColorPicker,Microsoft.UI.Xaml.Controls.ColorChangedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::OnQuickSetIntervalValueChanged(Microsoft.UI.Xaml.Controls.NumberBox,Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::OnSelectSoundClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 156.0,
+      "complexity": 12.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::ResetZoom()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::SetupZoomAccelerators()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::Zoom(System.Single)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.SoundPickerDialog::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.SoundPickerDialog::get_AvailableSounds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.SoundPickerDialog::get_SelectedSound()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.SoundPickerDialog::OnPreviewClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    }
+  }
+}
