@@ -72,6 +72,18 @@ function Get-ConversionReturnTypes([string[]]$AssemblyPath) {
     return $map
 }
 
+function Resolve-CoveredAssemblyPaths([string[]]$AssemblyNames, [string]$TestAssemblyPath) {
+    if (!(Test-Path $TestAssemblyPath -PathType Leaf)) { throw "Current test assembly not found: $TestAssemblyPath" }
+    $outputDirectory = Split-Path $TestAssemblyPath -Parent
+    return @(
+        $AssemblyNames | ForEach-Object {
+            $path = Join-Path $outputDirectory "$_.dll"
+            if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found in current test output: $path" }
+            $path
+        }
+    )
+}
+
 function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
     return @(
@@ -349,4 +361,4 @@ function Write-CoverageReports([object[]]$Functions, [string]$OutputDirectory) {
     $lines | Set-Content (Join-Path $OutputDirectory 'function-risk.md') -Encoding utf8
 }
 
-Export-ModuleMember -Function Resolve-CoverageResultsPath, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports
+Export-ModuleMember -Function Resolve-CoverageResultsPath, Resolve-CoveredAssemblyPaths, Get-MethodGenericArities, Get-ConversionReturnTypes, Get-CoverageSourceExclusionViolations, Get-StateMachineMap, Get-CoverageExclusionViolations, Get-CoverageFunctions, Test-CoverageBaseline, Write-CoverageBaseline, Write-CoverageReports

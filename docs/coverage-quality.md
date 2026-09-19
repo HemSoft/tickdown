@@ -14,7 +14,9 @@ repository paths before performing cleanup.
 The command runs Release tests with `coverage.runsettings`, finds the one
 Cobertura report, evaluates every measured function against
 `scripts/function-risk-baseline.json`, and writes these CI-ready files under
-`artifacts/coverage`:
+`artifacts/coverage`. Assembly metadata is resolved from the exact Release
+`TargetPath` produced for the current test project, so stale framework or RID
+outputs elsewhere under `bin` cannot change the result:
 
 - `coverage.cobertura.xml` for line and branch publishing;
 - `function-risk.json` with every measured function; and

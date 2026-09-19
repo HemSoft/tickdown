@@ -177,6 +177,13 @@ try {
     $dangerousPathRejected = $false
     try { $null = Resolve-CoverageResultsPath $temp 'artifacts' } catch { $dangerousPathRejected = $true }
     Assert-Equal $true $dangerousPathRejected 'Shared result path rejection'
+    $currentOutput = Join-Path $temp 'bin/current'
+    $staleOutput = Join-Path $temp 'bin/stale'
+    New-Item $currentOutput, $staleOutput -ItemType Directory | Out-Null
+    New-Item (Join-Path $currentOutput 'TickDown.Tests.dll'), (Join-Path $currentOutput 'TickDown.Core.dll'), (Join-Path $staleOutput 'TickDown.Core.dll') -ItemType File | Out-Null
+    $resolvedAssemblies = @(Resolve-CoveredAssemblyPaths @('TickDown.Tests', 'TickDown.Core') (Join-Path $currentOutput 'TickDown.Tests.dll'))
+    Assert-Equal 2 $resolvedAssemblies.Count 'Current output assembly count'
+    Assert-Equal (Join-Path $currentOutput 'TickDown.Core.dll') $resolvedAssemblies[1] 'Stale assembly ignored'
     "Passed $passed coverage-quality assertions."
 }
 finally {
