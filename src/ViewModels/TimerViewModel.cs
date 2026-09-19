@@ -21,7 +21,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 {
     private static readonly Regex TimePattern = new(
         @"^(\d+(?:\.\d+)?)\s*(h|hours?|m|min|s|sec)?$",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
 
     private readonly ITimerService timerService;
     private readonly IAudioService audioService;
@@ -445,19 +445,47 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         value = value.Trim();
 
         Match match = TimePattern.Match(value);
-        if (match.Success && double.TryParse(match.Groups[1].Value, out double num))
+        bool parsed = match.Success
+            ? TryParseUnitTime(match, out result)
+            : TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
+        return parsed && TryGetDeadline(result, out _);
+    }
+
+    private static bool TryParseUnitTime(Match match, out TimeSpan result)
+    {
+        result = default;
+        if (!decimal.TryParse(match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal number))
         {
-            string unit = match.Groups[2].Value.ToLowerInvariant();
-            result = unit switch
-            {
-                "h" or "hour" or "hours" => TimeSpan.FromHours(num),
-                "s" or "sec" => TimeSpan.FromSeconds(num),
-                _ => TimeSpan.FromMinutes(num),
-            };
-            return true;
+            return false;
         }
 
-        return TimeSpan.TryParse(value, CultureInfo.CurrentCulture, out result);
+        decimal ticksPerUnit = match.Groups[2].Value.ToLowerInvariant() switch
+        {
+            "h" or "hour" or "hours" => TimeSpan.TicksPerHour,
+            "s" or "sec" => TimeSpan.TicksPerSecond,
+            _ => TimeSpan.TicksPerMinute,
+        };
+        long availableTicks = (DateTime.MaxValue - DateTime.Now).Ticks;
+        if (number < 0 || number > availableTicks / ticksPerUnit)
+        {
+            return false;
+        }
+
+        result = TimeSpan.FromTicks((long)(number * ticksPerUnit));
+        return true;
+    }
+
+    private static bool TryGetDeadline(TimeSpan duration, out DateTime deadline)
+    {
+        DateTime now = DateTime.Now;
+        deadline = default;
+        if (duration < TimeSpan.Zero || duration > DateTime.MaxValue - now)
+        {
+            return false;
+        }
+
+        deadline = now.Add(duration);
+        return true;
     }
 
     private static string FormatEndTime(DateTime endTime)
@@ -519,7 +547,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
         if (TryParseTime(value, out TimeSpan result))
         {
-            this.SetTime((int)result.TotalHours, result.Minutes, result.Seconds);
+            this.SetTime((int)(result.Ticks / TimeSpan.TicksPerHour), result.Minutes, result.Seconds);
         }
         else
         {
@@ -554,6 +582,13 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
             }
 
             this.Model.SetDuration(duration);
+        }
+
+        TimeSpan durationToStart = this.Model.State == TimerState.Completed ? this.Model.Duration : this.Model.Remaining;
+        if (!TryGetDeadline(durationToStart, out _))
+        {
+            this.UpdateTimeDisplay();
+            return;
         }
 
         this.StopAlarmRepeat();
@@ -712,18 +747,11 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.UpdateEndTimeDisplay();
     }
 
-    private void UpdateEndTimeDisplay()
-    {
-        if (this.Model.State is TimerState.Running or TimerState.Paused)
-        {
-            DateTime endTime = DateTime.Now.Add(this.Model.Remaining);
-            this.EndTimeDisplay = FormatEndTime(endTime);
-        }
-        else
-        {
-            this.EndTimeDisplay = string.Empty;
-        }
-    }
+    private void UpdateEndTimeDisplay() =>
+        this.EndTimeDisplay = this.Model.State is TimerState.Running or TimerState.Paused
+            && TryGetDeadline(this.Model.Remaining, out DateTime endTime)
+            ? FormatEndTime(endTime)
+            : string.Empty;
 
     private void UpdateState()
     {
