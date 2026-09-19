@@ -26,8 +26,10 @@ outputs elsewhere under `bin` cannot change the result:
 production assemblies. The runner builds the x64 app candidate, stages its managed
 output beside the current test assembly, and a coverage-only test loads that exact
 candidate so Coverlet can instrument App, views, converters, and all services.
-ViewModels and SettingsService retain their exercised source-linked copies in the
-test assembly rather than duplicating their unexecuted app copies. Test namespaces,
+The two current ViewModels and SettingsService retain their exercised source-linked
+copies in the test assembly rather than duplicating their unexecuted app copies.
+Those exclusions are type-specific; a new ViewModel or service namespace/type is
+measured from the app candidate by default. Test namespaces,
 presentation doubles, and package-generated bootstrap types are not included. Only
 generated output beneath `obj` is excluded by file path; every hand-written C# file
 under `src`, including `*.g.cs`, remains measured. The
