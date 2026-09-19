@@ -43,6 +43,9 @@ try {
       <method name="op_Implicit" signature="(System.String)" complexity="1"><lines>
         <line number="4" hits="1" branch="False" />
       </lines></method>
+      <method name="op_Implicit" signature="(System.String)" complexity="1"><lines>
+        <line number="4" hits="1" branch="False" />
+      </lines></method>
       <method name="op_CheckedExplicit" signature="(System.String)" complexity="1"><lines>
         <line number="4" hits="1" branch="False" />
       </lines></method>
@@ -90,11 +93,11 @@ try {
         'TickDown.Services.SettingsService::Mixed(System.Int32)' = @(0, 1)
     }
     $conversionReturns = @{
-        'TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32')
+        'TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32', 'System.Double')
         'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)' = @('System.Int64')
     }
     $functions = @(Get-CoverageFunctions $coveragePath $asyncMap $genericArities $conversionReturns)
-    Assert-Equal 12 $functions.Count 'Function count'
+    Assert-Equal 13 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
@@ -121,8 +124,9 @@ try {
     $module = Get-Module CoverageQuality
     $rankedArrayName = & $module { Format-CoverageTypeName ([int[,]]) }
     Assert-Equal 'System.Int32[,]' $rankedArrayName 'Multidimensional array rank formatting'
-    $conversion = $functions | Where-Object Method -eq 'op_Implicit'
-    Assert-Equal 'TickDown.Services.SettingsService::op_Implicit(System.String)->System.Int32' $conversion.Id 'Conversion return identity'
+    $conversions = @($functions | Where-Object Method -eq 'op_Implicit')
+    Assert-Equal 'TickDown.Services.SettingsService::op_Implicit(System.String)->System.Int32' $conversions[0].Id 'First conversion return identity'
+    Assert-Equal 'TickDown.Services.SettingsService::op_Implicit(System.String)->System.Double' $conversions[1].Id 'Second conversion return identity'
     $checkedConversion = $functions | Where-Object Method -eq 'op_CheckedExplicit'
     Assert-Equal 'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)->System.Int64' $checkedConversion.Id 'Checked conversion return identity'
 
@@ -190,12 +194,13 @@ try {
     'namespace TickDown.ViewModels; public partial /* split declaration */ class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Commented.cs')
     ("#if NET10_0_WINDOWS`n" + 'namespace TickDown.ViewModels; public partial class MainViewModel {}' + "`n#endif") | Set-Content (Join-Path $nestedSources 'MainViewModel.Conditional.cs')
     'namespace Other; public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'UnrelatedSettingsService.cs')
+    'namespace TickDown { namespace ViewModels { public partial class MainViewModel {} } }' | Set-Content (Join-Path $nestedSources 'MainViewModel.NestedNamespace.cs')
     $linkedPatterns = @{
         'TickDown.ViewModels.MainViewModel' = 'ViewModels/MainViewModel.cs'
         'TickDown.ViewModels.TimerViewModel' = 'ViewModels/TimerViewModel.cs'
         'TickDown.Services.SettingsService' = 'Services/SettingsService.cs'
     }
-    Assert-Equal 5 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, conditional, and trivia-rich partial rejection'
+    Assert-Equal 6 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, nested-namespace, conditional, and trivia-rich partial rejection'
     Remove-Item $nestedSources -Recurse
     Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Linked partial acceptance'
     $testProject = Get-Content (Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj') -Raw

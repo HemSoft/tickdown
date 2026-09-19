@@ -33,7 +33,8 @@ types; they do not use sibling-matching prefixes. A new ViewModel or service typ
 including one whose name starts with an existing type name, is measured from the
 app candidate by default. Before collection, the runner scans the entire `src`
 tree with Roslyn using the x64 Release app's effective preprocessor symbols. It
-matches partial declarations by namespace, containing types, and identifier, then
+composes all block/file-scoped namespace ancestors plus containing types and the
+identifier for each partial declaration, then
 requires each excluded identity to come from its exact linked file (`ViewModels/*.cs` or the exact SettingsService
 file). Test namespaces, presentation doubles, and the two exact
 package-generated bootstrap types are not included; there is no namespace-wide
@@ -53,10 +54,10 @@ signatures. All source-bearing helper methods in a state machine, including
 iterator `finally` bodies, are aggregated into that source function's complexity
 and coverage. Reflection records zero as well as nonzero generic arity for
 every ordinary method, so generic and nongeneric overloads sharing a parameter
-signature remain distinct. User-defined regular and checked conversions carry reflected target types, so
-legal overloads cannot share a baseline key. Reported compiler-generated callback
-and local-function bodies are retained instead of
-being filtered with their closure classes. Callback sequence points that Coverlet
+signature remain distinct. User-defined regular and checked conversions bypass
+generic-occurrence matching and carry reflected target types, so legal target
+overloads cannot share a baseline key. Reported compiler-generated callback and
+local-function bodies are retained instead of being filtered with their closure classes. Callback sequence points that Coverlet
 folds into their containing function remain part of that function's line rate.
 The required Core, ViewModels, and Services source prefixes make an accidentally
 empty or narrowed report fail.

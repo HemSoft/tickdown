@@ -111,14 +111,15 @@ function Get-UnlinkedPartialTypeViolations(
         foreach ($declaration in $declarations) {
             $isPartial = @($declaration.Modifiers | Where-Object { $_.RawKind -eq $partialKind }).Count -gt 0
             if (!$isPartial) { continue }
-            $namespaceNode = $declaration.Ancestors() | Where-Object {
-                $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax] -or
-                $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.FileScopedNamespaceDeclarationSyntax]
-            } | Select-Object -First 1
+            $namespaceNodes = @($declaration.Ancestors() | Where-Object {
+                    $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax] -or
+                    $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.FileScopedNamespaceDeclarationSyntax]
+                })
+            [array]::Reverse($namespaceNodes)
             $containingTypes = @($declaration.Ancestors() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax] })
             [array]::Reverse($containingTypes)
             $identityParts = [Collections.Generic.List[string]]::new()
-            if ($null -ne $namespaceNode) { $identityParts.Add($namespaceNode.Name.ToString()) }
+            foreach ($namespaceNode in $namespaceNodes) { $identityParts.Add($namespaceNode.Name.ToString()) }
             foreach ($containingType in $containingTypes) { $identityParts.Add($containingType.Identifier.ValueText) }
             $identityParts.Add($declaration.Identifier.ValueText)
             $typeIdentity = $identityParts -join '.'
@@ -291,19 +292,19 @@ function Get-CoverageFunctions(
             $methodName = $group.Name
             if (!$isStateMachine) {
                 $genericKey = "${reportedClass}::${methodName}${signature}"
-                if ($GenericMethodArities.ContainsKey($genericKey)) {
-                    $occurrence = if ($genericOccurrences.ContainsKey($genericKey)) { $genericOccurrences[$genericKey] } else { 0 }
-                    $arities = @($GenericMethodArities[$genericKey])
-                    if ($occurrence -ge $arities.Count) { throw "No unused method identity found for $genericKey." }
-                    if ($arities[$occurrence] -gt 0) { $methodName = "$methodName``$($arities[$occurrence])" }
-                    $genericOccurrences[$genericKey] = $occurrence + 1
-                }
                 if ($ConversionReturnTypes.ContainsKey($genericKey)) {
                     $occurrence = if ($conversionOccurrences.ContainsKey($genericKey)) { $conversionOccurrences[$genericKey] } else { 0 }
                     $returnTypes = @($ConversionReturnTypes[$genericKey])
                     if ($occurrence -ge $returnTypes.Count) { throw "No unused conversion return type found for $genericKey." }
                     $signature = "$signature->$($returnTypes[$occurrence])"
                     $conversionOccurrences[$genericKey] = $occurrence + 1
+                }
+                elseif ($GenericMethodArities.ContainsKey($genericKey)) {
+                    $occurrence = if ($genericOccurrences.ContainsKey($genericKey)) { $genericOccurrences[$genericKey] } else { 0 }
+                    $arities = @($GenericMethodArities[$genericKey])
+                    if ($occurrence -ge $arities.Count) { throw "No unused method identity found for $genericKey." }
+                    if ($arities[$occurrence] -gt 0) { $methodName = "$methodName``$($arities[$occurrence])" }
+                    $genericOccurrences[$genericKey] = $occurrence + 1
                 }
             }
             $results.Add([pscustomobject]@{
