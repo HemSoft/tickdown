@@ -10,6 +10,17 @@ using TickDown.Core.Models;
 public interface ISettingsService
 {
     /// <summary>
+    /// Occurs when settings cannot be saved or loaded, or a backup is recovered.
+    /// </summary>
+    event EventHandler<SettingsFailureEventArgs>? PersistenceFailed;
+
+    /// <summary>
+    /// Waits until accepted writes drain and reports any unresolved write failure.
+    /// </summary>
+    /// <returns>A task that completes when all accepted writes have finished.</returns>
+    Task FlushAsync();
+
+    /// <summary>
     /// Saves the list of timers to storage.
     /// </summary>
     /// <param name="timers">The timers to save.</param>

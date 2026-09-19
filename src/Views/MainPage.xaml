@@ -390,6 +390,7 @@
                 <Grid Padding="20">
                         <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
@@ -433,8 +434,16 @@
                                           MinWidth="100"/>
                         </Grid>
 
+                        <InfoBar Grid.Row="1"
+                                 Title="Settings need attention"
+                                 Message="{Binding PersistenceError}"
+                                 IsOpen="{Binding HasPersistenceError, Mode=OneWay}"
+                                 IsClosable="False"
+                                 Severity="Error"
+                                 Margin="0,0,0,12"/>
+
                         <!-- Timers List -->
-                        <ItemsControl Grid.Row="1"
+                        <ItemsControl Grid.Row="2"
                                       ItemsSource="{Binding Timers}"
                                       ItemTemplate="{StaticResource TimerTemplate}">
                                 <ItemsControl.ItemsPanel>

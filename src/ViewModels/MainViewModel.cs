@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using global::TickDown.Core.Models;
 using global::TickDown.Core.Services;
+using Microsoft.UI.Dispatching;
 
 /// <summary>
 /// The main view model for the application, managing the collection of timers.
@@ -18,6 +19,8 @@ public partial class MainViewModel : ObservableObject
     private readonly ISettingsService settingsService;
     private readonly IThemeService themeService;
     private readonly IAudioService audioService;
+    private readonly DispatcherQueue dispatcher = DispatcherQueue.GetForCurrentThread();
+    private string persistenceError = string.Empty;
     private bool isLoading = true;
     private string currentTheme;
 
@@ -32,6 +35,7 @@ public partial class MainViewModel : ObservableObject
     {
         this.timerService = timerService;
         this.settingsService = settingsService;
+        this.settingsService.PersistenceFailed += this.OnPersistenceFailed;
         this.themeService = themeService;
         this.audioService = audioService;
 
@@ -68,24 +72,57 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Gets the most recent storage failure or recovery message.
+    /// </summary>
+    public string PersistenceError
+    {
+        get => this.persistenceError;
+        private set
+        {
+            if (this.SetProperty(ref this.persistenceError, value))
+            {
+                this.OnPropertyChanged(nameof(this.HasPersistenceError));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether storage needs user attention.
+    /// </summary>
+    public bool HasPersistenceError => this.PersistenceError.Length > 0;
+
+    private void OnPersistenceFailed(object? sender, SettingsFailureEventArgs e) =>
+        _ = this.dispatcher.TryEnqueue(() => this.PersistenceError = e.Message);
+
     private void OnThemeChanged(object? sender, EventArgs e) => this.CurrentTheme = this.themeService.CurrentTheme;
 
     private async Task LoadTimersAsync()
     {
-        IEnumerable<CountdownTimer> timers = await this.settingsService.LoadTimersAsync();
-        if (timers.Any())
+        try
         {
-            foreach (CountdownTimer timer in timers)
+            IEnumerable<CountdownTimer> timers = await this.settingsService.LoadTimersAsync();
+            if (timers.Any())
             {
-                this.AddTimerInternal(timer);
+                foreach (CountdownTimer timer in timers)
+                {
+                    this.AddTimerInternal(timer);
+                }
+            }
+            else
+            {
+                this.AddTimer();
             }
         }
-        else
+        catch (IOException)
         {
-            this.AddTimer();
+            // The settings failure event supplies the visible error. Do not
+            // replace a failed load with a new default timer and save over it.
         }
-
-        this.isLoading = false;
+        finally
+        {
+            this.isLoading = false;
+        }
     }
 
     private void Timers_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -140,7 +177,20 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        _ = this.settingsService.SaveTimersAsync(this.Timers.Select(t => t.Model));
+        _ = this.SaveTimersObservedAsync();
+    }
+
+    private async Task SaveTimersObservedAsync()
+    {
+        try
+        {
+            await this.settingsService.SaveTimersAsync(this.Timers.Select(t => t.Model));
+        }
+        catch (IOException)
+        {
+            // The settings failure event supplies the visible error, and FlushAsync
+            // prevents shutdown while a write failure remains unresolved.
+        }
     }
 
     [RelayCommand]

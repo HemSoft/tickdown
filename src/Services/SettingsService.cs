@@ -7,65 +7,252 @@ using global::TickDown.Core.Models;
 using global::TickDown.Core.Services;
 
 /// <summary>
-/// Service for saving and loading application settings and timers.
+/// Saves frozen settings snapshots in order with atomic replacement and recovery.
 /// </summary>
 public class SettingsService : ISettingsService
 {
+    private readonly object sync = new();
+    private readonly Dictionary<string, IOException> writeFailures = [];
     private readonly string filePath;
     private readonly string windowSettingsPath;
+    private Task pendingWrites = Task.CompletedTask;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsService"/> class.
     /// </summary>
     public SettingsService()
+        : this(GetSettingsDirectory())
     {
-        string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string? isolatedFolder = Environment.GetEnvironmentVariable("TICKDOWN_SETTINGS_DIRECTORY");
-        string appFolder = string.IsNullOrWhiteSpace(isolatedFolder)
-            ? Path.Combine(folder, "TickDown")
-            : Path.GetFullPath(isolatedFolder);
-        _ = Directory.CreateDirectory(appFolder);
-        this.filePath = Path.Combine(appFolder, "timers.json");
-        this.windowSettingsPath = Path.Combine(appFolder, "window.json");
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SettingsService"/> class.
+    /// </summary>
+    /// <param name="directory">The directory for this isolated settings store.</param>
+    public SettingsService(string directory)
+    {
+        string fullPath = Path.GetFullPath(directory);
+        this.filePath = Path.Combine(fullPath, "timers.json");
+        this.windowSettingsPath = Path.Combine(fullPath, "window.json");
     }
 
     /// <inheritdoc/>
-    public Task SaveTimersAsync(IEnumerable<CountdownTimer> timers) =>
-        SaveAsync(this.filePath, timers);
+    public event EventHandler<SettingsFailureEventArgs>? PersistenceFailed;
+
+    /// <inheritdoc/>
+    public Task SaveTimersAsync(IEnumerable<CountdownTimer> timers) => this.SaveAsync(this.filePath, timers);
 
     /// <inheritdoc/>
     public async Task<IEnumerable<CountdownTimer>> LoadTimersAsync() =>
-        await LoadAsync<IEnumerable<CountdownTimer>>(this.filePath) ?? [];
+        await this.LoadAsync<CountdownTimer[]>(this.filePath) ?? [];
 
     /// <inheritdoc/>
-    public Task SaveWindowSettingsAsync(WindowSettings settings) =>
-        SaveAsync(this.windowSettingsPath, settings);
+    public Task SaveWindowSettingsAsync(WindowSettings settings) => this.SaveAsync(this.windowSettingsPath, settings);
 
     /// <inheritdoc/>
-    public Task<WindowSettings?> LoadWindowSettingsAsync() =>
-        LoadAsync<WindowSettings>(this.windowSettingsPath);
+    public Task<WindowSettings?> LoadWindowSettingsAsync() => this.LoadAsync<WindowSettings>(this.windowSettingsPath);
 
-    private static async Task SaveAsync<T>(string path, T data)
+    /// <inheritdoc/>
+    public async Task FlushAsync()
     {
-        string json = JsonSerializer.Serialize(data);
-        await File.WriteAllTextAsync(path, json);
+        while (true)
+        {
+            Task pending = this.GetPendingWrites();
+            await ObservePreviousWriteAsync(pending).ConfigureAwait(false);
+            lock (this.sync)
+            {
+                if (pending != this.pendingWrites)
+                {
+                    continue;
+                }
+
+                if (this.writeFailures.Count > 0)
+                {
+                    throw new IOException("Some settings could not be saved.", new AggregateException(this.writeFailures.Values));
+                }
+
+                return;
+            }
+        }
     }
 
-    private static async Task<T?> LoadAsync<T>(string path)
+    private static string GetSettingsDirectory()
     {
-        if (!File.Exists(path))
-        {
-            return default;
-        }
+        string? isolated = Environment.GetEnvironmentVariable("TICKDOWN_SETTINGS_DIRECTORY");
+        return string.IsNullOrWhiteSpace(isolated)
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TickDown")
+            : isolated;
+    }
 
+    private static bool IsStorageFailure(Exception exception) =>
+        exception is IOException or UnauthorizedAccessException or JsonException or NotSupportedException;
+
+    private static async Task ObservePreviousWriteAsync(Task previous)
+    {
         try
         {
-            string json = await File.ReadAllTextAsync(path);
-            return JsonSerializer.Deserialize<T>(json);
+            await previous.ConfigureAwait(false);
         }
-        catch
+        catch (IOException)
+        {
+            // The originating task and failure event report this error. A later
+            // snapshot must still be able to retry and repair the same file.
+        }
+    }
+
+    private static async Task<T> ReadAsync<T>(string path)
+    {
+        string json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+        return JsonSerializer.Deserialize<T>(json) ?? throw new JsonException("A settings document cannot be null.");
+    }
+
+    private Task GetPendingWrites()
+    {
+        lock (this.sync)
+        {
+            return this.pendingWrites;
+        }
+    }
+
+    private Task SaveAsync<T>(string path, T data)
+    {
+        lock (this.sync)
+        {
+            // Serialization and enqueueing share one ordering point. Callers can
+            // mutate their models after this method returns without changing a save.
+            try
+            {
+                string json = JsonSerializer.Serialize(data);
+                this.pendingWrites = this.WriteAfterAsync(this.pendingWrites, path, json);
+            }
+            catch (Exception exception) when (IsStorageFailure(exception))
+            {
+                this.pendingWrites = this.FailAfterAsync(this.pendingWrites, path, exception);
+            }
+
+            return this.pendingWrites;
+        }
+    }
+
+    private async Task FailAfterAsync(Task previous, string path, Exception exception)
+    {
+        await ObservePreviousWriteAsync(previous).ConfigureAwait(false);
+        throw this.RecordWriteFailure(path, exception);
+    }
+
+    private async Task WriteAfterAsync(Task previous, string path, string json)
+    {
+        await ObservePreviousWriteAsync(previous).ConfigureAwait(false);
+        string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                await stream.WriteAsync(bytes).ConfigureAwait(false);
+                stream.Flush(flushToDisk: true);
+            }
+
+            if (File.Exists(path))
+            {
+                File.Replace(temporary, path, path + ".bak");
+            }
+            else
+            {
+                File.Move(temporary, path);
+            }
+
+            lock (this.sync)
+            {
+                _ = this.writeFailures.Remove(path);
+            }
+        }
+        catch (Exception exception) when (IsStorageFailure(exception))
+        {
+            throw this.RecordWriteFailure(path, exception);
+        }
+        finally
+        {
+            // A leftover temporary file is never considered a valid snapshot.
+            try
+            {
+                File.Delete(temporary);
+            }
+            catch (IOException)
+            {
+                // Preserve an inaccessible temporary file for diagnosis.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Preserve an inaccessible temporary file for diagnosis.
+            }
+        }
+    }
+
+    private IOException RecordWriteFailure(string path, Exception exception)
+    {
+        IOException failure = new($"Could not save {Path.GetFileName(path)}. Previous settings were preserved.", exception);
+        lock (this.sync)
+        {
+            this.writeFailures[path] = failure;
+        }
+
+        this.PersistenceFailed?.Invoke(this, new SettingsFailureEventArgs(failure.Message, failure));
+        return failure;
+    }
+
+    private Task<T?> LoadAsync<T>(string path)
+    {
+        lock (this.sync)
+        {
+            Task<T?> load = this.LoadAfterAsync<T>(this.pendingWrites, path);
+            this.pendingWrites = load;
+            return load;
+        }
+    }
+
+    private async Task<T?> LoadAfterAsync<T>(Task previous, string path)
+    {
+        await ObservePreviousWriteAsync(previous).ConfigureAwait(false);
+        try
+        {
+            return await ReadAsync<T>(path).ConfigureAwait(false);
+        }
+        catch (FileNotFoundException) when (!File.Exists(path + ".bak"))
         {
             return default;
+        }
+        catch (DirectoryNotFoundException) when (!File.Exists(path + ".bak"))
+        {
+            return default;
+        }
+        catch (Exception exception) when (IsStorageFailure(exception))
+        {
+            try
+            {
+                if (exception is JsonException)
+                {
+                    File.Copy(path, path + ".corrupt." + Guid.NewGuid().ToString("N"));
+                }
+
+                T? recovered = await ReadAsync<T>(path + ".bak").ConfigureAwait(false);
+                if (exception is JsonException)
+                {
+                    // Only remove a corrupt primary after a valid backup is known.
+                    // Without one, subsequent loads must keep reporting failure.
+                    File.Delete(path);
+                }
+
+                this.PersistenceFailed?.Invoke(this, new SettingsFailureEventArgs($"Loaded {Path.GetFileName(path)} from backup. Original data was preserved.", exception, true));
+                return recovered;
+            }
+            catch (Exception recoveryFailure) when (IsStorageFailure(recoveryFailure))
+            {
+                IOException failure = new($"Could not load {Path.GetFileName(path)}. No valid backup was available; existing files were preserved.", new AggregateException(exception, recoveryFailure));
+                this.PersistenceFailed?.Invoke(this, new SettingsFailureEventArgs(failure.Message, failure));
+                throw failure;
+            }
         }
     }
 }

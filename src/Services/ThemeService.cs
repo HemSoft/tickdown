@@ -15,6 +15,7 @@ public sealed class ThemeService : IThemeService
     private readonly ISettingsService settingsService;
     private readonly UISettings uiSettings;
     private string currentTheme = "System";
+    private WindowSettings windowSettings = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ThemeService"/> class.
@@ -36,8 +37,16 @@ public sealed class ThemeService : IThemeService
     /// <inheritdoc/>
     public async Task InitializeAsync()
     {
-        WindowSettings? settings = await this.settingsService.LoadWindowSettingsAsync();
-        this.currentTheme = settings?.Theme ?? "System";
+        try
+        {
+            this.windowSettings = await this.settingsService.LoadWindowSettingsAsync() ?? new WindowSettings();
+            this.currentTheme = this.windowSettings.Theme;
+        }
+        catch (IOException)
+        {
+            // The settings failure event reports the load failure to the UI.
+        }
+
         this.ApplyTheme();
     }
 
@@ -63,10 +72,17 @@ public sealed class ThemeService : IThemeService
 
     private async Task SaveThemeAsync()
     {
-        WindowSettings? settings = await this.settingsService.LoadWindowSettingsAsync();
-        settings ??= new WindowSettings();
-        settings.Theme = this.currentTheme;
-        await this.settingsService.SaveWindowSettingsAsync(settings);
+        this.windowSettings.Theme = this.currentTheme;
+        try
+        {
+            // Enqueue immediately, before any await, so shutdown's flush includes
+            // the selected theme even when its write is still pending.
+            await this.settingsService.SaveWindowSettingsAsync(this.windowSettings);
+        }
+        catch (IOException)
+        {
+            // The settings failure event reports the save failure to the UI.
+        }
     }
 
     private void ApplyTheme()
