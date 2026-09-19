@@ -8,6 +8,11 @@ function Get-RelativeSourcePath([string]$Path) {
     return $normalized
 }
 
+function Get-CSharpQualifiedName($Name) {
+    $identifierKind = [Microsoft.CodeAnalysis.CSharp.SyntaxKind]::IdentifierToken
+    return @($Name.DescendantTokens() | Where-Object { $_.RawKind -eq $identifierKind } | ForEach-Object ValueText) -join '.'
+}
+
 function Resolve-CoverageResultsPath([string]$RepoRoot, [string]$ResultsDirectory) {
     $ownedRoot = [IO.Path]::GetFullPath((Join-Path $RepoRoot 'artifacts/coverage'))
     $candidate = [IO.Path]::GetFullPath((Join-Path $RepoRoot $ResultsDirectory))
@@ -97,13 +102,13 @@ function Get-CoverageSourceExclusionViolations([string]$SourceRoot, [string[]]$P
         $forbiddenAliases = @{}
         foreach ($usingDirective in $root.DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax] }) {
             if ($null -eq $usingDirective.Alias) { continue }
-            $targetName = $usingDirective.Name.ToString().Replace('global::', '')
-            $targetSimpleName = ($targetName -split '[.:]')[-1] -replace 'Attribute$', ''
+            $targetName = Get-CSharpQualifiedName $usingDirective.Name
+            $targetSimpleName = ($targetName -split '\.')[-1] -replace 'Attribute$', ''
             if ($targetSimpleName -in $forbiddenNames) { $forbiddenAliases[$usingDirective.Alias.Name.Identifier.ValueText] = $true }
         }
         foreach ($attribute in $root.DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax] }) {
-            $attributeName = $attribute.Name.ToString().Replace('global::', '')
-            $simpleName = ($attributeName -split '[.:]')[-1] -replace 'Attribute$', ''
+            $attributeName = Get-CSharpQualifiedName $attribute.Name
+            $simpleName = ($attributeName -split '\.')[-1] -replace 'Attribute$', ''
             if ($simpleName -notin $forbiddenNames -and !$forbiddenAliases.ContainsKey($simpleName)) { continue }
             $lineNumber = 1 + $tree.GetLineSpan($attribute.Span).StartLinePosition.Line
             $violations.Add("$($file.FullName):$lineNumber uses $attributeName")
@@ -136,7 +141,7 @@ function Get-UnlinkedPartialTypeViolations(
             $containingTypes = @($declaration.Ancestors() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax] })
             [array]::Reverse($containingTypes)
             $identityParts = [Collections.Generic.List[string]]::new()
-            foreach ($namespaceNode in $namespaceNodes) { $identityParts.Add($namespaceNode.Name.ToString()) }
+            foreach ($namespaceNode in $namespaceNodes) { $identityParts.Add((Get-CSharpQualifiedName $namespaceNode.Name)) }
             foreach ($containingType in $containingTypes) { $identityParts.Add($containingType.Identifier.ValueText) }
             $identityParts.Add($declaration.Identifier.ValueText)
             $typeIdentity = $identityParts -join '.'

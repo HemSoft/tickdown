@@ -197,6 +197,8 @@ try {
     Assert-Equal 1 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Source exclusion rejection'
     'using Hidden = System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute; [Hidden] class Aliased {}' | Set-Content (Join-Path $sourceRoot 'Aliased.cs')
     Assert-Equal 2 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Direct and aliased source exclusion rejection'
+    'class Verbatim { [@ExcludeFromCodeCoverageAttribute] void Hidden() {} }' | Set-Content (Join-Path $sourceRoot 'Verbatim.cs')
+    Assert-Equal 3 @(Get-CoverageSourceExclusionViolations $sourceRoot).Count 'Verbatim attribute rejection'
     Remove-Item (Join-Path $sourceRoot '*.cs')
     '// ExcludeFromCodeCoverage is forbidden.' | Set-Content (Join-Path $sourceRoot 'Comment.cs')
     'class Documented { const string Policy = "ExcludeFromCoverage"; }' | Set-Content (Join-Path $sourceRoot 'String.cs')
@@ -213,12 +215,13 @@ try {
     ("#if NET10_0_WINDOWS`n" + 'namespace TickDown.ViewModels; public partial class MainViewModel {}' + "`n#endif") | Set-Content (Join-Path $nestedSources 'MainViewModel.Conditional.cs')
     'namespace Other; public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'UnrelatedSettingsService.cs')
     'namespace TickDown { namespace ViewModels { public partial class MainViewModel {} } }' | Set-Content (Join-Path $nestedSources 'MainViewModel.NestedNamespace.cs')
+    'namespace TickDown.@ViewModels; public partial class MainViewModel {}' | Set-Content (Join-Path $nestedSources 'MainViewModel.VerbatimNamespace.cs')
     $linkedPatterns = @{
         'TickDown.ViewModels.MainViewModel' = 'ViewModels/MainViewModel.cs'
         'TickDown.ViewModels.TimerViewModel' = 'ViewModels/TimerViewModel.cs'
         'TickDown.Services.SettingsService' = 'Services/SettingsService.cs'
     }
-    Assert-Equal 6 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, nested-namespace, conditional, and trivia-rich partial rejection'
+    Assert-Equal 7 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, normalized, conditional, and trivia-rich partial rejection'
     Remove-Item $nestedSources -Recurse
     Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Linked partial acceptance'
     $testProject = Get-Content (Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj') -Raw

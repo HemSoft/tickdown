@@ -35,14 +35,16 @@ including one whose name starts with an existing type name, is measured from the
 app candidate by default. Before collection, the runner scans the entire `src`
 tree with Roslyn using the x64 Release app's effective preprocessor symbols. It
 composes all block/file-scoped namespace ancestors plus containing types and the
-identifier for each partial declaration, then
+identifier for each partial declaration from Roslyn token values, so verbatim and
+escaped identifiers normalize to their metadata names, then
 requires each excluded identity to come from its exact linked file. Test namespaces,
 presentation doubles, and the two exact package-generated bootstrap types are not
 included; there is no namespace-wide `Microsoft.*` exclusion. Only generated output
 beneath `obj` is excluded by file path; every hand-written C# file under `src`,
 including `*.g.cs`, remains measured. The runner parses active C# attribute syntax
 and rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent without mistaking
-comments or strings for attributes; aliases are resolved as well. It independently
+comments or strings for attributes; aliases and verbatim/escaped identifiers are
+resolved as well. It independently
 inspects the production assemblies and the three exact source-linked test types
 for assembly, type, and member metadata while ignoring generated test-host
 scaffolding. An exclusion is trusted only on one of the explicit current
