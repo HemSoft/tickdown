@@ -45,7 +45,7 @@ function Get-MethodGenericArities([string[]]$AssemblyPath) {
                 $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
                 $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
                 if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[int]]::new() }
-                $map[$key].Add($arity)
+                if (!$map[$key].Contains($arity)) { $map[$key].Add($arity) }
             }
         }
     }
@@ -65,7 +65,8 @@ function Get-ConversionReturnTypes([string[]]$AssemblyPath) {
                 $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
                 $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
                 if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[string]]::new() }
-                $map[$key].Add((Format-CoverageTypeName $method.ReturnType))
+                $returnType = Format-CoverageTypeName $method.ReturnType
+                if (!$map[$key].Contains($returnType)) { $map[$key].Add($returnType) }
             }
         }
     }
@@ -107,14 +108,21 @@ function Get-StateMachineMap([string[]]$AssemblyPath) {
                 foreach ($attribute in $attributes) {
                     $stateType = $attribute.ConstructorArguments[0].Value
                     $stateTypeName = $stateType.FullName.Replace('+', '/')
-                    if ($map.ContainsKey($stateTypeName)) { throw "Duplicate state machine identity: $stateTypeName" }
                     $genericSuffix = if ($method.GetGenericArguments().Count -gt 0) { "``$($method.GetGenericArguments().Count)" } else { '' }
                     $parameters = @($method.GetParameters() | ForEach-Object { $_.ParameterType.ToString() }) -join ','
-                    $map[$stateTypeName] = [pscustomobject]@{
+                    $identity = [pscustomobject]@{
                         Class = $type.FullName.Replace('+', '/')
                         Method = "$($method.Name)$genericSuffix"
                         Signature = "($parameters)"
                     }
+                    if ($map.ContainsKey($stateTypeName)) {
+                        $existing = $map[$stateTypeName]
+                        if ($existing.Class -ne $identity.Class -or $existing.Method -ne $identity.Method -or $existing.Signature -ne $identity.Signature) {
+                            throw "Conflicting state machine identity: $stateTypeName"
+                        }
+                        continue
+                    }
+                    $map[$stateTypeName] = $identity
                 }
             }
         }

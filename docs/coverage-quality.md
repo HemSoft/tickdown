@@ -22,12 +22,15 @@ outputs elsewhere under `bin` cannot change the result:
 - `function-risk.json` with every measured function; and
 - `function-risk.md` with the 25 worst CRAP scores.
 
-`TickDown.Core` is included as a production assembly. The WinUI application
-cannot be loaded as an ordinary test assembly, so the collector also instruments
-only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
-source files linked into the test project. Test namespaces and presentation test
-doubles are not included. Only generated output beneath `obj` is excluded by file
-path; a hand-written `*.g.cs` file under `src` remains measured. The
+`TickDown.Core` and the complete `TickDown` application assembly are included as
+production assemblies. The runner builds the x64 app candidate, stages its managed
+output beside the current test assembly, and a coverage-only test loads that exact
+candidate so Coverlet can instrument App, views, converters, and all services.
+ViewModels and SettingsService retain their exercised source-linked copies in the
+test assembly rather than duplicating their unexecuted app copies. Test namespaces,
+presentation doubles, and package-generated bootstrap types are not included. Only
+generated output beneath `obj` is excluded by file path; every hand-written C# file
+under `src`, including `*.g.cs`, remains measured. The
 runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
 attribute both in hand-written production source and in compiled assemblies,
 types, and members. The source check prevents generated-marker spoofing; the

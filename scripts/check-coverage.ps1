@@ -19,9 +19,37 @@ if ($sourceExclusionViolations.Count -gt 0) {
 Push-Location $root
 try {
     if (Test-Path $resultsPath) { Remove-Item $resultsPath -Recurse -Force }
-    $testOutput = (& dotnet test TickDown.sln --configuration Release --no-restore `
-        --collect:'XPlat Code Coverage' --settings coverage.runsettings `
-        --results-directory $resultsPath 2>&1 | Out-String).Trim()
+    $appBuildOutput = (& dotnet build src/TickDown.csproj --configuration Release --no-restore -p:Platform=x64 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Coverage application build failed:`n$appBuildOutput" }
+    $appAssemblyOutput = (& dotnet msbuild src/TickDown.csproj -getProperty:TargetPath -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($appAssemblyOutput)) {
+        throw "Could not resolve the current Release application assembly:`n$appAssemblyOutput"
+    }
+    $appAssemblyPath = @($appAssemblyOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim()
+    $testProject = Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj'
+    $testBuildOutput = (& dotnet build $testProject --configuration Release --no-restore 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Coverage test build failed:`n$testBuildOutput" }
+    $testAssemblyOutput = (& dotnet msbuild $testProject -getProperty:TargetPath -p:Configuration=Release -nologo 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($testAssemblyOutput)) {
+        throw "Could not resolve the current Release test assembly:`n$testAssemblyOutput"
+    }
+    $testAssemblyPath = @($testAssemblyOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim()
+    $testOutputDirectory = Split-Path $testAssemblyPath -Parent
+    $coverageAppAssembly = Join-Path $testOutputDirectory 'TickDown.dll'
+    $appOutputDirectory = Split-Path $appAssemblyPath -Parent
+    Get-ChildItem $appOutputDirectory -File | Where-Object Extension -in '.dll', '.pdb' |
+        Copy-Item -Destination $testOutputDirectory -Force
+
+    $previousCoverageAssembly = $env:TICKDOWN_COVERAGE_APP_ASSEMBLY
+    try {
+        $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $coverageAppAssembly
+        $testOutput = (& dotnet test $testProject --configuration Release --no-restore --no-build `
+            --collect:'XPlat Code Coverage' --settings coverage.runsettings `
+            --results-directory $resultsPath 2>&1 | Out-String).Trim()
+    }
+    finally {
+        $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $previousCoverageAssembly
+    }
     if ($LASTEXITCODE -ne 0) { throw "Coverage test run failed:`n$testOutput" }
 
     $coverageFiles = @(Get-ChildItem $resultsPath -Filter coverage.cobertura.xml -Recurse)
@@ -38,12 +66,6 @@ try {
     $missingAssemblies = @($expectedAssemblyNames | Where-Object { $_ -notin $reportedAssemblyNames })
     if ($missingAssemblies.Count -gt 0) { throw "Covered assemblies missing from Cobertura: $($missingAssemblies -join ', ')." }
 
-    $testProject = Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj'
-    $testAssemblyOutput = (& dotnet msbuild $testProject -getProperty:TargetPath -p:Configuration=Release -nologo 2>&1 | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($testAssemblyOutput)) {
-        throw "Could not resolve the current Release test assembly:`n$testAssemblyOutput"
-    }
-    $testAssemblyPath = @($testAssemblyOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim()
     $coveredAssemblies = @(Resolve-CoveredAssemblyPaths $expectedAssemblyNames $testAssemblyPath)
     $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies)
     if ($exclusionViolations.Count -gt 0) { throw "Coverage exclusion attributes are forbidden:`n- $($exclusionViolations -join "`n- ")" }

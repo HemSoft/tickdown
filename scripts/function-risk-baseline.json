@@ -9,15 +9,86 @@
     "src/Services/"
   ],
   "requiredSources": [
+    "src/App.xaml.cs",
+    "src/Converters/BoolToVisibilityConverter.cs",
+    "src/Services/AudioService.cs",
+    "src/Services/ServiceCollectionExtensions.cs",
     "src/Services/SettingsService.cs",
+    "src/Services/ThemeService.cs",
+    "src/Services/TimerService.cs",
     "src/TickDown.Core/Models/CompletionColorPalette.cs",
     "src/TickDown.Core/Models/CountdownTimer.cs",
     "src/TickDown.Core/Models/WindowSettings.cs",
     "src/TickDown.Core/Services/SettingsFailureEventArgs.cs",
     "src/ViewModels/MainViewModel.cs",
-    "src/ViewModels/TimerViewModel.cs"
+    "src/ViewModels/TimerViewModel.cs",
+    "src/Views/MainPage.xaml.cs",
+    "src/Views/SoundPickerDialog.xaml.cs"
   ],
   "functions": {
+    "TickDown.App::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.App::get_MainWindow()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.App::get_Services()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.App::LoadWindowSettingsObservedAsync(TickDown.Core.Services.ISettingsService)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.App::OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow,Microsoft.UI.Windowing.AppWindowClosingEventArgs)": {
+      "crap": 110.0,
+      "complexity": 10.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.App::OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.App::OnNavigationFailed(System.Object,Microsoft.UI.Xaml.Navigation.NavigationFailedEventArgs)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "TickDown.Converters.BoolToVisibilityConverter::Convert(System.Object,System.Type,System.Object,System.String)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Converters/BoolToVisibilityConverter.cs"
+    },
+    "TickDown.Converters.BoolToVisibilityConverter::ConvertBack(System.Object,System.Type,System.Object,System.String)": {
+      "crap": 42.0,
+      "complexity": 6.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Converters/BoolToVisibilityConverter.cs"
+    },
     "TickDown.Core.Models.CompletionColorPalette::.cctor()": {
       "crap": 1.0,
       "complexity": 1.0,
@@ -333,6 +404,48 @@
       "coverageBasis": "line",
       "source": "src/TickDown.Core/Services/SettingsFailureEventArgs.cs"
     },
+    "TickDown.Services.AudioService::.cctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "TickDown.Services.AudioService::Dispose()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "TickDown.Services.AudioService::get_AvailableSounds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "TickDown.Services.AudioService::PlaySound(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "TickDown.Services.AudioService::StopCurrentPlayback()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "TickDown.Services.ServiceCollectionExtensions::AddAppServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ServiceCollectionExtensions.cs"
+    },
     "TickDown.Services.SettingsService::.ctor()": {
       "crap": 2.0,
       "complexity": 1.0,
@@ -465,6 +578,83 @@
       "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/Services/SettingsService.cs"
+    },
+    "TickDown.Services.ThemeService::.ctor(TickDown.Core.Services.ISettingsService)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::ApplyTheme()": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::get_CurrentTheme()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::GetRootElement()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::InitializeAsync()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::OnSystemThemeChanged(Windows.UI.ViewManagement.UISettings,System.Object)": {
+      "crap": 42.0,
+      "complexity": 6.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::SaveThemeAsync()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.ThemeService::SetTheme(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "TickDown.Services.TimerService::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "TickDown.Services.TimerService::Dispose()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "TickDown.Services.TimerService::OnTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/TimerService.cs"
     },
     "TickDown.ViewModels.MainViewModel::.ctor(TickDown.Core.Services.ITimerService,TickDown.Core.Services.ISettingsService,TickDown.Core.Services.IThemeService,TickDown.Core.Services.IAudioService)": {
       "crap": 1.0,
@@ -1221,6 +1411,104 @@
       "coverage": 0.833333,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "TickDown.Views.MainPage::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::AddAccelerator(Windows.System.VirtualKey,System.Action)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::get_ViewModel()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::OnColorButtonClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 156.0,
+      "complexity": 12.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::OnCustomColorChanged(Microsoft.UI.Xaml.Controls.ColorPicker,Microsoft.UI.Xaml.Controls.ColorChangedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::OnQuickSetIntervalValueChanged(Microsoft.UI.Xaml.Controls.NumberBox,Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::OnSelectSoundClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 156.0,
+      "complexity": 12.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::ResetZoom()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::SetupZoomAccelerators()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.MainPage::Zoom(System.Single)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "TickDown.Views.SoundPickerDialog::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "TickDown.Views.SoundPickerDialog::get_AvailableSounds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "TickDown.Views.SoundPickerDialog::get_SelectedSound()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "TickDown.Views.SoundPickerDialog::OnPreviewClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
     }
   }
 }
