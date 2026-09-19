@@ -20,10 +20,12 @@ Cobertura report, evaluates every measured function against
 cannot be loaded as an ordinary test assembly, so the collector also instruments
 only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
 source files linked into the test project. Test namespaces and presentation test
-doubles are not included. Generated-code and explicit coverage-exclusion
-attributes plus generated XAML files are excluded. Async compiler state-machine
-`MoveNext` bodies are retained and mapped through `AsyncStateMachineAttribute` to
-unique source signatures, including generic arity and parameter types. Reported
+doubles are not included. Generated XAML files are excluded by file path, but no
+attribute-based exclusion is honored for this production boundary, so hand-written
+code cannot annotate its way around the risk gate. Async compiler
+state-machine `MoveNext` bodies are retained and mapped from every assembly named
+in Cobertura through `AsyncStateMachineAttribute` to unique source signatures,
+including generic arity and parameter types. Reported
 compiler-generated callback and local-function bodies are retained instead of
 being filtered with their closure classes. Callback sequence points that Coverlet
 folds into their containing function remain part of that function's line rate.

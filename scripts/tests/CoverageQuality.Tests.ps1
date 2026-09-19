@@ -108,6 +108,8 @@ try {
     Write-CoverageReports $functions $reportPath
     Assert-Equal $true (Test-Path (Join-Path $reportPath 'function-risk.json')) 'JSON report'
     Assert-Equal $true (Test-Path (Join-Path $reportPath 'function-risk.md')) 'Markdown report'
+    $runsettings = Get-Content (Join-Path $root 'coverage.runsettings') -Raw
+    Assert-Equal $false $runsettings.Contains('ExcludeByAttribute') 'No attribute-based coverage escape hatch'
     "Passed $passed coverage-quality assertions."
 }
 finally {

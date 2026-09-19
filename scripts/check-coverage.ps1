@@ -22,12 +22,19 @@ try {
 
     $coverageFiles = @(Get-ChildItem $resultsPath -Filter coverage.cobertura.xml -Recurse)
     if ($coverageFiles.Count -ne 1) { throw "Expected one Cobertura report, found $($coverageFiles.Count)." }
-    $testAssemblies = @(
-        Get-ChildItem (Join-Path $root 'tests/TickDown.Tests/bin/Release') -Filter TickDown.Tests.dll -File -Recurse |
-            Where-Object FullName -NotMatch '[\\/]ref[\\/]'
+    [xml]$coverageDocument = Get-Content $coverageFiles[0].FullName -Raw
+    $assemblySearchRoot = Join-Path $root 'tests/TickDown.Tests/bin/Release'
+    $coveredAssemblies = @(
+        $coverageDocument.coverage.packages.package.name | Sort-Object -Unique | ForEach-Object {
+            $matches = @(
+                Get-ChildItem $assemblySearchRoot -Filter "$_.dll" -File -Recurse |
+                    Where-Object FullName -NotMatch '[\\/]ref[\\/]'
+            )
+            if ($matches.Count -ne 1) { throw "Expected one built assembly for covered package $_, found $($matches.Count)." }
+            $matches[0].FullName
+        }
     )
-    if ($testAssemblies.Count -ne 1) { throw "Expected one built TickDown.Tests.dll, found $($testAssemblies.Count)." }
-    $asyncStateMachineMap = Get-AsyncStateMachineMap $testAssemblies[0].FullName
+    $asyncStateMachineMap = Get-AsyncStateMachineMap $coveredAssemblies
     $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $asyncStateMachineMap)
     Write-CoverageReports $functions $resultsPath
     Copy-Item $coverageFiles[0].FullName (Join-Path $resultsPath 'coverage.cobertura.xml') -Force

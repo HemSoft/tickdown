@@ -8,24 +8,27 @@ function Get-RelativeSourcePath([string]$Path) {
     return $normalized
 }
 
-function Get-AsyncStateMachineMap([string]$AssemblyPath) {
-    if (!(Test-Path $AssemblyPath -PathType Leaf)) { throw "Test assembly not found: $AssemblyPath" }
-    $assembly = [Reflection.Assembly]::LoadFrom($AssemblyPath)
+function Get-AsyncStateMachineMap([string[]]$AssemblyPath) {
     $flags = [Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
     $map = @{}
-    foreach ($type in $assembly.GetTypes()) {
-        foreach ($method in $type.GetMethods($flags)) {
-            $attribute = $method.GetCustomAttributesData() |
-                Where-Object AttributeType -eq ([Runtime.CompilerServices.AsyncStateMachineAttribute])
-            if ($null -eq $attribute) { continue }
-            $stateType = $attribute.ConstructorArguments[0].Value
-            $stateTypeName = $stateType.FullName.Replace('+', '/')
-            $genericSuffix = if ($method.GetGenericArguments().Count -gt 0) { "``$($method.GetGenericArguments().Count)" } else { '' }
-            $parameters = @($method.GetParameters() | ForEach-Object { $_.ParameterType.ToString() }) -join ','
-            $map[$stateTypeName] = [pscustomobject]@{
-                Class = $type.FullName.Replace('+', '/')
-                Method = "$($method.Name)$genericSuffix"
-                Signature = "($parameters)"
+    foreach ($path in $AssemblyPath) {
+        if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
+        $assembly = [Reflection.Assembly]::LoadFrom($path)
+        foreach ($type in $assembly.GetTypes()) {
+            foreach ($method in $type.GetMethods($flags)) {
+                $attribute = $method.GetCustomAttributesData() |
+                    Where-Object AttributeType -eq ([Runtime.CompilerServices.AsyncStateMachineAttribute])
+                if ($null -eq $attribute) { continue }
+                $stateType = $attribute.ConstructorArguments[0].Value
+                $stateTypeName = $stateType.FullName.Replace('+', '/')
+                if ($map.ContainsKey($stateTypeName)) { throw "Duplicate async state machine identity: $stateTypeName" }
+                $genericSuffix = if ($method.GetGenericArguments().Count -gt 0) { "``$($method.GetGenericArguments().Count)" } else { '' }
+                $parameters = @($method.GetParameters() | ForEach-Object { $_.ParameterType.ToString() }) -join ','
+                $map[$stateTypeName] = [pscustomobject]@{
+                    Class = $type.FullName.Replace('+', '/')
+                    Method = "$($method.Name)$genericSuffix"
+                    Signature = "($parameters)"
+                }
             }
         }
     }
