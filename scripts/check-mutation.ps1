@@ -8,9 +8,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $root = Resolve-Path "$PSScriptRoot/.."
-$outputPath = [IO.Path]::GetFullPath((Join-Path $root $OutputDirectory))
 $testProject = Join-Path $root 'tests/TickDown.Tests'
 Import-Module (Join-Path $PSScriptRoot 'MutationQuality.psm1') -Force
+$outputPath = Resolve-MutationOutputPath $root $OutputDirectory
 
 Push-Location $root
 try {

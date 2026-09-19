@@ -13,8 +13,9 @@ pwsh -NoProfile -File scripts/check-mutation.ps1
 ```
 
 The wrapper restores the pinned local tool, verifies that the checkout is clean
-and matches `GITHUB_SHA` when present, runs Stryker, and leaves these artifacts
-under `artifacts/mutation`:
+and matches `GITHUB_SHA` when present, and rejects output paths outside
+`artifacts/mutation` before any recursive cleanup. It then runs Stryker and leaves
+these artifacts under the owned mutation directory:
 
 - the full JSON report with killed and surviving mutants;
 - an interactive HTML report;

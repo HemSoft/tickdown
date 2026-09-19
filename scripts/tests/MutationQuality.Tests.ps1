@@ -50,6 +50,14 @@ try {
     Assert-Equal 100 $config.thresholds.low 'Low threshold'
     Assert-Equal 100 $config.thresholds.break 'Break threshold'
     Assert-Equal 'html,json,progress' (($config.reporters | Sort-Object) -join ',') 'Required reporters'
+    $ownedOutput = Resolve-MutationOutputPath $temp 'artifacts/mutation/current'
+    Assert-Equal $true $ownedOutput.EndsWith('artifacts\mutation\current') 'Owned output acceptance'
+    $sharedRejected = $false
+    try { $null = Resolve-MutationOutputPath $temp 'artifacts' } catch { $sharedRejected = $true }
+    Assert-Equal $true $sharedRejected 'Shared artifact rejection'
+    $traversalRejected = $false
+    try { $null = Resolve-MutationOutputPath $temp '../outside' } catch { $traversalRejected = $true }
+    Assert-Equal $true $traversalRejected 'Traversal rejection'
     "Passed $passed mutation-quality assertions."
 }
 finally {

@@ -1,6 +1,16 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Resolve-MutationOutputPath([string]$RepoRoot, [string]$OutputDirectory) {
+    $ownedRoot = [IO.Path]::GetFullPath((Join-Path $RepoRoot 'artifacts/mutation'))
+    $candidate = [IO.Path]::GetFullPath((Join-Path $RepoRoot $OutputDirectory))
+    $ownedPrefix = $ownedRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    if ($candidate -ne $ownedRoot -and !$candidate.StartsWith($ownedPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Mutation output must stay within the owned directory $ownedRoot; received $candidate."
+    }
+    return $candidate
+}
+
 function Get-MutationSummary([string]$ReportPath) {
     if (!(Test-Path $ReportPath -PathType Leaf)) { throw "Mutation report not found: $ReportPath" }
     $report = Get-Content $ReportPath -Raw | ConvertFrom-Json -AsHashtable
@@ -63,4 +73,4 @@ function Write-MutationSummary(
     $lines | Set-Content $Path -Encoding utf8
 }
 
-Export-ModuleMember -Function Get-MutationSummary, Write-MutationSummary
+Export-ModuleMember -Function Resolve-MutationOutputPath, Get-MutationSummary, Write-MutationSummary
