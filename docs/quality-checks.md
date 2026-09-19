@@ -9,6 +9,8 @@ pwsh -NoProfile -File scripts/tests/DependencyResolution.Tests.ps1
 pwsh -NoProfile -File scripts/tests/StylePolicy.Tests.ps1
 pwsh -NoProfile -File scripts/tests/CoverageQuality.Tests.ps1
 pwsh -NoProfile -File scripts/check-coverage.ps1
+pwsh -NoProfile -File scripts/tests/MutationQuality.Tests.ps1
+pwsh -NoProfile -File scripts/check-mutation.ps1
 dotnet build src/TickDown.csproj
 pwsh -NoProfile -File scripts/check-quality.ps1
 pwsh -NoProfile -File scripts/tests/QualityChecks.Tests.ps1
@@ -40,6 +42,7 @@ Remove that scoped override when the CLI's own dependency accepts the fixed rele
 The runner also executes `npm audit --audit-level=low` for these tooling dependencies.
 
 The quality runner does not run tests or coverage implicitly. Run `dotnet test`
-and the maintained [coverage gate](coverage-quality.md) separately so their
-results and function-risk artifacts remain visible. A baseline failure must not be presented
+the maintained [coverage gate](coverage-quality.md), and the bounded
+[countdown mutation gate](mutation-testing.md) separately so their results and
+risk artifacts remain visible. A baseline failure must not be presented
 as a clean result or hidden with a suppression.
