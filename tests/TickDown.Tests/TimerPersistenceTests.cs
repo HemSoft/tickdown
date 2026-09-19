@@ -1,0 +1,160 @@
+// Copyright © 2025 HemSoft
+
+namespace TickDown.Tests;
+
+using System.Text.Json;
+using TickDown.Core.Models;
+using TickDown.Core.Services;
+using TickDown.ViewModels;
+
+/// <summary>
+/// Verifies snapshots from the actual view-model commands at the settings boundary.
+/// </summary>
+public class TimerPersistenceTests
+{
+    /// <summary>
+    /// Verifies that one rename persists the new name immediately.
+    /// </summary>
+    [Fact]
+    public void RenameSavesTheNewName()
+    {
+        using Fixture fixture = new();
+        fixture.Timer.Name = "Renamed";
+        Assert.NotEmpty(fixture.Settings.Snapshots);
+        Assert.All(fixture.Settings.Snapshots, snapshot => Assert.Equal("Renamed", snapshot.Name));
+    }
+
+    /// <summary>
+    /// Verifies every Quick Set snapshot contains the final complete duration.
+    /// </summary>
+    [Fact]
+    public void QuickSetSavesOnlyTheFinalDuration()
+    {
+        using Fixture fixture = new();
+        fixture.Timer.SetQuickTimeCommand.Execute(75);
+        Assert.NotEmpty(fixture.Settings.Snapshots);
+        Assert.All(fixture.Settings.Snapshots, snapshot => Assert.Equal(TimeSpan.FromMinutes(75), snapshot.Duration));
+    }
+
+    /// <summary>
+    /// Verifies parsed hours, minutes and seconds are committed together.
+    /// </summary>
+    [Fact]
+    public void TextEditSavesOnlyTheFinalDuration()
+    {
+        using Fixture fixture = new();
+        fixture.Timer.TimeDisplay = "01:02:03";
+        Assert.NotEmpty(fixture.Settings.Snapshots);
+        Assert.All(fixture.Settings.Snapshots, snapshot => Assert.Equal(new TimeSpan(1, 2, 3), snapshot.Duration));
+    }
+
+    /// <summary>
+    /// Verifies component edits commit before notifying persistence observers.
+    /// </summary>
+    [Fact]
+    public void ComponentEditSavesUpdatedDuration()
+    {
+        using Fixture fixture = new();
+        fixture.Timer.Minutes = 12;
+        Assert.NotEmpty(fixture.Settings.Snapshots);
+        Assert.All(fixture.Settings.Snapshots, snapshot => Assert.Equal(TimeSpan.FromMinutes(12), snapshot.Duration));
+    }
+
+    /// <summary>
+    /// Verifies target-date commands do not save intermediate durations.
+    /// </summary>
+    [Fact]
+    public void TargetEndTimeSavesOnlyTheFinalDuration()
+    {
+        using Fixture fixture = new();
+        DateTime target = DateTime.Now.AddHours(2).AddMinutes(17).AddSeconds(31);
+        fixture.Timer.TargetDate = new DateTimeOffset(target.Date);
+        fixture.Timer.TargetTime = target.TimeOfDay;
+        fixture.Timer.SetEndTimeCommand.Execute(null);
+        Assert.NotEmpty(fixture.Settings.Snapshots);
+        Assert.All(fixture.Settings.Snapshots, snapshot => Assert.Equal(fixture.Timer.Model.Duration, snapshot.Duration));
+        Assert.True(fixture.Timer.Model.Duration > TimeSpan.FromHours(2));
+    }
+
+    private sealed class Fixture : IDisposable
+    {
+        private readonly TestTimerService ticks = new();
+
+        public Fixture()
+        {
+            MainViewModel main = new(this.ticks, this.Settings, new TestThemeService(), new TestAudioService());
+            this.Timer = Assert.Single(main.Timers);
+            this.ticks.RaiseTick();
+            Assert.Empty(this.Settings.Snapshots);
+        }
+
+        public CapturingSettingsService Settings { get; } = new();
+
+        public TimerViewModel Timer { get; }
+
+        public void Dispose()
+        {
+            this.Timer.RemoveCommand.Execute(null);
+            this.Timer.Dispose();
+            this.ticks.Dispose();
+        }
+    }
+
+    private sealed class CapturingSettingsService : ISettingsService
+    {
+        public List<CountdownTimer> Snapshots { get; } = [];
+
+        public WindowSettings? Window { get; private set; }
+
+        public Task SaveTimersAsync(IEnumerable<CountdownTimer> timers)
+        {
+            string json = JsonSerializer.Serialize(timers);
+            this.Snapshots.AddRange(JsonSerializer.Deserialize<CountdownTimer[]>(json)!);
+            return Task.CompletedTask;
+        }
+
+        public Task<IEnumerable<CountdownTimer>> LoadTimersAsync() =>
+            Task.FromResult<IEnumerable<CountdownTimer>>([new CountdownTimer(TimeSpan.FromMinutes(5), "Original")]);
+
+        public Task SaveWindowSettingsAsync(WindowSettings settings)
+        {
+            this.Window = settings;
+            return Task.CompletedTask;
+        }
+
+        public Task<WindowSettings?> LoadWindowSettingsAsync() => Task.FromResult(this.Window);
+    }
+
+    private sealed class TestTimerService : ITimerService
+    {
+        public event EventHandler? Tick;
+
+        public void RaiseTick() => this.Tick?.Invoke(this, EventArgs.Empty);
+
+        public void Dispose() => this.Tick = null;
+    }
+
+    private sealed class TestAudioService : IAudioService
+    {
+        public IReadOnlyList<string> AvailableSounds => [];
+
+        public List<string> PlayedSounds { get; } = [];
+
+        public void PlaySound(string soundName) => this.PlayedSounds.Add(soundName);
+    }
+
+    private sealed class TestThemeService : IThemeService
+    {
+        public event EventHandler? ThemeChanged;
+
+        public string CurrentTheme { get; private set; } = "System";
+
+        public void SetTheme(string theme)
+        {
+            this.CurrentTheme = theme;
+            this.ThemeChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public Task InitializeAsync() => Task.CompletedTask;
+    }
+}

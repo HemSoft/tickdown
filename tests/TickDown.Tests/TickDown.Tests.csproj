@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -29,6 +30,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TickDown.Core\TickDown.Core.csproj" />
+    <ProjectReference Include="..\TickDown.WinUI.TestDoubles\TickDown.WinUI.TestDoubles.csproj" />
+    <!-- Compile the actual view-model code against small presentation-only stand-ins.
+         These tests verify commands and persistence, not native WinUI behavior. -->
+    <Compile Include="..\..\src\ViewModels\*.cs" Link="Production\%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>
