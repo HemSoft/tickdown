@@ -48,8 +48,8 @@ try {
     )
     $exclusionViolations = @(Get-CoverageExclusionViolations $coveredAssemblies)
     if ($exclusionViolations.Count -gt 0) { throw "Coverage exclusion attributes are forbidden:`n- $($exclusionViolations -join "`n- ")" }
-    $asyncStateMachineMap = Get-AsyncStateMachineMap $coveredAssemblies
-    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $asyncStateMachineMap)
+    $stateMachineMap = Get-StateMachineMap $coveredAssemblies
+    $functions = @(Get-CoverageFunctions $coverageFiles[0].FullName $stateMachineMap)
     Write-CoverageReports $functions $resultsPath
     Copy-Item $coverageFiles[0].FullName (Join-Path $resultsPath 'coverage.cobertura.xml') -Force
 

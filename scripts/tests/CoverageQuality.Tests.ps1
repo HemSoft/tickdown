@@ -47,6 +47,11 @@ try {
         <line number="7" hits="1" branch="False" />
       </lines></method>
     </methods></class>
+    <class name="TickDown.Core.Models.CountdownTimer/&lt;History&gt;d__9" filename="D:/repo/src/TickDown.Core/Models/CountdownTimer.cs"><methods>
+      <method name="MoveNext" signature="()" complexity="2"><lines>
+        <line number="8" hits="1" branch="False" />
+      </lines></method>
+    </methods></class>
   </classes></package></packages>
 </coverage>
 '@ | Set-Content $coveragePath -Encoding utf8
@@ -58,9 +63,12 @@ try {
         'TickDown.Services.SettingsService/<ReadAsync>d__6`1' = [pscustomobject]@{
             Class = 'TickDown.Services.SettingsService'; Method = 'ReadAsync`1'; Signature = '(System.String)'
         }
+        'TickDown.Core.Models.CountdownTimer/<History>d__9' = [pscustomobject]@{
+            Class = 'TickDown.Core.Models.CountdownTimer'; Method = 'History'; Signature = '()'
+        }
     }
     $functions = @(Get-CoverageFunctions $coveragePath $asyncMap)
-    Assert-Equal 6 $functions.Count 'Function count'
+    Assert-Equal 7 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
@@ -76,6 +84,8 @@ try {
     Assert-Equal 'TickDown.Services.SettingsService::ReadAsync`1(System.String)' $read.Id 'Generic async state-machine mapping'
     $callback = $functions | Where-Object Method -eq '<Save>b__1_0'
     Assert-Equal 'TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
+    $iterator = $functions | Where-Object Method -eq 'History'
+    Assert-Equal 'TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
 
     $healthy = @($functions | ForEach-Object {
         [pscustomobject]@{
@@ -102,7 +112,11 @@ try {
     $newLow = $newHigh.PSObject.Copy()
     $newLow.Id = 'TickDown.Core.Models.NewRisk::Safe()'
     $newLow.Crap = 30
-    Assert-Equal 0 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath)).Count 'New threshold acceptance'
+    Assert-Equal 1 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath)).Count 'New function inventory requirement'
+    $expandedBaselinePath = Join-Path $temp 'expanded-baseline.json'
+    Write-CoverageBaseline ($healthy + $newLow) $expandedBaselinePath
+    Assert-Equal 0 (@(Test-CoverageBaseline ($healthy + $newLow) $expandedBaselinePath)).Count 'Reviewed new function acceptance'
+    Assert-Equal 2 (@(Test-CoverageBaseline $healthy $expandedBaselinePath)).Count 'Reviewed new source and function removal rejection'
 
     $reportPath = Join-Path $temp 'reports'
     Write-CoverageReports $functions $reportPath

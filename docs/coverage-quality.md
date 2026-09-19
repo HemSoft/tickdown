@@ -22,11 +22,12 @@ only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
 source files linked into the test project. Test namespaces and presentation test
 doubles are not included. Generated XAML files are excluded by file path. The
 runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
-attribute from compiled production assemblies, so hand-written code cannot
-annotate its way around the risk gate. Async compiler
-state-machine `MoveNext` bodies are retained and mapped from every assembly named
-in Cobertura through `AsyncStateMachineAttribute` to unique source signatures,
-including generic arity and parameter types. Reported
+attribute from compiled hand-written production assemblies, types, and members;
+only WinUI and CommunityToolkit source-generated artifacts are recognized as
+generated. Async, iterator, and async-iterator state-machine `MoveNext` bodies are
+retained and mapped from every covered assembly through the corresponding
+state-machine attribute to unique source signatures, including generic arity and
+parameter types. Reported
 compiler-generated callback and local-function bodies are retained instead of
 being filtered with their closure classes. Callback sequence points that Coverlet
 folds into their containing function remain part of that function's line rate.
@@ -56,7 +57,9 @@ hiding them behind an aggregate percentage.
 
 ## Non-regression policy
 
-- A new function fails when its CRAP score is greater than 30.
+- A new function fails immediately when its CRAP score is greater than 30. A
+  lower-risk new function still requires an explicit reviewed baseline update so
+  later regression or removal cannot disappear from the inventory.
 - An existing function fails when its score exceeds its checked-in baseline by
   more than 0.01, allowing only rounding noise.
 - Improved scores pass without forcing baseline churn. A missing baseline source
@@ -71,6 +74,6 @@ hiding them behind an aggregate percentage.
 Never update the baseline merely to accept a regression. Add focused behavior
 coverage or reduce complexity, then inspect both function-risk reports before
 review. `scripts/tests/CoverageQuality.Tests.ps1` proves the formula, branch/line
-floor, line fallback, generated-callback retention, unique async identities,
-new-function threshold, compiled exclusion guard, report generation, and a
-deliberately uncovered branch regression.
+floor, line fallback, generated-callback retention, unique async and iterator identities,
+new-function threshold and inventory, compiled exclusion guard, report generation,
+and a deliberately uncovered branch regression.
