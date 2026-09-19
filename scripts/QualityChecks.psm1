@@ -9,13 +9,18 @@ function Invoke-QualityCheck {
         [int[]]$FindingExitCodes = @()
     )
 
+    # Native exits are classified below, including npm's documented findings exit.
+    $PSNativeCommandUseErrorActionPreference = $false
     Write-Host "`nChecking $Name..."
     $exitCode = 0
     $status = 'Pass'
     $output = ''
+    $errorOutput = ''
+    $stderrPath = $null
     try {
+        $stderrPath = [IO.Path]::GetTempFileName()
         $global:LASTEXITCODE = 0
-        $output = (& $Command 2>&1 | Out-String).Trim()
+        $output = (& $Command 2> $stderrPath | Out-String).Trim()
         $exitCode = $LASTEXITCODE
         if ($InspectOutput -and ($exitCode -eq 0 -or $FindingExitCodes -contains $exitCode)) {
             if (& $InspectOutput $output) { $status = 'Findings' }
@@ -31,12 +36,21 @@ function Invoke-QualityCheck {
         if ($exitCode -eq 0) { $exitCode = 1 }
     }
 
+    finally {
+        if ($stderrPath) {
+            $errorOutput = (Get-Content $stderrPath -Raw -ErrorAction SilentlyContinue) ?? ''
+            Remove-Item $stderrPath -ErrorAction SilentlyContinue
+        }
+    }
+
     if ($output) { Write-Host $output }
+    if ($errorOutput) { Write-Host $errorOutput }
     [pscustomobject]@{
         Name = $Name
         Status = $status
         ExitCode = $exitCode
         Output = $output
+        ErrorOutput = $errorOutput
     }
 }
 
@@ -77,7 +91,15 @@ function Test-NpmAuditFindings {
         !$report.metadata.vulnerabilities.ContainsKey('total')) {
         throw 'npm audit returned an error or incomplete report.'
     }
-    return $report.metadata.vulnerabilities.total -gt 0
+    $counts = $report.metadata.vulnerabilities
+    foreach ($severity in @('info', 'low', 'moderate', 'high', 'critical', 'total')) {
+        if (!$counts.ContainsKey($severity) -or
+            ($counts[$severity] -isnot [int] -and $counts[$severity] -isnot [long]) -or
+            $counts[$severity] -lt 0) {
+            throw "npm audit returned an invalid $severity count."
+        }
+    }
+    return ($counts.low + $counts.moderate + $counts.high + $counts.critical) -gt 0
 }
 
 Export-ModuleMember -Function Invoke-QualityCheck, Test-PackageFindings, Test-NpmAuditFindings
