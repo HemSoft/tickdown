@@ -186,10 +186,11 @@ try {
     'public partial class MainViewModel {}' | Set-Content (Join-Path $viewModelSources 'MainViewModel.cs')
     'public unsafe partial class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Extra.cs')
     'public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'SettingsService.Extra.cs')
+    "public partial`nclass MainViewModel {}" | Set-Content (Join-Path $nestedSources 'MainViewModel.Multiline.cs')
     $linkedPatterns = @{
         MainViewModel = 'ViewModels/*.cs'; TimerViewModel = 'ViewModels/*.cs'; SettingsService = 'Services/SettingsService.cs'
     }
-    Assert-Equal 2 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Whole-tree partial rejection'
+    Assert-Equal 3 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Whole-tree and multiline partial rejection'
     Remove-Item $nestedSources -Recurse
     Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Linked partial acceptance'
     $ownedResults = Resolve-CoverageResultsPath $temp 'artifacts/coverage/run'

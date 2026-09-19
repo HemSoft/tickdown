@@ -98,13 +98,17 @@ function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
 function Get-UnlinkedPartialTypeViolations([string]$SourceRoot, [hashtable]$LinkedTypePatterns) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
     $escapedNames = @($LinkedTypePatterns.Keys | ForEach-Object { [regex]::Escape($_) }) -join '|'
-    $pattern = "\bpartial\b[^\r\n{;]*\bclass\s+(?<name>$escapedNames)\b"
+    $pattern = "\bpartial\b[\s\w]*?\bclass\s+(?<name>$escapedNames)\b"
     $violations = [Collections.Generic.List[string]]::new()
-    foreach ($match in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Select-String -Pattern $pattern) {
-        $typeName = $match.Matches[0].Groups['name'].Value
-        $relativePath = [IO.Path]::GetRelativePath($SourceRoot, $match.Path).Replace('\', '/')
-        if ($relativePath -notlike $LinkedTypePatterns[$typeName]) {
-            $violations.Add("$($match.Path):$($match.LineNumber) declares excluded partial $typeName outside linked path $($LinkedTypePatterns[$typeName])")
+    foreach ($file in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]') {
+        $content = [string](Get-Content $file.FullName -Raw)
+        foreach ($match in [regex]::Matches($content, $pattern)) {
+            $typeName = $match.Groups['name'].Value
+            $relativePath = [IO.Path]::GetRelativePath($SourceRoot, $file.FullName).Replace('\', '/')
+            if ($relativePath -notlike $LinkedTypePatterns[$typeName]) {
+                $lineNumber = 1 + [regex]::Matches($content.Substring(0, $match.Index), "`n").Count
+                $violations.Add("$($file.FullName):$lineNumber declares excluded partial $typeName outside linked path $($LinkedTypePatterns[$typeName])")
+            }
         }
     }
     return $violations.ToArray()
