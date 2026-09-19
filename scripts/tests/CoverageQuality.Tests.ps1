@@ -37,6 +37,9 @@ try {
       <method name="op_Implicit" signature="(System.String)" complexity="1"><lines>
         <line number="4" hits="1" branch="False" />
       </lines></method>
+      <method name="op_CheckedExplicit" signature="(System.String)" complexity="1"><lines>
+        <line number="4" hits="1" branch="False" />
+      </lines></method>
     </methods></class>
     <class name="TickDown.Services.SettingsService/&lt;FlushAsync&gt;d__5" filename="D:/repo/src/Services/SettingsService.cs"><methods>
       <method name="MoveNext" signature="()" complexity="3"><lines>
@@ -74,9 +77,12 @@ try {
         }
     }
     $genericArities = @{ 'TickDown.Services.SettingsService::Generic(T)' = @(1) }
-    $conversionReturns = @{ 'TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32') }
+    $conversionReturns = @{
+        'TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32')
+        'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)' = @('System.Int64')
+    }
     $functions = @(Get-CoverageFunctions $coveragePath $asyncMap $genericArities $conversionReturns)
-    Assert-Equal 9 $functions.Count 'Function count'
+    Assert-Equal 10 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
@@ -101,6 +107,8 @@ try {
     Assert-Equal 'System.Int32[,]' $rankedArrayName 'Multidimensional array rank formatting'
     $conversion = $functions | Where-Object Method -eq 'op_Implicit'
     Assert-Equal 'TickDown.Services.SettingsService::op_Implicit(System.String)->System.Int32' $conversion.Id 'Conversion return identity'
+    $checkedConversion = $functions | Where-Object Method -eq 'op_CheckedExplicit'
+    Assert-Equal 'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)->System.Int64' $checkedConversion.Id 'Checked conversion return identity'
 
     $healthy = @($functions | ForEach-Object {
         [pscustomobject]@{

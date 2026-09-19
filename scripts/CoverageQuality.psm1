@@ -60,7 +60,9 @@ function Get-ConversionReturnTypes([string[]]$AssemblyPath) {
         if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
         $assembly = [Reflection.Assembly]::LoadFrom($path)
         foreach ($type in $assembly.GetTypes()) {
-            foreach ($method in $type.GetMethods($flags) | Where-Object { $_.Name -in 'op_Implicit', 'op_Explicit' }) {
+            foreach ($method in $type.GetMethods($flags) | Where-Object {
+                    $_.Name -in 'op_Implicit', 'op_Explicit', 'op_CheckedImplicit', 'op_CheckedExplicit'
+                }) {
                 $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
                 $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
                 if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[string]]::new() }
