@@ -22,6 +22,7 @@ public partial class App : Application
     private readonly IHost? host;
     private Window? window;
     private bool isExitQueued;
+    private bool isClosing;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="App"/> class.
@@ -67,7 +68,7 @@ public partial class App : Application
         _ = rootFrame.Navigate(typeof(MainPage), args.Arguments);
 
         ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
-        WindowSettings? settings = await settingsService.LoadWindowSettingsAsync();
+        WindowSettings? settings = await LoadWindowSettingsObservedAsync(settingsService);
         if (settings is not null)
         {
             AppWindow appWindow = this.window.AppWindow;
@@ -90,6 +91,19 @@ public partial class App : Application
     private static void OnNavigationFailed(object sender, NavigationFailedEventArgs e) =>
         throw new InvalidOperationException("Failed to load Page " + e.SourcePageType.FullName);
 
+    private static async Task<WindowSettings?> LoadWindowSettingsObservedAsync(ISettingsService settingsService)
+    {
+        try
+        {
+            return await settingsService.LoadWindowSettingsAsync();
+        }
+        catch (IOException)
+        {
+            // The settings failure event reports the problem in the main view.
+            return null;
+        }
+    }
+
     private static async Task<(int X, int Y, int Width, int Height)> GetSavedOrDefaultPositionAsync(ISettingsService settingsService)
     {
         WindowSettings? existing = await settingsService.LoadWindowSettingsAsync();
@@ -106,26 +120,49 @@ public partial class App : Application
         }
 
         args.Cancel = true;
-
-        ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
-        AppWindow appWindow = this.window!.AppWindow;
-        bool isMaximized = appWindow.Presenter is OverlappedPresenter presenter && presenter.State == OverlappedPresenterState.Maximized;
-
-        // When maximized, preserve the previous non-maximized position; otherwise capture current position
-        (int x, int y, int width, int height) = isMaximized
-            ? await GetSavedOrDefaultPositionAsync(settingsService)
-            : (appWindow.Position.X, appWindow.Position.Y, appWindow.Size.Width, appWindow.Size.Height);
-
-        await settingsService.SaveWindowSettingsAsync(new WindowSettings
+        if (this.isClosing)
         {
-            IsMaximized = isMaximized,
-            X = x,
-            Y = y,
-            Width = width,
-            Height = height,
-        });
+            return;
+        }
 
-        this.isExitQueued = true;
-        this.window.Close();
+        this.isClosing = true;
+        Frame content = (Frame)this.window!.Content;
+        content.IsEnabled = false;
+        try
+        {
+            ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
+            AppWindow appWindow = this.window.AppWindow;
+            bool isMaximized = appWindow.Presenter is OverlappedPresenter presenter && presenter.State == OverlappedPresenterState.Maximized;
+
+            // Preserve the previous non-maximized position when maximized.
+            (int x, int y, int width, int height) = isMaximized
+                ? await GetSavedOrDefaultPositionAsync(settingsService)
+                : (appWindow.Position.X, appWindow.Position.Y, appWindow.Size.Width, appWindow.Size.Height);
+
+            await settingsService.SaveWindowSettingsAsync(new WindowSettings
+            {
+                IsMaximized = isMaximized,
+                X = x,
+                Y = y,
+                Width = width,
+                Height = height,
+            });
+            await settingsService.FlushAsync();
+            this.isExitQueued = true;
+            this.window.Close();
+        }
+        catch (IOException)
+        {
+            // Keep the app open. The visible settings error explains the failure,
+            // and another edit can retry the unsaved snapshot before closing.
+        }
+        finally
+        {
+            this.isClosing = false;
+            if (!this.isExitQueued)
+            {
+                content.IsEnabled = true;
+            }
+        }
     }
 }

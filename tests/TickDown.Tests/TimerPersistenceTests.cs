@@ -76,14 +76,27 @@ public class TimerPersistenceTests
         Assert.True(fixture.Timer.Model.Duration > TimeSpan.FromHours(2));
     }
 
+    /// <summary>
+    /// Verifies a rejected save becomes a visible error without an unobserved task.
+    /// </summary>
+    [Fact]
+    public void SaveFailureIsVisible()
+    {
+        using Fixture fixture = new();
+        fixture.Settings.FailNextSave = true;
+        fixture.Timer.Name = "Unsaved";
+        Assert.True(fixture.Main.HasPersistenceError);
+        Assert.Equal("Test save failure", fixture.Main.PersistenceError);
+    }
+
     private sealed class Fixture : IDisposable
     {
         private readonly TestTimerService ticks = new();
 
         public Fixture()
         {
-            MainViewModel main = new(this.ticks, this.Settings, new TestThemeService(), new TestAudioService());
-            this.Timer = Assert.Single(main.Timers);
+            this.Main = new(this.ticks, this.Settings, new TestThemeService(), new TestAudioService());
+            this.Timer = Assert.Single(this.Main.Timers);
             this.ticks.RaiseTick();
             Assert.Empty(this.Settings.Snapshots);
         }
@@ -91,6 +104,8 @@ public class TimerPersistenceTests
         public CapturingSettingsService Settings { get; } = new();
 
         public TimerViewModel Timer { get; }
+
+        public MainViewModel Main { get; }
 
         public void Dispose()
         {
@@ -102,12 +117,26 @@ public class TimerPersistenceTests
 
     private sealed class CapturingSettingsService : ISettingsService
     {
+        public event EventHandler<SettingsFailureEventArgs>? PersistenceFailed;
+
+        public bool FailNextSave { get; set; }
+
         public List<CountdownTimer> Snapshots { get; } = [];
 
         public WindowSettings? Window { get; private set; }
 
+        public Task FlushAsync() => Task.CompletedTask;
+
         public Task SaveTimersAsync(IEnumerable<CountdownTimer> timers)
         {
+            if (this.FailNextSave)
+            {
+                this.FailNextSave = false;
+                IOException failure = new("Test save failure");
+                this.PersistenceFailed?.Invoke(this, new SettingsFailureEventArgs(failure.Message, failure));
+                return Task.FromException(failure);
+            }
+
             string json = JsonSerializer.Serialize(timers);
             this.Snapshots.AddRange(JsonSerializer.Deserialize<CountdownTimer[]>(json)!);
             return Task.CompletedTask;
