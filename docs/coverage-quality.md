@@ -66,7 +66,9 @@ hiding them behind an aggregate percentage.
 - Improved scores pass without forcing baseline churn. A missing baseline source
   or function fails so collector narrowing cannot look like code deletion; a real
   removal requires the same reviewed baseline update as any contract change.
-- Updating the baseline requires a reviewed explanation and this explicit command:
+- Updating the baseline requires a reviewed explanation. Update mode permits
+  below-threshold new functions but still rejects high-risk additions, existing
+  regressions, and missing sources/functions before writing:
 
   ```powershell
   pwsh -NoProfile -File scripts/check-coverage.ps1 -UpdateBaseline
@@ -76,5 +78,5 @@ Never update the baseline merely to accept a regression. Add focused behavior
 coverage or reduce complexity, then inspect both function-risk reports before
 review. `scripts/tests/CoverageQuality.Tests.ps1` proves the formula, branch/line
 floor, line fallback, generated-callback retention, unique async and iterator identities,
-new-function threshold and inventory, compiled exclusion guard, report generation,
+new-function threshold and guarded inventory updates, source/compiled exclusion checks, report generation,
 and a deliberately uncovered branch regression.

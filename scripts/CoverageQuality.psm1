@@ -159,7 +159,7 @@ function Get-CoverageFunctions([string]$CoveragePath, [hashtable]$StateMachineMa
     return $results.ToArray()
 }
 
-function Test-CoverageBaseline([object[]]$Functions, [string]$BaselinePath) {
+function Test-CoverageBaseline([object[]]$Functions, [string]$BaselinePath, [switch]$AllowNewFunctions) {
     if (!(Test-Path $BaselinePath -PathType Leaf)) { throw "Coverage baseline not found: $BaselinePath" }
     $baseline = Get-Content $BaselinePath -Raw | ConvertFrom-Json -AsHashtable
     if ($baseline.version -ne 2) { throw "Unsupported coverage baseline version: $($baseline.version)" }
@@ -195,7 +195,7 @@ function Test-CoverageBaseline([object[]]$Functions, [string]$BaselinePath) {
         elseif ($function.Crap -gt [double]$baseline.maxNewFunctionCrap) {
             $failures.Add("New function $($function.Id) has CRAP $($function.Crap), above $($baseline.maxNewFunctionCrap).")
         }
-        else {
+        elseif (!$AllowNewFunctions) {
             $failures.Add("New function $($function.Id) must be added to the reviewed coverage baseline.")
         }
     }

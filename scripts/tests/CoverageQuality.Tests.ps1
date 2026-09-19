@@ -108,11 +108,13 @@ try {
     }
     $newHighFailures = @(Test-CoverageBaseline ($healthy + $newHigh) $baselinePath)
     Assert-Equal 1 $newHighFailures.Count 'New high-risk rejection'
+    Assert-Equal 1 (@(Test-CoverageBaseline ($healthy + $newHigh) $baselinePath -AllowNewFunctions)).Count 'High-risk baseline update rejection'
 
     $newLow = $newHigh.PSObject.Copy()
     $newLow.Id = 'TickDown.Core.Models.NewRisk::Safe()'
     $newLow.Crap = 30
     Assert-Equal 1 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath)).Count 'New function inventory requirement'
+    Assert-Equal 0 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath -AllowNewFunctions)).Count 'Low-risk baseline update acceptance'
     $expandedBaselinePath = Join-Path $temp 'expanded-baseline.json'
     Write-CoverageBaseline ($healthy + $newLow) $expandedBaselinePath
     Assert-Equal 0 (@(Test-CoverageBaseline ($healthy + $newLow) $expandedBaselinePath)).Count 'Reviewed new function acceptance'

@@ -58,6 +58,8 @@ try {
     Copy-Item $coverageFiles[0].FullName (Join-Path $resultsPath 'coverage.cobertura.xml') -Force
 
     if ($UpdateBaseline) {
+        $updateFailures = @(Test-CoverageBaseline $functions $baselinePath -AllowNewFunctions)
+        if ($updateFailures.Count -gt 0) { throw "Coverage baseline update rejected:`n- $($updateFailures -join "`n- ")" }
         Write-CoverageBaseline $functions $baselinePath
         "Updated coverage baseline with $($functions.Count) functions."
         return
