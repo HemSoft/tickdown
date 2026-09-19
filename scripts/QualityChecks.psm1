@@ -101,7 +101,11 @@ function Test-NpmAuditFindings {
             throw "npm audit returned an invalid $severity count."
         }
     }
-    return ($counts.low + $counts.moderate + $counts.high + $counts.critical) -gt 0
+    $aboveThreshold = [decimal]$counts.low + $counts.moderate + $counts.high + $counts.critical
+    if ([decimal]$counts.total -ne $aboveThreshold + $counts.info) {
+        throw 'npm audit returned inconsistent vulnerability totals.'
+    }
+    return $aboveThreshold -gt 0
 }
 
 Export-ModuleMember -Function Invoke-QualityCheck, Test-PackageFindings, Test-NpmAuditFindings

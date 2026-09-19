@@ -51,6 +51,10 @@ $r = Invoke-QualityCheck 'informational npm advisory' { $npmClean.Replace('"info
 Assert-Equal 'Pass' $r.Status 'Below-low severity does not fail'
 $r = Invoke-QualityCheck 'missing npm severity counts' { '{"auditReportVersion":2,"metadata":{"vulnerabilities":{"total":0}}}' } $npmInspect
 Assert-Equal 'ToolError' $r.Status 'Incomplete severity report fails'
+$r = Invoke-QualityCheck 'inconsistent npm counters' { $npmClean.Replace('"total":0', '"total":1') } $npmInspect
+Assert-Equal 'ToolError' $r.Status 'Inconsistent npm total fails'
+$r = Invoke-QualityCheck 'underreported npm total' { $npmFindings.Replace('"total":1', '"total":0') } $npmInspect
+Assert-Equal 'ToolError' $r.Status 'Underreported npm total fails'
 $PSNativeCommandUseErrorActionPreference = $true
 $r = Invoke-QualityCheck 'native stderr diagnostic' { pwsh -NoProfile -File "$PSScriptRoot/fixtures/native-report.ps1" } $inspect
 Assert-Equal 'Pass' $r.Status 'Benign stderr does not corrupt JSON'
