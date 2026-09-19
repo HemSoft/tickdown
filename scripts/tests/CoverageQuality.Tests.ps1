@@ -164,8 +164,13 @@ try {
     Assert-Equal $true (Test-Path (Join-Path $reportPath 'function-risk.json')) 'JSON report'
     Assert-Equal $true (Test-Path (Join-Path $reportPath 'function-risk.md')) 'Markdown report'
     $runsettings = Get-Content (Join-Path $root 'coverage.runsettings') -Raw
+    [xml]$runsettingsXml = $runsettings
+    $excludeFilter = [string]$runsettingsXml.RunSettings.DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude
     Assert-Equal $false $runsettings.Contains('ExcludeByAttribute') 'No attribute-based coverage escape hatch'
-    Assert-Equal $false $runsettings.Contains('[TickDown]TickDown.ViewModels.*') 'No namespace-wide ViewModel exclusion'
+    Assert-Equal $false $excludeFilter.Contains('[TickDown]TickDown.ViewModels.*') 'No namespace-wide ViewModel exclusion'
+    Assert-Equal $false $excludeFilter.Contains('MainViewModel*') 'MainViewModel exclusion anchored'
+    Assert-Equal $false $excludeFilter.Contains('TimerViewModel*') 'TimerViewModel exclusion anchored'
+    Assert-Equal $false $excludeFilter.Contains('SettingsService*') 'SettingsService exclusion anchored'
     Assert-Equal $true ($null -ne (Get-Command Get-CoverageExclusionViolations)) 'Compiled exclusion guard exported'
     $sourceRoot = Join-Path $temp 'src'
     New-Item $sourceRoot -ItemType Directory | Out-Null

@@ -28,8 +28,10 @@ output beside the current test assembly, and a coverage-only test loads that exa
 candidate so Coverlet can instrument App, views, converters, and all services.
 The two current ViewModels and SettingsService retain their exercised source-linked
 copies in the test assembly rather than duplicating their unexecuted app copies.
-Those exclusions are type-specific; a new ViewModel or service namespace/type is
-measured from the app candidate by default. Test namespaces,
+Those exclusions match each exact type plus its `/`-delimited generated nested
+types; they do not use sibling-matching prefixes. A new ViewModel or service type,
+including one whose name starts with an existing type name, is measured from the
+app candidate by default. Test namespaces,
 presentation doubles, and package-generated bootstrap types are not included. Only
 generated output beneath `obj` is excluded by file path; every hand-written C# file
 under `src`, including `*.g.cs`, remains measured. The

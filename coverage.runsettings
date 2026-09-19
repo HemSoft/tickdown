@@ -6,7 +6,7 @@
         <Configuration>
           <Format>cobertura</Format>
           <Include>[TickDown.Core]*,[TickDown]*,[TickDown.Tests]TickDown.ViewModels.*,[TickDown.Tests]TickDown.Services.SettingsService*</Include>
-          <Exclude>[TickDown]TickDown.ViewModels.MainViewModel*,[TickDown]TickDown.ViewModels.TimerViewModel*,[TickDown]TickDown.Services.SettingsService*,[TickDown]Microsoft.*</Exclude>
+          <Exclude>[TickDown]TickDown.ViewModels.MainViewModel,[TickDown]TickDown.ViewModels.MainViewModel/*,[TickDown]TickDown.ViewModels.TimerViewModel,[TickDown]TickDown.ViewModels.TimerViewModel/*,[TickDown]TickDown.Services.SettingsService,[TickDown]TickDown.Services.SettingsService/*,[TickDown]Microsoft.*</Exclude>
           <IncludeTestAssembly>true</IncludeTestAssembly>
           <ExcludeByFile>**/obj/**</ExcludeByFile>
           <DeterministicReport>true</DeterministicReport>
