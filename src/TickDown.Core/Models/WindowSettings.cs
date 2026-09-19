@@ -41,4 +41,25 @@ public class WindowSettings
     /// Gets or sets the application theme. Valid values: "Light", "Dark", "System".
     /// </summary>
     public string Theme { get; set; } = "System";
+
+    /// <summary>
+    /// Updates maximized state and, when restored, the latest normal geometry.
+    /// Other settings remain unchanged.
+    /// </summary>
+    /// <param name="isMaximized">Whether the window is maximized.</param>
+    /// <param name="x">The current X position.</param>
+    /// <param name="y">The current Y position.</param>
+    /// <param name="width">The current width.</param>
+    /// <param name="height">The current height.</param>
+    public void UpdateWindowState(bool isMaximized, int x, int y, int width, int height)
+    {
+        this.IsMaximized = isMaximized;
+        if (!isMaximized)
+        {
+            this.X = x;
+            this.Y = y;
+            this.Width = width;
+            this.Height = height;
+        }
+    }
 }
