@@ -20,9 +20,10 @@ Cobertura report, evaluates every measured function against
 cannot be loaded as an ordinary test assembly, so the collector also instruments
 only the actual `TickDown.ViewModels.*` and `TickDown.Services.SettingsService`
 source files linked into the test project. Test namespaces and presentation test
-doubles are not included. Generated XAML files are excluded by file path, but no
-attribute-based exclusion is honored for this production boundary, so hand-written
-code cannot annotate its way around the risk gate. Async compiler
+doubles are not included. Generated XAML files are excluded by file path. The
+runner rejects `ExcludeFromCodeCoverage` and Coverlet's equivalent exclusion
+attribute from compiled production assemblies, so hand-written code cannot
+annotate its way around the risk gate. Async compiler
 state-machine `MoveNext` bodies are retained and mapped from every assembly named
 in Cobertura through `AsyncStateMachineAttribute` to unique source signatures,
 including generic arity and parameter types. Reported
@@ -71,5 +72,5 @@ Never update the baseline merely to accept a regression. Add focused behavior
 coverage or reduce complexity, then inspect both function-risk reports before
 review. `scripts/tests/CoverageQuality.Tests.ps1` proves the formula, branch/line
 floor, line fallback, generated-callback retention, unique async identities,
-new-function threshold, report generation, and a deliberately uncovered branch
-regression.
+new-function threshold, compiled exclusion guard, report generation, and a
+deliberately uncovered branch regression.
