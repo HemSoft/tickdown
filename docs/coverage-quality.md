@@ -47,9 +47,10 @@ inspects the production assemblies and the three exact source-linked test types
 for assembly, type, and member metadata while ignoring generated test-host
 scaffolding. An exclusion is trusted only on one of the explicit current
 RelayCommand properties carrying the exact CommunityToolkit generator identity;
-property names and user-controlled generated markers cannot expand that allowlist. Async, iterator, and
-async-iterator state-machine bodies are retained and mapped from every covered
-assembly through the corresponding state-machine attribute to unique source
+property names and user-controlled generated markers cannot expand that allowlist. Async, iterator,
+and async-iterator state-machine bodies, including local-function and lambda state
+machines whose generated names use a different shape, are retained and mapped
+from every covered assembly through the corresponding state-machine attribute to unique source
 signatures. All source-bearing helper methods in a state machine, including
 iterator `finally` bodies, are aggregated into that source function's complexity
 and coverage. Reflection records zero as well as nonzero generic arity for

@@ -60,6 +60,14 @@ try {
         <line number="6" hits="1" branch="False" />
       </lines></method>
     </methods></class>
+    <class name="TickDown.Services.SettingsService/&lt;&lt;Outer&gt;g__Local|0_0&gt;d" filename="D:/repo/src/Services/SettingsService.cs"><methods>
+      <method name="MoveNext" signature="()" complexity="2"><lines>
+        <line number="6" hits="1" branch="False" />
+      </lines></method>
+      <method name="&lt;&gt;m__Finally1" signature="()" complexity="2"><lines>
+        <line number="7" hits="0" branch="True" condition-coverage="0% (0/2)" />
+      </lines></method>
+    </methods></class>
     <class name="TickDown.ViewModels.TimerViewModel/&lt;&gt;c" filename="D:/repo/src/ViewModels/TimerViewModel.cs"><methods>
       <method name="&lt;Save&gt;b__1_0" signature="(TickDown.ViewModels.TimerViewModel)" complexity="1"><lines>
         <line number="7" hits="1" branch="False" />
@@ -84,6 +92,9 @@ try {
         'TickDown.Services.SettingsService/<ReadAsync>d__6`1' = [pscustomobject]@{
             Class = 'TickDown.Services.SettingsService'; Method = 'ReadAsync`1'; Signature = '(System.String)'
         }
+        'TickDown.Services.SettingsService/<<Outer>g__Local|0_0>d' = [pscustomobject]@{
+            Class = 'TickDown.Services.SettingsService'; Method = '<Outer>g__Local|0_0'; Signature = '()'
+        }
         'TickDown.Core.Models.CountdownTimer/<History>d__9' = [pscustomobject]@{
             Class = 'TickDown.Core.Models.CountdownTimer'; Method = 'History'; Signature = '()'
         }
@@ -97,7 +108,7 @@ try {
         'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)' = @('System.Int64')
     }
     $functions = @(Get-CoverageFunctions $coveragePath $asyncMap $genericArities $conversionReturns)
-    Assert-Equal 13 $functions.Count 'Function count'
+    Assert-Equal 14 $functions.Count 'Function count'
     $stop = $functions | Where-Object Method -eq 'Stop'
     $tick = $functions | Where-Object Method -eq 'Tick'
     $load = $functions | Where-Object Method -eq 'Load'
@@ -111,6 +122,9 @@ try {
     Assert-Equal 3 $flush.Crap 'Async state-machine CRAP'
     $read = $functions | Where-Object Method -eq 'ReadAsync`1'
     Assert-Equal 'TickDown.Services.SettingsService::ReadAsync`1(System.String)' $read.Id 'Generic async state-machine mapping'
+    $localStateMachine = $functions | Where-Object Method -eq '<Outer>g__Local|0_0'
+    Assert-Equal 'TickDown.Services.SettingsService::<Outer>g__Local|0_0()' $localStateMachine.Id 'Local-function state-machine mapping'
+    Assert-Equal 12 $localStateMachine.Crap 'Local-function state-machine aggregation'
     $callback = $functions | Where-Object Method -eq '<Save>b__1_0'
     Assert-Equal 'TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
     $iterator = $functions | Where-Object Method -eq 'History'
@@ -141,7 +155,7 @@ try {
     $baselinePath = Join-Path $temp 'baseline.json'
     Write-CoverageBaseline $healthy $baselinePath
     $regressions = @(Test-CoverageBaseline $functions $baselinePath)
-    Assert-Equal 3 $regressions.Count 'Uncovered branch regressions'
+    Assert-Equal 4 $regressions.Count 'Uncovered branch regressions'
     $missingFunction = @($healthy | Where-Object Method -ne 'FlushAsync')
     Assert-Equal 1 (@(Test-CoverageBaseline $missingFunction $baselinePath)).Count 'Missing baseline function rejection'
 

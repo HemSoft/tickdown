@@ -243,11 +243,8 @@ function Get-CoverageFunctions(
 
     foreach ($class in $coverage.coverage.packages.package.classes.class) {
         $className = [string]$class.name
-        $isStateMachine = $className -match '/<[^>]+>d__\d+(?:`\d+)?$'
+        $isStateMachine = $StateMachineMap.ContainsKey($className)
         if ($isStateMachine) {
-            if (!$StateMachineMap.ContainsKey($className)) {
-                throw "No source method signature found for state machine $className."
-            }
             $reportedClass = $StateMachineMap[$className].Class
             $reportedMethod = $StateMachineMap[$className].Method
             $reportedSignature = $StateMachineMap[$className].Signature
