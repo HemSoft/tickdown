@@ -1,0 +1,36 @@
+# Local quality checks
+
+Use PowerShell 7, .NET 10 and Node.js 22 or later on Windows.
+
+```powershell
+npm ci --ignore-scripts
+dotnet restore TickDown.sln
+dotnet build src/TickDown.csproj
+pwsh -NoProfile -File scripts/check-quality.ps1
+pwsh -NoProfile -File scripts/tests/QualityChecks.Tests.ps1
+dotnet test TickDown.sln --configuration Release
+```
+
+The quality runner executes every independent check and prints a final summary.
+`Pass` means the command succeeded without findings. `Findings` means a valid
+package report contains outdated or vulnerable packages. `ToolError` means the
+command failed, threw, or returned an incomplete or unsupported package report.
+Any non-pass result makes the runner exit 1. Full command output is retained on
+the console.
+
+Both direct and transitive dependencies are scanned for vulnerabilities. Package
+findings use structured JSON rather than localized English output. The existing
+policy that any reported outdated direct package fails the check is preserved;
+a newer major release is an update finding, not a vulnerability assertion.
+
+Markdown is a separate pinned tool, not an MSBuild target. `npm run lint:md`
+checks tracked source documentation and agent guidance, excluding generated
+build and dependency directories. Its dependencies are locked in the npm lockfile.
+The CLI's TOML parser is pinned to smol-toml 1.8.0 to address
+[GHSA-7w5x-hrqm-74c2](https://github.com/advisories/GHSA-7w5x-hrqm-74c2).
+Remove that scoped override when the CLI's own dependency accepts the fixed release.
+The runner also executes `npm audit --audit-level=low` for these tooling dependencies.
+
+The runner does not run tests implicitly. Run `dotnet test` separately so its
+results and failures remain visible. A baseline failure must not be presented
+as a clean result or hidden with a suppression.
