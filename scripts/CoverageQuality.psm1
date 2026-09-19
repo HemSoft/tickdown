@@ -95,22 +95,38 @@ function Get-CoverageSourceExclusionViolations([string]$SourceRoot) {
     )
 }
 
-function Get-UnlinkedPartialTypeViolations([string]$SourceRoot, [hashtable]$LinkedTypePatterns) {
+function Get-UnlinkedPartialTypeViolations(
+    [string]$SourceRoot,
+    [hashtable]$LinkedTypePatterns,
+    [string[]]$PreprocessorSymbols = @()
+) {
     if (!(Test-Path $SourceRoot -PathType Container)) { throw "Production source root not found: $SourceRoot" }
     Add-Type -AssemblyName Microsoft.CodeAnalysis.CSharp
     $partialKind = [Microsoft.CodeAnalysis.CSharp.SyntaxKind]::PartialKeyword
+    $parseOptions = [Microsoft.CodeAnalysis.CSharp.CSharpParseOptions]::Default.WithPreprocessorSymbols($PreprocessorSymbols)
     $violations = [Collections.Generic.List[string]]::new()
     foreach ($file in Get-ChildItem $SourceRoot -Filter *.cs -File -Recurse | Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]') {
-        $tree = [Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree]::ParseText([string](Get-Content $file.FullName -Raw))
+        $tree = [Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree]::ParseText([string](Get-Content $file.FullName -Raw), $parseOptions)
         $declarations = @($tree.GetRoot().DescendantNodes() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax] })
         foreach ($declaration in $declarations) {
             $isPartial = @($declaration.Modifiers | Where-Object { $_.RawKind -eq $partialKind }).Count -gt 0
-            $typeName = $declaration.Identifier.ValueText
-            if (!$isPartial -or !$LinkedTypePatterns.ContainsKey($typeName)) { continue }
+            if (!$isPartial) { continue }
+            $namespaceNode = $declaration.Ancestors() | Where-Object {
+                $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax] -or
+                $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.FileScopedNamespaceDeclarationSyntax]
+            } | Select-Object -First 1
+            $containingTypes = @($declaration.Ancestors() | Where-Object { $_ -is [Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax] })
+            [array]::Reverse($containingTypes)
+            $identityParts = [Collections.Generic.List[string]]::new()
+            if ($null -ne $namespaceNode) { $identityParts.Add($namespaceNode.Name.ToString()) }
+            foreach ($containingType in $containingTypes) { $identityParts.Add($containingType.Identifier.ValueText) }
+            $identityParts.Add($declaration.Identifier.ValueText)
+            $typeIdentity = $identityParts -join '.'
+            if (!$LinkedTypePatterns.ContainsKey($typeIdentity)) { continue }
             $relativePath = [IO.Path]::GetRelativePath($SourceRoot, $file.FullName).Replace('\', '/')
-            if ($relativePath -ne $LinkedTypePatterns[$typeName]) {
+            if ($relativePath -ne $LinkedTypePatterns[$typeIdentity]) {
                 $lineNumber = 1 + $tree.GetLineSpan($declaration.Span).StartLinePosition.Line
-                $violations.Add("$($file.FullName):$lineNumber declares excluded partial $typeName outside linked path $($LinkedTypePatterns[$typeName])")
+                $violations.Add("$($file.FullName):$lineNumber declares excluded partial $typeIdentity outside linked path $($LinkedTypePatterns[$typeIdentity])")
             }
         }
     }

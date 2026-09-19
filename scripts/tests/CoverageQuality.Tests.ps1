@@ -183,19 +183,21 @@ try {
     $viewModelSources = Join-Path $partialSourceRoot 'ViewModels'
     $nestedSources = Join-Path $partialSourceRoot 'Other'
     New-Item $viewModelSources, $nestedSources -ItemType Directory | Out-Null
-    'public partial class MainViewModel {}' | Set-Content (Join-Path $viewModelSources 'MainViewModel.cs')
-    'public unsafe partial class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Extra.cs')
-    'public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'SettingsService.Extra.cs')
-    ('[Description("//")] public partial' + "`n" + 'class MainViewModel {}') | Set-Content (Join-Path $nestedSources 'MainViewModel.Multiline.cs')
-    'public partial /* split declaration */ class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Commented.cs')
+    'namespace TickDown.ViewModels; public partial class MainViewModel {}' | Set-Content (Join-Path $viewModelSources 'MainViewModel.cs')
+    'namespace TickDown.ViewModels; public unsafe partial class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Extra.cs')
+    'namespace TickDown.Services; public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'SettingsService.Extra.cs')
+    ('namespace TickDown.ViewModels;' + "`n" + '[Description("//")] public partial' + "`n" + 'class MainViewModel {}') | Set-Content (Join-Path $nestedSources 'MainViewModel.Multiline.cs')
+    'namespace TickDown.ViewModels; public partial /* split declaration */ class TimerViewModel {}' | Set-Content (Join-Path $nestedSources 'TimerViewModel.Commented.cs')
+    ("#if NET10_0_WINDOWS`n" + 'namespace TickDown.ViewModels; public partial class MainViewModel {}' + "`n#endif") | Set-Content (Join-Path $nestedSources 'MainViewModel.Conditional.cs')
+    'namespace Other; public partial class SettingsService {}' | Set-Content (Join-Path $nestedSources 'UnrelatedSettingsService.cs')
     $linkedPatterns = @{
-        MainViewModel = 'ViewModels/MainViewModel.cs'
-        TimerViewModel = 'ViewModels/TimerViewModel.cs'
-        SettingsService = 'Services/SettingsService.cs'
+        'TickDown.ViewModels.MainViewModel' = 'ViewModels/MainViewModel.cs'
+        'TickDown.ViewModels.TimerViewModel' = 'ViewModels/TimerViewModel.cs'
+        'TickDown.Services.SettingsService' = 'Services/SettingsService.cs'
     }
-    Assert-Equal 4 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Whole-tree, multiline, and commented partial rejection'
+    Assert-Equal 5 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Qualified, conditional, and trivia-rich partial rejection'
     Remove-Item $nestedSources -Recurse
-    Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns).Count 'Linked partial acceptance'
+    Assert-Equal 0 @(Get-UnlinkedPartialTypeViolations $partialSourceRoot $linkedPatterns @('NET10_0_WINDOWS')).Count 'Linked partial acceptance'
     $testProject = Get-Content (Join-Path $root 'tests/TickDown.Tests/TickDown.Tests.csproj') -Raw
     Assert-Equal $false $testProject.Contains('src\ViewModels\*.cs') 'No broad ViewModel source-link glob'
     Assert-Equal $true $testProject.Contains('src\ViewModels\MainViewModel.cs') 'MainViewModel exact source link'

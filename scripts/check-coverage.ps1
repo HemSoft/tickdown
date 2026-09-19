@@ -11,17 +11,23 @@ $root = Resolve-Path "$PSScriptRoot/.."
 $baselinePath = Join-Path $PSScriptRoot 'function-risk-baseline.json'
 Import-Module (Join-Path $PSScriptRoot 'CoverageQuality.psm1') -Force
 $resultsPath = Resolve-CoverageResultsPath $root $ResultsDirectory
+$appProject = Join-Path $root 'src/TickDown.csproj'
+$defineConstantsOutput = (& dotnet msbuild $appProject -getProperty:DefineConstants -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($defineConstantsOutput)) {
+    throw "Could not resolve the application preprocessor symbols:`n$defineConstantsOutput"
+}
+$defineConstants = @($defineConstantsOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim() -split ';'
 $sourceExclusionViolations = @(Get-CoverageSourceExclusionViolations (Join-Path $root 'src'))
 if ($sourceExclusionViolations.Count -gt 0) {
     throw "Coverage exclusion attributes are forbidden in production source:`n- $($sourceExclusionViolations -join "`n- ")"
 }
 $linkedTypePatterns = @{
-    MainViewModel = 'ViewModels/MainViewModel.cs'
-    TimerViewModel = 'ViewModels/TimerViewModel.cs'
-    SettingsService = 'Services/SettingsService.cs'
+    'TickDown.ViewModels.MainViewModel' = 'ViewModels/MainViewModel.cs'
+    'TickDown.ViewModels.TimerViewModel' = 'ViewModels/TimerViewModel.cs'
+    'TickDown.Services.SettingsService' = 'Services/SettingsService.cs'
 }
 $partialTypeViolations = @(
-    Get-UnlinkedPartialTypeViolations (Join-Path $root 'src') $linkedTypePatterns
+    Get-UnlinkedPartialTypeViolations (Join-Path $root 'src') $linkedTypePatterns $defineConstants
 )
 if ($partialTypeViolations.Count -gt 0) {
     throw "Source-linked partial declarations must stay in the linked top-level glob:`n- $($partialTypeViolations -join "`n- ")"
@@ -30,9 +36,9 @@ if ($partialTypeViolations.Count -gt 0) {
 Push-Location $root
 try {
     if (Test-Path $resultsPath) { Remove-Item $resultsPath -Recurse -Force }
-    $appBuildOutput = (& dotnet build src/TickDown.csproj --configuration Release --no-restore -p:Platform=x64 2>&1 | Out-String).Trim()
+    $appBuildOutput = (& dotnet build $appProject --configuration Release --no-restore -p:Platform=x64 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0) { throw "Coverage application build failed:`n$appBuildOutput" }
-    $appAssemblyOutput = (& dotnet msbuild src/TickDown.csproj -getProperty:TargetPath -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
+    $appAssemblyOutput = (& dotnet msbuild $appProject -getProperty:TargetPath -p:Configuration=Release -p:Platform=x64 -nologo 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($appAssemblyOutput)) {
         throw "Could not resolve the current Release application assembly:`n$appAssemblyOutput"
     }
