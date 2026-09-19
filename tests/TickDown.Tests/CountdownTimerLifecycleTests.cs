@@ -167,6 +167,40 @@ public class CountdownTimerLifecycleTests
         Assert.True(restored.EndTime.HasValue);
     }
 
+    /// <summary>
+    /// Verifies a persisted running state without a deadline is safe and unchanged by a tick.
+    /// </summary>
+    [Fact]
+    public void TickWithoutDeadlineLeavesRunningTimerUnchanged()
+    {
+        CountdownTimer timer = new(TimeSpan.FromSeconds(30), "Test", new ManualClock())
+        {
+            State = TimerState.Running,
+            Remaining = TimeSpan.FromSeconds(12),
+            EndTime = null,
+        };
+        timer.Tick();
+        Assert.Equal(TimerState.Running, timer.State);
+        Assert.Equal(TimeSpan.FromSeconds(12), timer.Remaining);
+    }
+
+    /// <summary>
+    /// Verifies stopping at the deadline samples zero before clearing clock state.
+    /// </summary>
+    [Fact]
+    public void StopAtDeadlinePreservesZeroAndClearsClockState()
+    {
+        ManualClock clock = new();
+        CountdownTimer timer = new(TimeSpan.FromSeconds(3), "Test", clock);
+        timer.Start();
+        clock.Advance(TimeSpan.FromSeconds(3));
+        timer.Stop();
+        Assert.Equal(TimerState.Stopped, timer.State);
+        Assert.Equal(TimeSpan.Zero, timer.Remaining);
+        Assert.Null(timer.StartTime);
+        Assert.Null(timer.EndTime);
+    }
+
     private sealed class ManualClock(DateTimeOffset? initialNow = null) : TimeProvider
     {
         private DateTimeOffset now = initialNow ?? new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
