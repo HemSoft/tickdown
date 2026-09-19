@@ -5,23 +5,28 @@ namespace TickDown.Tests;
 using System.Runtime.Loader;
 
 /// <summary>
-/// Loads the production application assembly when the coverage runner supplies it.
+/// Loads every production assembly when the coverage runner supplies its candidate closure.
 /// </summary>
 public sealed class ProductionAssemblyCoverageTests
 {
     /// <summary>
-    /// Loads the exact application candidate so Coverlet can instrument its full source inventory.
+    /// Loads every exact production candidate so Coverlet can instrument the full project-reference inventory.
     /// </summary>
     [Fact]
-    public void LoadsProductionApplicationCandidate()
+    public void LoadsProductionAssemblyCandidates()
     {
-        string? assemblyPath = Environment.GetEnvironmentVariable("TICKDOWN_COVERAGE_APP_ASSEMBLY");
-        if (string.IsNullOrWhiteSpace(assemblyPath))
+        string? assemblyPaths = Environment.GetEnvironmentVariable("TICKDOWN_COVERAGE_ASSEMBLIES");
+        if (string.IsNullOrWhiteSpace(assemblyPaths))
         {
             return;
         }
 
-        System.Reflection.Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
-        Assert.Equal("TickDown", assembly.GetName().Name);
+        string[] candidates = assemblyPaths.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
+        Assert.NotEmpty(candidates);
+        foreach (string candidate in candidates)
+        {
+            System.Reflection.Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(candidate);
+            Assert.Equal(Path.GetFileNameWithoutExtension(candidate), assembly.GetName().Name);
+        }
     }
 }

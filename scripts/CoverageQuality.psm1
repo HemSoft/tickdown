@@ -44,11 +44,12 @@ function Get-MethodGenericArities([string[]]$AssemblyPath) {
     foreach ($path in $AssemblyPath) {
         if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
         $assembly = [Reflection.Assembly]::LoadFrom($path)
+        $assemblyName = $assembly.GetName().Name
         foreach ($type in $assembly.GetTypes()) {
             foreach ($method in $type.GetMethods($flags)) {
                 $arity = $method.GetGenericArguments().Count
                 $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
-                $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
+                $key = "[$assemblyName]$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
                 if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[int]]::new() }
                 if (!$map[$key].Contains($arity)) { $map[$key].Add($arity) }
             }
@@ -63,12 +64,13 @@ function Get-ConversionReturnTypes([string[]]$AssemblyPath) {
     foreach ($path in $AssemblyPath) {
         if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
         $assembly = [Reflection.Assembly]::LoadFrom($path)
+        $assemblyName = $assembly.GetName().Name
         foreach ($type in $assembly.GetTypes()) {
             foreach ($method in $type.GetMethods($flags) | Where-Object {
                     $_.Name -in 'op_Implicit', 'op_Explicit', 'op_CheckedImplicit', 'op_CheckedExplicit'
                 }) {
                 $parameters = @($method.GetParameters() | ForEach-Object { Format-CoverageTypeName $_.ParameterType }) -join ','
-                $key = "$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
+                $key = "[$assemblyName]$($type.FullName.Replace('+', '/'))::$($method.Name)($parameters)"
                 if (!$map.ContainsKey($key)) { $map[$key] = [Collections.Generic.List[string]]::new() }
                 $returnType = Format-CoverageTypeName $method.ReturnType
                 if (!$map[$key].Contains($returnType)) { $map[$key].Add($returnType) }
@@ -195,6 +197,7 @@ function Get-StateMachineMap([string[]]$AssemblyPath) {
     foreach ($path in $AssemblyPath) {
         if (!(Test-Path $path -PathType Leaf)) { throw "Covered assembly not found: $path" }
         $assembly = [Reflection.Assembly]::LoadFrom($path)
+        $assemblyName = $assembly.GetName().Name
         foreach ($type in $assembly.GetTypes()) {
             foreach ($method in $type.GetMethods($flags)) {
                 $attributes = @($method.GetCustomAttributesData() | Where-Object { $_.AttributeType.Name -in $stateMachineAttributes })
@@ -208,14 +211,15 @@ function Get-StateMachineMap([string[]]$AssemblyPath) {
                         Method = "$($method.Name)$genericSuffix"
                         Signature = "($parameters)"
                     }
-                    if ($map.ContainsKey($stateTypeName)) {
-                        $existing = $map[$stateTypeName]
+                    $stateMachineKey = "[$assemblyName]$stateTypeName"
+                    if ($map.ContainsKey($stateMachineKey)) {
+                        $existing = $map[$stateMachineKey]
                         if ($existing.Class -ne $identity.Class -or $existing.Method -ne $identity.Method -or $existing.Signature -ne $identity.Signature) {
                             throw "Conflicting state machine identity: $stateTypeName"
                         }
                         continue
                     }
-                    $map[$stateTypeName] = $identity
+                    $map[$stateMachineKey] = $identity
                 }
             }
         }
@@ -277,14 +281,18 @@ function Get-CoverageFunctions(
     $results = [Collections.Generic.List[object]]::new()
     $genericOccurrences = @{}
     $conversionOccurrences = @{}
+    $functionIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 
-    foreach ($class in $coverage.coverage.packages.package.classes.class) {
+    foreach ($package in $coverage.coverage.packages.package) {
+        $assemblyName = [string]$package.name
+        foreach ($class in $package.classes.class) {
         $className = [string]$class.name
-        $isStateMachine = $StateMachineMap.ContainsKey($className)
+        $stateMachineKey = "[$assemblyName]$className"
+        $isStateMachine = $StateMachineMap.ContainsKey($stateMachineKey)
         if ($isStateMachine) {
-            $reportedClass = $StateMachineMap[$className].Class
-            $reportedMethod = $StateMachineMap[$className].Method
-            $reportedSignature = $StateMachineMap[$className].Signature
+            $reportedClass = $StateMachineMap[$stateMachineKey].Class
+            $reportedMethod = $StateMachineMap[$stateMachineKey].Method
+            $reportedSignature = $StateMachineMap[$stateMachineKey].Signature
         }
         else {
             $reportedClass = $className
@@ -344,7 +352,7 @@ function Get-CoverageFunctions(
             $signature = $group.Signature
             $methodName = $group.Name
             if (!$isStateMachine) {
-                $genericKey = "${reportedClass}::${methodName}${signature}"
+                $genericKey = "[$assemblyName]${reportedClass}::${methodName}${signature}"
                 if ($ConversionReturnTypes.ContainsKey($genericKey)) {
                     $occurrence = if ($conversionOccurrences.ContainsKey($genericKey)) { $conversionOccurrences[$genericKey] } else { 0 }
                     $returnTypes = @($ConversionReturnTypes[$genericKey])
@@ -360,8 +368,11 @@ function Get-CoverageFunctions(
                     $genericOccurrences[$genericKey] = $occurrence + 1
                 }
             }
+            $functionId = "[$assemblyName]${reportedClass}::${methodName}${signature}"
+            if (!$functionIds.Add($functionId)) { throw "Duplicate coverage function identity: $functionId" }
             $results.Add([pscustomobject]@{
-                Id = "${reportedClass}::${methodName}${signature}"
+                Id = $functionId
+                Assembly = $assemblyName
                 Class = $reportedClass
                 Method = $methodName
                 Signature = $signature
@@ -373,6 +384,7 @@ function Get-CoverageFunctions(
             })
         }
     }
+    }
 
     if ($results.Count -eq 0) { throw 'Coverage report contains no functions.' }
     return $results.ToArray()
@@ -381,7 +393,7 @@ function Get-CoverageFunctions(
 function Test-CoverageBaseline([object[]]$Functions, [string]$BaselinePath, [switch]$AllowNewFunctions) {
     if (!(Test-Path $BaselinePath -PathType Leaf)) { throw "Coverage baseline not found: $BaselinePath" }
     $baseline = Get-Content $BaselinePath -Raw | ConvertFrom-Json -AsHashtable
-    if ($baseline.version -ne 2) { throw "Unsupported coverage baseline version: $($baseline.version)" }
+    if ($baseline.version -ne 3) { throw "Unsupported coverage baseline version: $($baseline.version)" }
 
     $failures = [Collections.Generic.List[string]]::new()
     foreach ($prefix in $baseline.requiredSourcePrefixes) {
@@ -434,7 +446,7 @@ function Write-CoverageBaseline([object[]]$Functions, [string]$Path) {
         }
     }
     $baseline = [ordered]@{
-        version = 2
+        version = 3
         formula = 'complexity^2 * (1 - coverage)^3 + complexity'
         maxNewFunctionCrap = 30
         allowedCrapIncrease = 0.01

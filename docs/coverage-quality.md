@@ -24,9 +24,9 @@ outputs elsewhere under `bin` cannot change the result:
 
 The runner queries MSBuild for the x64 Release app project's transitive
 `ProjectReference` closure and creates effective collector filters for every
-resulting production assembly. It builds that app candidate and stages its managed
-output beside the current test assembly, and a coverage-only test loads that exact
-candidate so Coverlet can instrument App, views, converters, and all services.
+resulting production assembly. It builds that app candidate, stages its managed
+output beside the current test assembly, and a coverage-only test explicitly loads
+every discovered candidate so even otherwise-unused project modules are instrumented.
 The two current ViewModel files and SettingsService file are linked explicitly into
 the test assembly and compiled with the x64 Release app's effective preprocessor
 symbols rather than duplicating their unexecuted app copies. Coverlet requires a
@@ -60,8 +60,11 @@ signatures. All source-bearing helper methods in a state machine, including
 iterator `finally` bodies, are aggregated into that source function's complexity
 and coverage. Reflection records zero as well as nonzero generic arity for
 every ordinary method, so generic and nongeneric overloads sharing a parameter
-signature remain distinct. User-defined regular and checked conversions bypass
-generic-occurrence matching and carry reflected target types, so legal target
+signature remain distinct. Function IDs and every reflection lookup key begin with
+the Cobertura assembly name; baseline schema version 3 therefore cannot collide
+when separate production projects reuse a fully qualified type and method name.
+Duplicate IDs within one assembly fail rather than overwrite baseline data.
+User-defined regular and checked conversions bypass generic-occurrence matching and carry reflected target types, so legal target
 overloads cannot share a baseline key. Reported compiler-generated callback and
 local-function bodies are retained instead of being filtered with their closure classes. Callback sequence points that Coverlet
 folds into their containing function remain part of that function's line rate.

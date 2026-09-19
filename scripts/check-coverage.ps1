@@ -90,10 +90,14 @@ try {
     }
     $testAssemblyPath = @($testAssemblyOutput -split "`r?`n" | Where-Object { $_.Trim().Length -gt 0 })[-1].Trim()
     $testOutputDirectory = Split-Path $testAssemblyPath -Parent
-    $coverageAppAssembly = Join-Path $testOutputDirectory 'TickDown.dll'
     $appOutputDirectory = Split-Path $appAssemblyPath -Parent
     Get-ChildItem $appOutputDirectory -File | Where-Object Extension -in '.dll', '.pdb' |
         Copy-Item -Destination $testOutputDirectory -Force
+    $coverageProductionAssemblies = @($productionAssemblyNames | ForEach-Object { Join-Path $testOutputDirectory "$_.dll" })
+    $missingStagedAssemblies = @($coverageProductionAssemblies | Where-Object { !(Test-Path $_ -PathType Leaf) })
+    if ($missingStagedAssemblies.Count -gt 0) {
+        throw "Production assemblies were not staged beside the test candidate: $($missingStagedAssemblies -join ', ')."
+    }
     $sourceLinkedTestTypes = @(
         'TickDown.ViewModels.MainViewModel'
         'TickDown.ViewModels.TimerViewModel'
@@ -107,15 +111,15 @@ try {
     $effectiveSettingsPath = Join-Path $resultsPath 'effective.runsettings'
     $effectiveSettings.Save($effectiveSettingsPath)
 
-    $previousCoverageAssembly = $env:TICKDOWN_COVERAGE_APP_ASSEMBLY
+    $previousCoverageAssemblies = $env:TICKDOWN_COVERAGE_ASSEMBLIES
     try {
-        $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $coverageAppAssembly
+        $env:TICKDOWN_COVERAGE_ASSEMBLIES = $coverageProductionAssemblies -join [IO.Path]::PathSeparator
         $testOutput = (& dotnet test $testProject --configuration Release --no-restore --no-build `
             "-p:DefineConstants=$encodedDefineConstants" --collect:'XPlat Code Coverage' --settings $effectiveSettingsPath `
             --results-directory $resultsPath 2>&1 | Out-String).Trim()
     }
     finally {
-        $env:TICKDOWN_COVERAGE_APP_ASSEMBLY = $previousCoverageAssembly
+        $env:TICKDOWN_COVERAGE_ASSEMBLIES = $previousCoverageAssemblies
     }
     if ($LASTEXITCODE -ne 0) { throw "Coverage test run failed:`n$testOutput" }
     $unexpectedLinkedTypes = @(Get-UnexpectedSourceLinkedTypes $testAssemblyPath $sourceLinkedTestTypes)
@@ -126,7 +130,7 @@ try {
     $coverageFiles = @(Get-ChildItem $resultsPath -Filter coverage.cobertura.xml -Recurse)
     if ($coverageFiles.Count -ne 1) { throw "Expected one Cobertura report, found $($coverageFiles.Count)." }
     [xml]$coverageDocument = Get-Content $coverageFiles[0].FullName -Raw
-    $expectedAssemblyNames = @($productionAssemblyNames + 'TickDown.Tests' | Sort-Object -Unique)
+    $expectedAssemblyNames = @(($productionAssemblyNames + 'TickDown.Tests') | Sort-Object -Unique)
     $reportedAssemblyNames = @($coverageDocument.coverage.packages.package.name | Sort-Object -Unique)
     $missingAssemblies = @($expectedAssemblyNames | Where-Object { $_ -notin $reportedAssemblyNames })
     if ($missingAssemblies.Count -gt 0) { throw "Covered assemblies missing from Cobertura: $($missingAssemblies -join ', ')." }

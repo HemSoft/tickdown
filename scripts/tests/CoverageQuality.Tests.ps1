@@ -86,26 +86,26 @@ try {
 '@ | Set-Content $coveragePath -Encoding utf8
 
     $asyncMap = @{
-        'TickDown.Services.SettingsService/<FlushAsync>d__5' = [pscustomobject]@{
+        '[Synthetic]TickDown.Services.SettingsService/<FlushAsync>d__5' = [pscustomobject]@{
             Class = 'TickDown.Services.SettingsService'; Method = 'FlushAsync'; Signature = '(System.Threading.CancellationToken)'
         }
-        'TickDown.Services.SettingsService/<ReadAsync>d__6`1' = [pscustomobject]@{
+        '[Synthetic]TickDown.Services.SettingsService/<ReadAsync>d__6`1' = [pscustomobject]@{
             Class = 'TickDown.Services.SettingsService'; Method = 'ReadAsync`1'; Signature = '(System.String)'
         }
-        'TickDown.Services.SettingsService/<<Outer>g__Local|0_0>d' = [pscustomobject]@{
+        '[Synthetic]TickDown.Services.SettingsService/<<Outer>g__Local|0_0>d' = [pscustomobject]@{
             Class = 'TickDown.Services.SettingsService'; Method = '<Outer>g__Local|0_0'; Signature = '()'
         }
-        'TickDown.Core.Models.CountdownTimer/<History>d__9' = [pscustomobject]@{
+        '[Synthetic]TickDown.Core.Models.CountdownTimer/<History>d__9' = [pscustomobject]@{
             Class = 'TickDown.Core.Models.CountdownTimer'; Method = 'History'; Signature = '()'
         }
     }
     $genericArities = @{
-        'TickDown.Services.SettingsService::Generic(T)' = @(1)
-        'TickDown.Services.SettingsService::Mixed(System.Int32)' = @(0, 1)
+        '[Synthetic]TickDown.Services.SettingsService::Generic(T)' = @(1)
+        '[Synthetic]TickDown.Services.SettingsService::Mixed(System.Int32)' = @(0, 1)
     }
     $conversionReturns = @{
-        'TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32', 'System.Double')
-        'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)' = @('System.Int64')
+        '[Synthetic]TickDown.Services.SettingsService::op_Implicit(System.String)' = @('System.Int32', 'System.Double')
+        '[Synthetic]TickDown.Services.SettingsService::op_CheckedExplicit(System.String)' = @('System.Int64')
     }
     $functions = @(Get-CoverageFunctions $coveragePath $asyncMap $genericArities $conversionReturns)
     Assert-Equal 14 $functions.Count 'Function count'
@@ -118,31 +118,48 @@ try {
     Assert-Equal 2.5 $load.Crap 'Line fallback CRAP'
     Assert-Equal 'line' $load.CoverageBasis 'Load coverage basis'
     $flush = $functions | Where-Object Method -eq 'FlushAsync'
-    Assert-Equal 'TickDown.Services.SettingsService::FlushAsync(System.Threading.CancellationToken)' $flush.Id 'Async state-machine mapping'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::FlushAsync(System.Threading.CancellationToken)' $flush.Id 'Async state-machine mapping'
     Assert-Equal 3 $flush.Crap 'Async state-machine CRAP'
     $read = $functions | Where-Object Method -eq 'ReadAsync`1'
-    Assert-Equal 'TickDown.Services.SettingsService::ReadAsync`1(System.String)' $read.Id 'Generic async state-machine mapping'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::ReadAsync`1(System.String)' $read.Id 'Generic async state-machine mapping'
     $localStateMachine = $functions | Where-Object Method -eq '<Outer>g__Local|0_0'
-    Assert-Equal 'TickDown.Services.SettingsService::<Outer>g__Local|0_0()' $localStateMachine.Id 'Local-function state-machine mapping'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::<Outer>g__Local|0_0()' $localStateMachine.Id 'Local-function state-machine mapping'
     Assert-Equal 12 $localStateMachine.Crap 'Local-function state-machine aggregation'
     $callback = $functions | Where-Object Method -eq '<Save>b__1_0'
-    Assert-Equal 'TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
+    Assert-Equal '[Synthetic]TickDown.ViewModels.TimerViewModel/<>c::<Save>b__1_0(TickDown.ViewModels.TimerViewModel)' $callback.Id 'Generated callback retention'
     $iterator = $functions | Where-Object Method -eq 'History'
-    Assert-Equal 'TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
+    Assert-Equal '[Synthetic]TickDown.Core.Models.CountdownTimer::History()' $iterator.Id 'Iterator state-machine mapping'
     Assert-Equal 12 $iterator.Crap 'Iterator finally-helper aggregation'
     $generic = $functions | Where-Object Method -eq 'Generic`1'
-    Assert-Equal 'TickDown.Services.SettingsService::Generic`1(T)' $generic.Id 'Ordinary generic method arity'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::Generic`1(T)' $generic.Id 'Ordinary generic method arity'
     $mixed = @($functions | Where-Object Method -Like 'Mixed*')
-    Assert-Equal 'TickDown.Services.SettingsService::Mixed(System.Int32)' $mixed[0].Id 'Nongeneric shared-signature identity'
-    Assert-Equal 'TickDown.Services.SettingsService::Mixed`1(System.Int32)' $mixed[1].Id 'Generic shared-signature identity'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::Mixed(System.Int32)' $mixed[0].Id 'Nongeneric shared-signature identity'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::Mixed`1(System.Int32)' $mixed[1].Id 'Generic shared-signature identity'
     $module = Get-Module CoverageQuality
     $rankedArrayName = & $module { Format-CoverageTypeName ([int[,]]) }
     Assert-Equal 'System.Int32[,]' $rankedArrayName 'Multidimensional array rank formatting'
     $conversions = @($functions | Where-Object Method -eq 'op_Implicit')
-    Assert-Equal 'TickDown.Services.SettingsService::op_Implicit(System.String)->System.Int32' $conversions[0].Id 'First conversion return identity'
-    Assert-Equal 'TickDown.Services.SettingsService::op_Implicit(System.String)->System.Double' $conversions[1].Id 'Second conversion return identity'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::op_Implicit(System.String)->System.Int32' $conversions[0].Id 'First conversion return identity'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::op_Implicit(System.String)->System.Double' $conversions[1].Id 'Second conversion return identity'
     $checkedConversion = $functions | Where-Object Method -eq 'op_CheckedExplicit'
-    Assert-Equal 'TickDown.Services.SettingsService::op_CheckedExplicit(System.String)->System.Int64' $checkedConversion.Id 'Checked conversion return identity'
+    Assert-Equal '[Synthetic]TickDown.Services.SettingsService::op_CheckedExplicit(System.String)->System.Int64' $checkedConversion.Id 'Checked conversion return identity'
+    Assert-Equal 'Synthetic' $stop.Assembly 'Function assembly identity'
+
+    $multiAssemblyPath = Join-Path $temp 'multi-assembly.xml'
+    @'
+<coverage><packages>
+  <package name="Alpha"><classes><class name="Shared.Type" filename="D:/repo/src/Alpha.cs"><methods>
+    <method name="Run" signature="()" complexity="1"><lines><line number="1" hits="1" branch="False" /></lines></method>
+  </methods></class></classes></package>
+  <package name="Beta"><classes><class name="Shared.Type" filename="D:/repo/src/Beta.cs"><methods>
+    <method name="Run" signature="()" complexity="1"><lines><line number="1" hits="1" branch="False" /></lines></method>
+  </methods></class></classes></package>
+</packages></coverage>
+'@ | Set-Content $multiAssemblyPath -Encoding utf8
+    $multiAssemblyFunctions = @(Get-CoverageFunctions $multiAssemblyPath)
+    Assert-Equal 2 $multiAssemblyFunctions.Count 'Cross-assembly identity count'
+    Assert-Equal '[Alpha]Shared.Type::Run()' $multiAssemblyFunctions[0].Id 'First assembly-qualified identity'
+    Assert-Equal '[Beta]Shared.Type::Run()' $multiAssemblyFunctions[1].Id 'Second assembly-qualified identity'
 
     $healthy = @($functions | ForEach-Object {
         [pscustomobject]@{
@@ -154,13 +171,14 @@ try {
     })
     $baselinePath = Join-Path $temp 'baseline.json'
     Write-CoverageBaseline $healthy $baselinePath
+    Assert-Equal 3 ((Get-Content $baselinePath -Raw | ConvertFrom-Json).version) 'Assembly-qualified baseline version'
     $regressions = @(Test-CoverageBaseline $functions $baselinePath)
     Assert-Equal 4 $regressions.Count 'Uncovered branch regressions'
     $missingFunction = @($healthy | Where-Object Method -ne 'FlushAsync')
     Assert-Equal 1 (@(Test-CoverageBaseline $missingFunction $baselinePath)).Count 'Missing baseline function rejection'
 
     $newHigh = [pscustomobject]@{
-        Id = 'TickDown.Core.Models.NewRisk::Run()'; Class = 'NewRisk'; Method = 'Run'; Signature = '()'
+        Id = '[Synthetic]TickDown.Core.Models.NewRisk::Run()'; Assembly = 'Synthetic'; Class = 'NewRisk'; Method = 'Run'; Signature = '()'
         Source = 'src/TickDown.Core/Models/NewRisk.cs'; Complexity = 6; CoverageBasis = 'branch'; Coverage = 0; Crap = 42
     }
     $newHighFailures = @(Test-CoverageBaseline ($healthy + $newHigh) $baselinePath)
@@ -168,7 +186,7 @@ try {
     Assert-Equal 1 (@(Test-CoverageBaseline ($healthy + $newHigh) $baselinePath -AllowNewFunctions)).Count 'High-risk baseline update rejection'
 
     $newLow = $newHigh.PSObject.Copy()
-    $newLow.Id = 'TickDown.Core.Models.NewRisk::Safe()'
+    $newLow.Id = '[Synthetic]TickDown.Core.Models.NewRisk::Safe()'
     $newLow.Crap = 30
     Assert-Equal 1 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath)).Count 'New function inventory requirement'
     Assert-Equal 0 (@(Test-CoverageBaseline ($healthy + $newLow) $baselinePath -AllowNewFunctions)).Count 'Low-risk baseline update acceptance'
