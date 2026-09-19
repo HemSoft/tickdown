@@ -10,7 +10,9 @@ function Invoke-QualityCheck {
     )
 
     # Native exits are classified below, including npm's documented findings exit.
-    $PSNativeCommandUseErrorActionPreference = $false
+    $commandVariables = [System.Management.Automation.PSVariable[]]@(
+        [System.Management.Automation.PSVariable]::new('PSNativeCommandUseErrorActionPreference', $false)
+    )
     Write-Host "`nChecking $Name..."
     $exitCode = 0
     $status = 'Pass'
@@ -20,7 +22,7 @@ function Invoke-QualityCheck {
     try {
         $stderrPath = [IO.Path]::GetTempFileName()
         $global:LASTEXITCODE = 0
-        $output = (& $Command 2> $stderrPath | Out-String).Trim()
+        $output = ($Command.InvokeWithContext($null, $commandVariables, @()) 2> $stderrPath | Out-String).Trim()
         $exitCode = $LASTEXITCODE
         if ($InspectOutput -and ($exitCode -eq 0 -or $FindingExitCodes -contains $exitCode)) {
             if (& $InspectOutput $output) { $status = 'Findings' }
