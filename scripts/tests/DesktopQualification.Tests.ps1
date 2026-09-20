@@ -70,6 +70,8 @@ try {
     Assert-Equal $true $scriptText.Contains('$inputLatencies.Clear()') 'Measured input-latency boundary'
     Assert-Equal $true $scriptText.Contains('AlarmReplayRequests') 'Observed alarm replay'
     Assert-Equal $true $scriptText.Contains("AutomationId -ne 'RemoveTimerButton'") 'Expected keyboard tab target'
+    Assert-Equal 3 ([regex]::Matches($scriptText, 'Assert-NamedActionableControls \$window').Count) 'Dynamic accessible-name states'
+    Assert-Equal $true $scriptText.Contains("AppliedTheme -ne 'Dark'") 'Applied theme verification'
     Assert-Equal 2 ([regex]::Matches($scriptText, 'git -C \$root rev-parse HEAD').Count) 'Candidate revision revalidation'
     Assert-Equal 2 ([regex]::Matches($scriptText, 'git -C \$root status --porcelain').Count) 'Working-tree revalidation'
     Assert-Equal $true $scriptText.Contains('SetWindowPos') 'Deterministic display placement'

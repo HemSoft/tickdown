@@ -28,7 +28,10 @@ public sealed partial class MainPage : Page
         this.DataContext = this.ViewModel;
 
         this.SetupZoomAccelerators();
-        this.qualificationSnapshotWriter = QualificationSnapshotWriter.TryStart(this.ViewModel, () => this.RootScrollViewer.ZoomFactor);
+        this.qualificationSnapshotWriter = QualificationSnapshotWriter.TryStart(
+            this.ViewModel,
+            () => this.RootScrollViewer.ZoomFactor,
+            this.GetAppliedTheme);
         this.Unloaded += this.OnUnloaded;
     }
 
@@ -36,6 +39,8 @@ public sealed partial class MainPage : Page
     /// Gets the main view model.
     /// </summary>
     public MainViewModel ViewModel { get; }
+
+    private string GetAppliedTheme() => this.RootScrollViewer.ActualTheme.ToString();
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {

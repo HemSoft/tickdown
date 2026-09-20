@@ -16,15 +16,17 @@ internal sealed class QualificationSnapshotWriter : IDisposable
     private readonly string directory;
     private readonly MainViewModel viewModel;
     private readonly Func<double> getZoomFactor;
+    private readonly Func<string> getAppliedTheme;
     private readonly DispatcherQueueTimer timer;
     private long lastRequestId = -1;
     private bool isWriting;
 
-    private QualificationSnapshotWriter(string directory, MainViewModel viewModel, Func<double> getZoomFactor)
+    private QualificationSnapshotWriter(string directory, MainViewModel viewModel, Func<double> getZoomFactor, Func<string> getAppliedTheme)
     {
         this.directory = directory;
         this.viewModel = viewModel;
         this.getZoomFactor = getZoomFactor;
+        this.getAppliedTheme = getAppliedTheme;
         this.timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
         this.timer.Interval = TimeSpan.FromMilliseconds(200);
         this.timer.Tick += this.OnTimerTick;
@@ -45,8 +47,9 @@ internal sealed class QualificationSnapshotWriter : IDisposable
     /// </summary>
     /// <param name="viewModel">The main view model whose timer state is captured.</param>
     /// <param name="getZoomFactor">A callback that reads the current root zoom factor.</param>
+    /// <param name="getAppliedTheme">A callback that reads the theme applied to the root visual.</param>
     /// <returns>A running writer, or <see langword="null"/> when qualification is disabled.</returns>
-    internal static QualificationSnapshotWriter? TryStart(MainViewModel viewModel, Func<double> getZoomFactor)
+    internal static QualificationSnapshotWriter? TryStart(MainViewModel viewModel, Func<double> getZoomFactor, Func<string> getAppliedTheme)
     {
         string? directory = Environment.GetEnvironmentVariable("TICKDOWN_QUALIFICATION_DIRECTORY");
         QualificationDiagnostics.RefreshConfiguration();
@@ -56,7 +59,7 @@ internal sealed class QualificationSnapshotWriter : IDisposable
         }
 
         _ = Directory.CreateDirectory(directory);
-        return new QualificationSnapshotWriter(Path.GetFullPath(directory), viewModel, getZoomFactor);
+        return new QualificationSnapshotWriter(Path.GetFullPath(directory), viewModel, getZoomFactor, getAppliedTheme);
     }
 
     private async void OnTimerTick(DispatcherQueueTimer sender, object args)
@@ -106,6 +109,7 @@ internal sealed class QualificationSnapshotWriter : IDisposable
             RunningTimerCount = this.viewModel.Timers.Count(timer => timer.IsRunning),
             CompletedTimerCount = this.viewModel.Timers.Count(timer => timer.IsCompleted),
             CurrentTheme = this.viewModel.CurrentTheme,
+            AppliedTheme = this.getAppliedTheme(),
             ZoomFactor = this.getZoomFactor(),
             Runtime = runtime,
         };

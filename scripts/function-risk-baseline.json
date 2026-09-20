@@ -1508,6 +1508,13 @@
       "coverageBasis": "line",
       "source": "src/Diagnostics/QualificationRequest.cs"
     },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_AppliedTheme()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
     "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_Candidate()": {
       "crap": 2.0,
       "complexity": 1.0,
@@ -1634,7 +1641,7 @@
       "coverageBasis": "line",
       "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
     },
-    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::.ctor(System.String,TickDown.ViewModels.MainViewModel,System.Func`1<System.Double>)": {
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::.ctor(System.String,TickDown.ViewModels.MainViewModel,System.Func`1<System.Double>,System.Func`1<System.String>)": {
       "crap": 2.0,
       "complexity": 1.0,
       "coverage": 0.0,
@@ -1683,7 +1690,7 @@
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
     },
-    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::TryStart(TickDown.ViewModels.MainViewModel,System.Func`1<System.Double>)": {
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::TryStart(TickDown.ViewModels.MainViewModel,System.Func`1<System.Double>,System.Func`1<System.String>)": {
       "crap": 20.0,
       "complexity": 4.0,
       "coverage": 0.0,
@@ -1852,6 +1859,13 @@
       "source": "src/Views/MainPage.xaml.cs"
     },
     "[TickDown]TickDown.Views.MainPage::get_ViewModel()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::GetAppliedTheme()": {
       "crap": 2.0,
       "complexity": 1.0,
       "coverage": 0.0,

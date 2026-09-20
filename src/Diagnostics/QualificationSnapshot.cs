@@ -38,7 +38,7 @@ internal sealed class QualificationSnapshot
     public long TotalAvailableMemoryBytes { get; init; }
 
     /// <summary>
-    /// Gets the managed heap size reported by the most recent runtime collection.
+    /// Gets the current managed-memory estimate.
     /// </summary>
     public long ManagedHeapBytes { get; init; }
 
@@ -81,6 +81,11 @@ internal sealed class QualificationSnapshot
     /// Gets the selected application theme.
     /// </summary>
     public string CurrentTheme { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the theme applied to the root visual.
+    /// </summary>
+    public string AppliedTheme { get; init; } = string.Empty;
 
     /// <summary>
     /// Gets the root scroll viewer zoom factor.

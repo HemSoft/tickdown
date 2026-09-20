@@ -114,6 +114,23 @@ function Get-NameEditors($Window) {
     @(Get-ElementsByAutomationId $Window 'TimerNameEditor')
 }
 
+function Assert-NamedActionableControls($Window, [string]$State) {
+    $actionableTypes = [System.Windows.Automation.ControlType[]]@(
+        [System.Windows.Automation.ControlType]::Button,
+        [System.Windows.Automation.ControlType]::Edit,
+        [System.Windows.Automation.ControlType]::ComboBox,
+        [System.Windows.Automation.ControlType]::CheckBox
+    )
+    $unnamed = @()
+    foreach ($type in $actionableTypes) {
+        $unnamed += @(Get-ElementsByType $Window $type | Where-Object { $_.Current.IsEnabled -and [string]::IsNullOrWhiteSpace($_.Current.Name) })
+    }
+    if ($unnamed.Count -gt 0) {
+        $unnamedDetails = @($unnamed | ForEach-Object { "$($_.Current.ControlType.ProgrammaticName)/$($_.Current.AutomationId)" }) -join ', '
+        throw "$State has $($unnamed.Count) enabled actionable controls with no accessible name: $unnamedDetails"
+    }
+}
+
 function Request-Snapshot([long]$RequestId, [switch]$ResetLatencyWindow) {
     $requestPath = Join-Path $probe 'request.json'
     $temporaryPath = $requestPath + '.tmp'
@@ -275,30 +292,19 @@ try {
     $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
     if ($null -eq $focused -or $focused.Current.AutomationId -ne 'RemoveTimerButton') { throw 'Keyboard tab navigation did not reach the expected remove control.' }
 
-    $actionableTypes = [System.Windows.Automation.ControlType[]]@(
-        [System.Windows.Automation.ControlType]::Button,
-        [System.Windows.Automation.ControlType]::Edit,
-        [System.Windows.Automation.ControlType]::ComboBox,
-        [System.Windows.Automation.ControlType]::CheckBox
-    )
-    $unnamed = @()
-    foreach ($type in $actionableTypes) {
-        $unnamed += @(Get-ElementsByType $window $type | Where-Object { $_.Current.IsEnabled -and [string]::IsNullOrWhiteSpace($_.Current.Name) })
-    }
-    if ($unnamed.Count -gt 0) {
-        $unnamedDetails = @($unnamed | ForEach-Object { "$($_.Current.ControlType.ProgrammaticName)/$($_.Current.AutomationId)" }) -join ', '
-        throw "$($unnamed.Count) enabled actionable controls have no accessible name: $unnamedDetails"
-    }
+    Assert-NamedActionableControls $window 'Stopped state'
 
     Capture-Window $window 'journey-light'
     Invoke-LastByAutomationId $window 'StartTimerButton'
     Start-Sleep -Milliseconds 500
+    Assert-NamedActionableControls $window 'Running state'
     Invoke-LastByAutomationId $window 'PauseTimerButton'
     $pausedValue = Get-ElementValue (@(Get-TimeEditors $window)[0])
     Start-Sleep -Milliseconds 600
     if ((Get-ElementValue (@(Get-TimeEditors $window)[0])) -ne $pausedValue) { throw 'Paused display continued to change.' }
     Invoke-LastByAutomationId $window 'StartTimerButton'
     Wait-Until { (Get-ElementsByAutomationId $window 'DismissTimerButton').Count -eq 1 } 5 'Recovered timer did not complete.'
+    Assert-NamedActionableControls $window 'Completed state'
     $alarmSnapshot = Request-Snapshot (++$requestId)
     if ($alarmSnapshot.Runtime.ActiveAlarmRepeatTimers -ne 1 -or $alarmSnapshot.Runtime.ActiveMediaPlayers -ne 1) { throw 'Alarm repeat and native playback were not active after completion.' }
     Start-Sleep -Milliseconds 5200
@@ -313,8 +319,12 @@ try {
     Invoke-LastByAutomationId $window 'RemoveTimerButton'
 
     Select-Theme $window 'Dark'
+    $darkThemeSnapshot = Request-Snapshot (++$requestId)
+    if ($darkThemeSnapshot.CurrentTheme -ne 'Dark' -or $darkThemeSnapshot.AppliedTheme -ne 'Dark') { throw 'Dark theme was not selected and applied to the root visual.' }
     Capture-Window $window 'journey-dark'
     Select-Theme $window 'Light'
+    $lightThemeSnapshot = Request-Snapshot (++$requestId)
+    if ($lightThemeSnapshot.CurrentTheme -ne 'Light' -or $lightThemeSnapshot.AppliedTheme -ne 'Light') { throw 'Light theme was not selected and applied to the root visual.' }
     $window.SetFocus()
     Start-Sleep -Milliseconds 100
     [System.Windows.Forms.SendKeys]::SendWait('^=')
