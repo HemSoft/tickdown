@@ -1704,6 +1704,13 @@
       "coverageBasis": "line",
       "source": "src/Services/AudioService.cs"
     },
+    "[TickDown]TickDown.Services.AudioService::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
     "[TickDown]TickDown.Services.AudioService::Dispose()": {
       "crap": 6.0,
       "complexity": 2.0,

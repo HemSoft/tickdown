@@ -63,6 +63,8 @@ try {
     $scriptText = Get-Content (Join-Path $root 'scripts/desktop-qualification.ps1') -Raw
     Assert-Equal $true $scriptText.StartsWith('#Requires -Version 7.4') 'Start-Process environment version requirement'
     Assert-Equal $false $scriptText.Contains('RedirectStandardError = $true') 'Nonblocking ffmpeg diagnostics'
+    Assert-Equal $true ($scriptText.IndexOf('if (!$Recorder.HasExited)', [StringComparison]::Ordinal) -lt $scriptText.IndexOf("StandardInput.WriteLine('q')", [StringComparison]::Ordinal)) 'Exited recorder guard'
+    Assert-Equal $true ($scriptText -match 'finally\s*\{\s*if \(\$null -ne \$app') 'Recorder-independent app cleanup'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_SETTINGS_DIRECTORY') 'Isolated settings launch'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_QUALIFICATION_CANDIDATE') 'Candidate-bound launch'
     Assert-Equal $true $scriptText.Contains('$inputLatencies.Clear()') 'Measured input-latency boundary'
@@ -93,6 +95,7 @@ try {
     $reportMarkdown = Get-Content (Join-Path $reportPath 'qualification-result.md') -Raw
     Assert-Equal $true $reportMarkdown.Contains('| minimumDisplayedTicks | 110 | 84 |') 'Throughput report value'
     Assert-Equal $true ((Get-Content (Join-Path $root 'src/Diagnostics/QualificationSnapshotWriter.cs') -Raw).Contains('GC.GetTotalMemory(forceFullCollection: false)')) 'Current managed-memory measurement'
+    Assert-Equal $true ((Get-Content (Join-Path $root 'src/Services/AudioService.cs') -Raw).Contains('lock (this.playbackSync)')) 'Serialized playback ownership'
     "Passed $passed desktop-qualification assertions."
 }
 finally {

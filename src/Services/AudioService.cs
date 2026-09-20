@@ -46,6 +46,7 @@ public sealed class AudioService : IAudioService, IDisposable
         ["Windows Notify Email"] = "Windows Notify Email.wav",
     };
 
+    private readonly object playbackSync = new();
     private MediaPlayer? mediaPlayer;
     private object? playbackOwner;
     private bool disposed;
@@ -68,34 +69,43 @@ public sealed class AudioService : IAudioService, IDisposable
             return;
         }
 
-        this.StopCurrentPlayback();
-
-        this.mediaPlayer = new MediaPlayer
+        lock (this.playbackSync)
         {
-            Source = MediaSource.CreateFromUri(new Uri(filePath)),
-            AutoPlay = true,
-        };
-        this.playbackOwner = owner;
-        QualificationDiagnostics.SetMediaPlayerActive(true);
+            ObjectDisposedException.ThrowIf(this.disposed, this);
+            this.StopCurrentPlayback();
+            this.mediaPlayer = new MediaPlayer
+            {
+                Source = MediaSource.CreateFromUri(new Uri(filePath)),
+                AutoPlay = true,
+            };
+            this.playbackOwner = owner;
+            QualificationDiagnostics.SetMediaPlayerActive(true);
+        }
     }
 
     /// <inheritdoc/>
     public void StopSound(object owner)
     {
         ArgumentNullException.ThrowIfNull(owner);
-        if (ReferenceEquals(this.playbackOwner, owner))
+        lock (this.playbackSync)
         {
-            this.StopCurrentPlayback();
+            if (ReferenceEquals(this.playbackOwner, owner))
+            {
+                this.StopCurrentPlayback();
+            }
         }
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (!this.disposed)
+        lock (this.playbackSync)
         {
-            this.StopCurrentPlayback();
-            this.disposed = true;
+            if (!this.disposed)
+            {
+                this.StopCurrentPlayback();
+                this.disposed = true;
+            }
         }
     }
 

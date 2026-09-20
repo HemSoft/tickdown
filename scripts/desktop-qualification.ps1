@@ -162,9 +162,18 @@ function Start-EvidenceRecording {
 
 function Stop-EvidenceRecording($Recorder) {
     if ($null -eq $Recorder) { return }
-    $Recorder.StandardInput.WriteLine('q')
-    if (!$Recorder.WaitForExit(15000)) { $Recorder.Kill($true) }
-    $Recorder.Dispose()
+    try {
+        if (!$Recorder.HasExited) {
+            try { $Recorder.StandardInput.WriteLine('q') } catch { $null = $_ }
+            if (!$Recorder.HasExited -and !$Recorder.WaitForExit(15000)) {
+                try { $Recorder.Kill($true) } catch { $null = $_ }
+            }
+        }
+    }
+    catch { $null = $_ }
+    finally {
+        try { $Recorder.Dispose() } catch { $null = $_ }
+    }
 }
 
 function Add-OneSecondTimer($Window, [string]$Name, [Collections.Generic.List[double]]$InputLatencies) {
@@ -384,10 +393,14 @@ try {
     "Artifacts: $runDirectory"
 }
 finally {
-    Stop-EvidenceRecording $recorder
-    if ($null -ne $app -and !$app.HasExited) {
-        $null = $app.CloseMainWindow()
-        if (!$app.WaitForExit(10000)) { $app.Kill($true) }
+    try {
+        Stop-EvidenceRecording $recorder
     }
-    if ($null -ne $app) { $app.Dispose() }
+    finally {
+        if ($null -ne $app -and !$app.HasExited) {
+            $null = $app.CloseMainWindow()
+            if (!$app.WaitForExit(10000)) { $app.Kill($true) }
+        }
+        if ($null -ne $app) { $app.Dispose() }
+    }
 }
