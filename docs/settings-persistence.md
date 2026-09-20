@@ -25,8 +25,15 @@ session. A save failure leaves the prior committed data available. After fixing
 the access problem, edit the affected setting again to retry its current snapshot.
 The banner remains as a record until restart.
 
-Closing disables input, saves geometry, and waits for the queue to drain. An
-unresolved write failure cancels closing instead of silently discarding work.
+Closing disables input, saves the latest normal window geometry, and waits for
+the queue to drain. The next launch activates the native window before applying
+that geometry so Windows uses the same visible frame coordinates. Settings that
+contain only theme defaults leave first-run placement to Windows. If the saved
+display is unavailable or too little of the caption remains usable, TickDown fits
+the window into the nearest work area. Maximized shutdown preserves the last
+normal bounds and restores maximized state.
+
+An unresolved write failure cancels closing instead of silently discarding work.
 A successful retry of the affected file clears its unresolved write failure.
 Theme changes enqueue their snapshots before yielding, so the shutdown flush
 includes them. Preserving the selected theme in the geometry snapshot is separate

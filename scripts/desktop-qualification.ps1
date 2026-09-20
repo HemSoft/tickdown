@@ -261,7 +261,7 @@ $timerData = @(
 ) | ConvertTo-Json -Depth 5 -AsArray
 Set-Content (Join-Path $profile 'timers.json') '{ invalid recovery candidate' -Encoding utf8
 Set-Content (Join-Path $profile 'timers.json.bak') $timerData -Encoding utf8
-[ordered]@{ X = 3520; Y = 100; Width = 900; Height = 720; Theme = 'Light'; IsMaximized = $false } |
+[ordered]@{ X = 3520; Y = 100; Width = 900; Height = 720; IsPositionSet = $true; Theme = 'Light'; IsMaximized = $false } |
     ConvertTo-Json | Set-Content (Join-Path $profile 'window.json') -Encoding utf8
 
 $buildOutput = (& dotnet build (Join-Path $root 'src/TickDown.csproj') -c Release --no-restore -p:Platform=x64 2>&1 | Out-String).Trim()

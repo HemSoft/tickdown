@@ -2,11 +2,16 @@
 
 namespace TickDown.Core.Models;
 
+using System.Text.Json.Serialization;
+
 /// <summary>
 /// Represents the window position and size settings.
 /// </summary>
 public class WindowSettings
 {
+    private const int DefaultWidth = 400;
+    private const int DefaultHeight = 300;
+
     /// <summary>
     /// Gets or sets the X position of the window.
     /// </summary>
@@ -20,17 +25,29 @@ public class WindowSettings
     /// <summary>
     /// Gets or sets the width of the window.
     /// </summary>
-    public int Width { get; set; } = 400;
+    public int Width { get; set; } = DefaultWidth;
 
     /// <summary>
     /// Gets or sets the height of the window.
     /// </summary>
-    public int Height { get; set; } = 300;
+    public int Height { get; set; } = DefaultHeight;
 
     /// <summary>
     /// Gets or sets a value indicating whether the window position has been set.
     /// </summary>
     public bool IsPositionSet { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether settings contain a placement that should be restored.
+    /// Nondefault geometry migrates settings written before <see cref="IsPositionSet"/> was maintained.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasSavedPlacement =>
+        this.IsPositionSet ||
+        this.X != 0 ||
+        this.Y != 0 ||
+        this.Width != DefaultWidth ||
+        this.Height != DefaultHeight;
 
     /// <summary>
     /// Gets or sets a value indicating whether the window is maximized.
@@ -56,6 +73,7 @@ public class WindowSettings
         this.IsMaximized = isMaximized;
         if (!isMaximized)
         {
+            this.IsPositionSet = true;
             this.X = x;
             this.Y = y;
             this.Width = width;

@@ -18,7 +18,6 @@ public class WindowSettingsTests
         WindowSettings settings = new()
         {
             Theme = "Dark",
-            IsPositionSet = true,
             X = 10,
             Y = 20,
             Width = 300,
@@ -30,6 +29,54 @@ public class WindowSettingsTests
         Assert.True(settings.IsPositionSet);
         Assert.False(settings.IsMaximized);
         Assert.Equal((100, 200, 800, 600), (settings.X, settings.Y, settings.Width, settings.Height));
+    }
+
+    /// <summary>
+    /// Verifies untouched defaults do not override Windows first-run placement.
+    /// </summary>
+    [Fact]
+    public void DefaultSettingsHaveNoSavedPlacement()
+    {
+        WindowSettings settings = new();
+        Assert.False(settings.HasSavedPlacement);
+    }
+
+    /// <summary>
+    /// Verifies maximized state remains independent from the availability of normal geometry.
+    /// </summary>
+    [Fact]
+    public void MaximizedDefaultsHaveNoSavedNormalPlacement()
+    {
+        WindowSettings settings = new();
+        settings.UpdateWindowState(true, 0, 0, 1920, 1080);
+        Assert.True(settings.IsMaximized);
+        Assert.False(settings.HasSavedPlacement);
+    }
+
+    /// <summary>
+    /// Verifies geometry written before the position flag was maintained remains restorable.
+    /// </summary>
+    [Fact]
+    public void LegacyGeometryHasSavedPlacement()
+    {
+        WindowSettings settings = new()
+        {
+            X = 120,
+            Y = 80,
+            Width = 900,
+            Height = 700,
+        };
+        Assert.True(settings.HasSavedPlacement);
+    }
+
+    /// <summary>
+    /// Verifies an explicit saved position remains valid even when it matches model defaults.
+    /// </summary>
+    [Fact]
+    public void ExplicitDefaultGeometryHasSavedPlacement()
+    {
+        WindowSettings settings = new() { IsPositionSet = true };
+        Assert.True(settings.HasSavedPlacement);
     }
 
     /// <summary>

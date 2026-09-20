@@ -69,23 +69,60 @@ public partial class App : Application
 
         ISettingsService settingsService = Services.GetRequiredService<ISettingsService>();
         WindowSettings? settings = await LoadWindowSettingsObservedAsync(settingsService);
-        if (settings is not null)
-        {
-            AppWindow appWindow = this.window.AppWindow;
-            appWindow.MoveAndResize(new RectInt32(settings.X, settings.Y, settings.Width, settings.Height));
-
-            if (settings.IsMaximized)
-            {
-                ((OverlappedPresenter)appWindow.Presenter).Maximize();
-            }
-        }
 
         // Initialize theme after window is set up
         IThemeService themeService = Services.GetRequiredService<IThemeService>();
         await themeService.InitializeAsync();
 
         this.window.Activate();
+        nint windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this.window);
+        RestoreWindowPlacement(this.window.AppWindow, windowHandle, settings);
         this.window.AppWindow.Closing += this.OnAppWindowClosing;
+    }
+
+    private static void RestoreWindowPlacement(AppWindow appWindow, nint windowHandle, WindowSettings? settings)
+    {
+        if (settings is null)
+        {
+            return;
+        }
+
+        if (settings.HasSavedPlacement)
+        {
+            RestoreNormalBounds(windowHandle, settings);
+        }
+
+        RestoreMaximizedState(appWindow, settings);
+    }
+
+    private static void RestoreNormalBounds(nint windowHandle, WindowSettings settings)
+    {
+        RectInt32 savedBounds = new(settings.X, settings.Y, settings.Width, settings.Height);
+        DisplayArea? displayArea = DisplayArea.GetFromRect(savedBounds, DisplayAreaFallback.Nearest);
+        if (displayArea is null)
+        {
+            return;
+        }
+
+        WindowBounds? restoredBounds = WindowPlacement.ResolveVisibleBounds(
+            new WindowBounds(settings.X, settings.Y, settings.Width, settings.Height),
+            new WindowBounds(
+                displayArea.WorkArea.X,
+                displayArea.WorkArea.Y,
+                displayArea.WorkArea.Width,
+                displayArea.WorkArea.Height));
+        if (restoredBounds is WindowBounds bounds)
+        {
+            NativeWindowPlacement.MoveAndResize(windowHandle, bounds);
+        }
+    }
+
+    private static void RestoreMaximizedState(AppWindow appWindow, WindowSettings settings)
+    {
+        if (settings.IsMaximized)
+        {
+            ((OverlappedPresenter)appWindow.Presenter).Maximize();
+        }
     }
 
     private static void OnNavigationFailed(object sender, NavigationFailedEventArgs e) =>
@@ -133,12 +170,14 @@ public partial class App : Application
                 Width = 800,
                 Height = 600,
             };
+            nint windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this.window);
+            WindowBounds currentBounds = NativeWindowPlacement.GetBounds(windowHandle);
             settings.UpdateWindowState(
                 isMaximized,
-                appWindow.Position.X,
-                appWindow.Position.Y,
-                appWindow.Size.Width,
-                appWindow.Size.Height);
+                currentBounds.X,
+                currentBounds.Y,
+                currentBounds.Width,
+                currentBounds.Height);
 
             await settingsService.SaveWindowSettingsAsync(settings);
             await settingsService.FlushAsync();
