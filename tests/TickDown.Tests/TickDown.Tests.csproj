@@ -39,6 +39,7 @@
     <Compile Include="..\..\src\Diagnostics\QualificationDiagnostics.cs" Link="Production\QualificationDiagnostics.cs" />
     <Compile Include="..\..\src\Diagnostics\QualificationRuntimeMetrics.cs" Link="Production\QualificationRuntimeMetrics.cs" />
     <Compile Include="..\..\src\Diagnostics\QualificationTick.cs" Link="Production\QualificationTick.cs" />
+    <Compile Include="..\..\src\NativeWindowPlacement.cs" Link="Production\NativeWindowPlacement.cs" />
   </ItemGroup>
 
 </Project>

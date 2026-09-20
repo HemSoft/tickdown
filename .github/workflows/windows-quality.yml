@@ -62,6 +62,9 @@ jobs:
       - name: Test desktop qualification policy
         shell: pwsh
         run: pwsh -NoProfile -File scripts/tests/DesktopQualification.Tests.ps1
+      - name: Test local launch policy
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/tests/RunApp.Tests.ps1
       - name: Run repository quality policy
         shell: pwsh
         run: pwsh -NoProfile -File scripts/check-quality.ps1
