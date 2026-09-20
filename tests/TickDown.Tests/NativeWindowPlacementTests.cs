@@ -48,15 +48,17 @@ public class NativeWindowPlacementTests
                 return true;
             });
 
-        Assert.Equal(2, calls.Count);
-        Assert.Equal((workAreaX, workAreaY, 640, 480), (calls[0].X, calls[0].Y, calls[0].Width, calls[0].Height));
-        Assert.Equal((x, y, width, height), (calls[1].X, calls[1].Y, calls[1].Width, calls[1].Height));
-        Assert.Equal(0U, calls[0].Flags & 0x0001U);
-        Assert.Equal(0U, calls[1].Flags & 0x0001U);
+        Assert.Equal(3, calls.Count);
+        Assert.Equal((0, 0, 640, 480), (calls[0].X, calls[0].Y, calls[0].Width, calls[0].Height));
+        Assert.Equal((workAreaX, workAreaY, 640, 480), (calls[1].X, calls[1].Y, calls[1].Width, calls[1].Height));
+        Assert.Equal((x, y, width, height), (calls[2].X, calls[2].Y, calls[2].Width, calls[2].Height));
+        Assert.NotEqual(0U, calls[0].Flags & 0x0002U);
+        Assert.NotEqual(0U, calls[1].Flags & 0x0001U);
+        Assert.Equal(0U, calls[2].Flags & 0x0003U);
     }
 
     /// <summary>
-    /// Verifies restoration stops if the target-display move fails.
+    /// Verifies restoration stops if target-display preparation fails.
     /// </summary>
     [Fact]
     public void MoveAndResizeStopsAfterMoveFailure()
@@ -88,8 +90,8 @@ public class NativeWindowPlacementTests
             42,
             new WindowBounds(100, 200, 800, 600),
             new WindowBounds(0, 0, 1920, 1040),
-            (_, _, _, _, _, _, _) => ++calls == 1));
+            (_, _, _, _, _, _, _) => ++calls <= 2));
 
-        Assert.Equal(2, calls);
+        Assert.Equal(3, calls);
     }
 }

@@ -12,6 +12,8 @@ using global::TickDown.Core.Models;
 internal static class NativeWindowPlacement
 {
     private const uint NoActivate = 0x0010;
+    private const uint NoMove = 0x0002;
+    private const uint NoSize = 0x0001;
     private const uint NoZOrder = 0x0004;
 
     /// <summary>
@@ -73,21 +75,19 @@ internal static class NativeWindowPlacement
         WindowBounds targetWorkArea,
         SetWindowPosition setWindowPosition)
     {
-        WindowBounds targetDisplayAnchor = new(
-            targetWorkArea.X,
-            targetWorkArea.Y,
-            Math.Max(1, Math.Min(640, targetWorkArea.Width)),
-            Math.Max(1, Math.Min(480, targetWorkArea.Height)));
+        int anchorWidth = Math.Max(1, Math.Min(640, targetWorkArea.Width));
+        int anchorHeight = Math.Max(1, Math.Min(480, targetWorkArea.Height));
         SetWindowBounds(
             windowHandle,
-            targetDisplayAnchor,
-            NoActivate | NoZOrder,
+            new WindowBounds(0, 0, anchorWidth, anchorHeight),
+            NoActivate | NoMove | NoZOrder,
             setWindowPosition);
         SetWindowBounds(
             windowHandle,
-            bounds,
-            NoActivate | NoZOrder,
+            new WindowBounds(targetWorkArea.X, targetWorkArea.Y, anchorWidth, anchorHeight),
+            NoActivate | NoSize | NoZOrder,
             setWindowPosition);
+        SetWindowBounds(windowHandle, bounds, NoActivate | NoZOrder, setWindowPosition);
     }
 
     private static void SetWindowBounds(
