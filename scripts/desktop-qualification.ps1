@@ -178,19 +178,31 @@ function Start-EvidenceRecording {
 }
 
 function Stop-EvidenceRecording($Recorder) {
-    if ($null -eq $Recorder) { return }
+    if ($null -eq $Recorder) { return $null }
+    $failure = $null
     try {
         if (!$Recorder.HasExited) {
             try { $Recorder.StandardInput.WriteLine('q') } catch { $null = $_ }
             if (!$Recorder.HasExited -and !$Recorder.WaitForExit(15000)) {
                 try { $Recorder.Kill($true) } catch { $null = $_ }
+                $failure = 'Evidence recorder did not stop within 15 seconds.'
             }
         }
+        if ($Recorder.HasExited -and $Recorder.ExitCode -ne 0 -and $null -eq $failure) {
+            $failure = "Evidence recorder exited with code $($Recorder.ExitCode)."
+        }
+        $recordingPath = Join-Path $runDirectory 'interaction.mp4'
+        if ($null -eq $failure -and (!(Test-Path $recordingPath -PathType Leaf) -or (Get-Item $recordingPath).Length -lt 1024)) {
+            $failure = 'Evidence recorder did not produce a usable interaction.mp4.'
+        }
     }
-    catch { $null = $_ }
+    catch {
+        $failure = "Evidence recorder cleanup failed: $($_.Exception.Message)"
+    }
     finally {
-        try { $Recorder.Dispose() } catch { $null = $_ }
+        try { $Recorder.Dispose() } catch { if ($null -eq $failure) { $failure = "Evidence recorder disposal failed: $($_.Exception.Message)" } }
     }
+    return $failure
 }
 
 function Add-OneSecondTimer($Window, [string]$Name, [Collections.Generic.List[double]]$InputLatencies) {
@@ -265,6 +277,7 @@ $inputLatencies = [Collections.Generic.List[double]]::new()
 $requestId = 0L
 $app = $null
 $recorder = $null
+$recorderFailure = $null
 try {
     $app = Start-Process $appExecutable -Environment @{
         TICKDOWN_SETTINGS_DIRECTORY = $profile
@@ -399,12 +412,10 @@ try {
     }
     Write-DesktopQualificationReport $result $runDirectory
     if (!$evaluation.Passed) { throw "Desktop qualification failed:`n- $($evaluation.Failures -join "`n- ")" }
-    "Desktop qualification passed for $candidate ($Mode/$RunLabel) in $($result.ElapsedSeconds) seconds."
-    "Artifacts: $runDirectory"
 }
 finally {
     try {
-        Stop-EvidenceRecording $recorder
+        $recorderFailure = Stop-EvidenceRecording $recorder
     }
     finally {
         if ($null -ne $app -and !$app.HasExited) {
@@ -414,3 +425,6 @@ finally {
         if ($null -ne $app) { $app.Dispose() }
     }
 }
+if ($recorderFailure) { throw $recorderFailure }
+"Desktop qualification passed for $candidate ($Mode/$RunLabel) in $($result.ElapsedSeconds) seconds."
+"Artifacts: $runDirectory"

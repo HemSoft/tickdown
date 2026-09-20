@@ -65,6 +65,8 @@ try {
     Assert-Equal $false $scriptText.Contains('RedirectStandardError = $true') 'Nonblocking ffmpeg diagnostics'
     Assert-Equal $true ($scriptText.IndexOf('if (!$Recorder.HasExited)', [StringComparison]::Ordinal) -lt $scriptText.IndexOf("StandardInput.WriteLine('q')", [StringComparison]::Ordinal)) 'Exited recorder guard'
     Assert-Equal $true ($scriptText -match 'finally\s*\{\s*if \(\$null -ne \$app') 'Recorder-independent app cleanup'
+    Assert-Equal $true $scriptText.Contains('$Recorder.ExitCode -ne 0') 'Recorder exit validation'
+    Assert-Equal $true $scriptText.Contains("Length -lt 1024") 'Recording artifact validation'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_SETTINGS_DIRECTORY') 'Isolated settings launch'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_QUALIFICATION_CANDIDATE') 'Candidate-bound launch'
     Assert-Equal $true $scriptText.Contains('$inputLatencies.Clear()') 'Measured input-latency boundary'
