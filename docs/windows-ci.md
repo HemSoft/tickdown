@@ -8,8 +8,10 @@ Every third-party action uses a full commit SHA.
 ## Jobs
 
 `Quality policy` performs locked restore, installs the locked npm tools, tests
-the quality, dependency, style, coverage, mutation and required-job policies,
-then runs the complete repository quality policy. That policy checks style,
+the quality, dependency, style, coverage, mutation, desktop qualification and
+required-job policies, then runs the complete repository quality policy. The
+desktop policy assertions inspect the qualification runner and thresholds; the
+workflow does not launch or automate the desktop application. That policy checks style,
 whitespace, analyzers, direct and transitive NuGet vulnerabilities, outdated
 NuGet packages, Markdown and npm vulnerabilities.
 
