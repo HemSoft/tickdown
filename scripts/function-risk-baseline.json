@@ -17,6 +17,7 @@
     "src/Diagnostics/QualificationSnapshot.cs",
     "src/Diagnostics/QualificationSnapshotWriter.cs",
     "src/Diagnostics/QualificationTick.cs",
+    "src/NativeWindowPlacement.cs",
     "src/Services/AudioService.cs",
     "src/Services/ServiceCollectionExtensions.cs",
     "src/Services/SettingsService.cs",
@@ -24,6 +25,8 @@
     "src/Services/TimerService.cs",
     "src/TickDown.Core/Models/CompletionColorPalette.cs",
     "src/TickDown.Core/Models/CountdownTimer.cs",
+    "src/TickDown.Core/Models/WindowBounds.cs",
+    "src/TickDown.Core/Models/WindowPlacement.cs",
     "src/TickDown.Core/Models/WindowSettings.cs",
     "src/TickDown.Core/Services/SettingsFailureEventArgs.cs",
     "src/ViewModels/MainViewModel.cs",
@@ -262,6 +265,69 @@
       "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/TickDown.Core/Models/CountdownTimer.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowBounds::.ctor(System.Int32,System.Int32,System.Int32,System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowBounds.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowBounds::get_Height()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowBounds.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowBounds::get_Width()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowBounds.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowBounds::get_X()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowBounds.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowBounds::get_Y()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowBounds.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::HasArea(TickDown.Core.Models.WindowBounds)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/WindowPlacement.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::Intersects(TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
+      "crap": 6.0,
+      "complexity": 6.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/WindowPlacement.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::ResolveVisibleBounds(TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
+      "crap": 6.0,
+      "complexity": 6.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/WindowPlacement.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_HasSavedPlacement()": {
+      "crap": 8.0,
+      "complexity": 8.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/WindowSettings.cs"
     },
     "[TickDown.Core]TickDown.Core.Models.WindowSettings::get_Height()": {
       "crap": 1.0,
@@ -1524,8 +1590,8 @@
       "source": "src/App.xaml.cs"
     },
     "[TickDown]TickDown.App::OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs)": {
-      "crap": 72.0,
-      "complexity": 8.0,
+      "crap": 20.0,
+      "complexity": 4.0,
       "coverage": 0.0,
       "coverageBasis": "branch+line",
       "source": "src/App.xaml.cs"
@@ -1535,6 +1601,27 @@
       "complexity": 1.0,
       "coverage": 0.0,
       "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::RestoreMaximizedState(Microsoft.UI.Windowing.AppWindow,TickDown.Core.Models.WindowSettings)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::RestoreNormalBounds(System.IntPtr,TickDown.Core.Models.WindowSettings)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::RestoreWindowPlacement(Microsoft.UI.Windowing.AppWindow,System.IntPtr,TickDown.Core.Models.WindowSettings)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
       "source": "src/App.xaml.cs"
     },
     "[TickDown]TickDown.Converters.BoolToVisibilityConverter::Convert(System.Object,System.Type,System.Object,System.String)": {
@@ -1760,6 +1847,20 @@
       "coverage": 0.0,
       "coverageBasis": "line",
       "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.NativeWindowPlacement::GetBounds(System.IntPtr)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/NativeWindowPlacement.cs"
+    },
+    "[TickDown]TickDown.NativeWindowPlacement::MoveAndResize(System.IntPtr,TickDown.Core.Models.WindowBounds)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/NativeWindowPlacement.cs"
     },
     "[TickDown]TickDown.Services.AudioService::.cctor()": {
       "crap": 2.0,
