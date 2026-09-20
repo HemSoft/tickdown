@@ -63,6 +63,8 @@ try {
     $scriptText = Get-Content (Join-Path $root 'scripts/desktop-qualification.ps1') -Raw
     Assert-Equal $true $scriptText.Contains('TICKDOWN_SETTINGS_DIRECTORY') 'Isolated settings launch'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_QUALIFICATION_CANDIDATE') 'Candidate-bound launch'
+    Assert-Equal 2 ([regex]::Matches($scriptText, 'git -C \$root rev-parse HEAD').Count) 'Candidate revision revalidation'
+    Assert-Equal 2 ([regex]::Matches($scriptText, 'git -C \$root status --porcelain').Count) 'Working-tree revalidation'
     Assert-Equal $true $scriptText.Contains('SetWindowPos') 'Deterministic display placement'
     Assert-Equal $true $scriptText.Contains('SystemInformation]::HighContrast') 'High-contrast state capture'
     Assert-Equal $true $scriptText.Contains('interaction.mp4') 'Bounded screen recording'
@@ -80,7 +82,9 @@ try {
     $reportPath = Join-Path $temp 'report'
     Write-DesktopQualificationReport $reportResult $reportPath
     Assert-Equal $true (Test-Path (Join-Path $reportPath 'qualification-result.json')) 'JSON report'
-    Assert-Equal $true (Test-Path (Join-Path $reportPath 'qualification-result.md')) 'Markdown report'
+    $reportMarkdown = Get-Content (Join-Path $reportPath 'qualification-result.md') -Raw
+    Assert-Equal $true $reportMarkdown.Contains('| minimumDisplayedTicks | 110 | 84 |') 'Throughput report value'
+    Assert-Equal $true ((Get-Content (Join-Path $root 'src/Diagnostics/QualificationSnapshotWriter.cs') -Raw).Contains('GC.GetTotalMemory(forceFullCollection: false)')) 'Current managed-memory measurement'
     "Passed $passed desktop-qualification assertions."
 }
 finally {

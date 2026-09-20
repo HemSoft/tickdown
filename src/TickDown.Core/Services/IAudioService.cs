@@ -16,10 +16,12 @@ public interface IAudioService
     /// Plays the specified system sound.
     /// </summary>
     /// <param name="soundName">The name of the system sound to play.</param>
-    void PlaySound(string soundName);
+    /// <param name="owner">The caller that owns this playback request.</param>
+    void PlaySound(string soundName, object owner);
 
     /// <summary>
-    /// Stops and releases the current native playback resource.
+    /// Stops and releases native playback only when it belongs to the caller.
     /// </summary>
-    void StopSound();
+    /// <param name="owner">The caller relinquishing its playback request.</param>
+    void StopSound(object owner);
 }

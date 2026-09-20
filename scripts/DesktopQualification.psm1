@@ -95,7 +95,8 @@ function Write-DesktopQualificationReport([object]$Result, [string]$OutputDirect
     $lines.Add('| Metric | Actual | Budget |')
     $lines.Add('|---|---:|---:|')
     foreach ($name in $Result.Evaluation.Budgets.Keys) {
-        $actual = if ($Result.Evaluation.Metrics.Contains($name)) { $Result.Evaluation.Metrics[$name] } else { '-' }
+        $metricName = if ($name -eq 'minimumDisplayedTicks') { 'displayedTicks' } else { $name }
+        $actual = if ($Result.Evaluation.Metrics.Contains($metricName)) { $Result.Evaluation.Metrics[$metricName] } else { '-' }
         $lines.Add("| $name | $actual | $($Result.Evaluation.Budgets[$name]) |")
     }
     $lines.Add('')

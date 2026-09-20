@@ -18,6 +18,7 @@ $runPolicy = if ($Mode -eq 'Full') { $policy.full } else { $policy.fast }
 $candidate = (& git -C $root rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the candidate revision.' }
 $dirty = (& git -C $root status --porcelain --untracked-files=all | Out-String).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Could not inspect the candidate working tree.' }
 if (!$AllowDirty -and $dirty) { throw "Desktop qualification requires a clean candidate tree:`n$dirty" }
 if ($env:GITHUB_SHA -and $env:GITHUB_SHA -ne $candidate) { throw "Candidate $candidate does not match GITHUB_SHA $env:GITHUB_SHA." }
 
@@ -334,6 +335,13 @@ try {
     Start-Sleep -Milliseconds 500
     $resourceAfter = Request-Snapshot (++$requestId)
 
+    $completedCandidate = (& git -C $root rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Could not revalidate the candidate revision.' }
+    if ($completedCandidate -ne $candidate) { throw "Candidate changed during desktop qualification: $candidate -> $completedCandidate." }
+    $completedDirty = (& git -C $root status --porcelain --untracked-files=all | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Could not revalidate the candidate working tree.' }
+    if (!$AllowDirty -and $completedDirty) { throw "Working tree changed during desktop qualification:`n$completedDirty" }
+
     $evaluation = Get-QualificationEvaluation $resourceBefore $resourceAfter $loadSnapshot $inputLatencies.ToArray() $policy.budgets ([int]$runPolicy.loadTimerCount) ([double]$runPolicy.loadSeconds)
     $highContrastResource = (Get-Content (Join-Path $root 'src/Views/MainPage.xaml') -Raw).Contains('<ResourceDictionary x:Key="HighContrast">')
     $result = [pscustomobject]@{
@@ -341,7 +349,7 @@ try {
         Mode = $Mode
         RunLabel = $RunLabel
         ElapsedSeconds = [Math]::Round($stopwatch.Elapsed.TotalSeconds, 3)
-        WorkingTreeClean = !$dirty
+        WorkingTreeClean = !$dirty -and !$completedDirty
         IsolatedSettingsDirectory = $profile
         Machine = [pscustomobject]@{
             ProcessorCount = $resourceAfter.ProcessorCount

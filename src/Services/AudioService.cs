@@ -47,14 +47,16 @@ public sealed class AudioService : IAudioService, IDisposable
     };
 
     private MediaPlayer? mediaPlayer;
+    private object? playbackOwner;
     private bool disposed;
 
     /// <inheritdoc/>
     public IReadOnlyList<string> AvailableSounds => [.. SoundFiles.Keys];
 
     /// <inheritdoc/>
-    public void PlaySound(string soundName)
+    public void PlaySound(string soundName, object owner)
     {
+        ArgumentNullException.ThrowIfNull(owner);
         if (!SoundFiles.TryGetValue(soundName, out string? fileName))
         {
             fileName = "Alarm01.wav";
@@ -73,11 +75,19 @@ public sealed class AudioService : IAudioService, IDisposable
             Source = MediaSource.CreateFromUri(new Uri(filePath)),
             AutoPlay = true,
         };
+        this.playbackOwner = owner;
         QualificationDiagnostics.SetMediaPlayerActive(true);
     }
 
     /// <inheritdoc/>
-    public void StopSound() => this.StopCurrentPlayback();
+    public void StopSound(object owner)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        if (ReferenceEquals(this.playbackOwner, owner))
+        {
+            this.StopCurrentPlayback();
+        }
+    }
 
     /// <inheritdoc/>
     public void Dispose()
@@ -96,6 +106,7 @@ public sealed class AudioService : IAudioService, IDisposable
             this.mediaPlayer.Pause();
             this.mediaPlayer.Dispose();
             this.mediaPlayer = null;
+            this.playbackOwner = null;
             QualificationDiagnostics.SetMediaPlayerActive(false);
         }
     }

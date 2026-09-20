@@ -70,7 +70,18 @@ internal sealed class QualificationSnapshotWriter : IDisposable
         }
 
         this.isWriting = true;
-        await this.WriteSnapshotAsync(request!).ConfigureAwait(true);
+        try
+        {
+            await this.WriteSnapshotAsync(request!).ConfigureAwait(true);
+        }
+        catch (IOException)
+        {
+            // The harness observes a missing response and reports the failed probe.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Qualification diagnostics must not crash the application.
+        }
     }
 
     private QualificationSnapshot CaptureSnapshot(QualificationRequest request)
@@ -86,7 +97,7 @@ internal sealed class QualificationSnapshotWriter : IDisposable
             SettingsDirectory = Environment.GetEnvironmentVariable("TICKDOWN_SETTINGS_DIRECTORY") ?? string.Empty,
             ProcessorCount = Environment.ProcessorCount,
             TotalAvailableMemoryBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
-            ManagedHeapBytes = GC.GetGCMemoryInfo().HeapSizeBytes,
+            ManagedHeapBytes = GC.GetTotalMemory(forceFullCollection: false),
             PrivateMemoryBytes = process.PrivateMemorySize64,
             WorkingSetBytes = process.WorkingSet64,
             HandleCount = process.HandleCount,
@@ -114,6 +125,10 @@ internal sealed class QualificationSnapshotWriter : IDisposable
             return null;
         }
         catch (JsonException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
         {
             return null;
         }

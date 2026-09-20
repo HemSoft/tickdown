@@ -40,7 +40,7 @@ public sealed partial class SoundPickerDialog : ContentDialog
 
         if (!string.IsNullOrEmpty(this.SelectedSound))
         {
-            this.audioService.PlaySound(this.SelectedSound);
+            this.audioService.PlaySound(this.SelectedSound, this);
         }
     }
 }

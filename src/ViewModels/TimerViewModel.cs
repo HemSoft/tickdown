@@ -823,7 +823,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
         if (this.EnableAlarm)
         {
-            this.audioService.PlaySound(this.AlarmSound);
+            this.audioService.PlaySound(this.AlarmSound, this);
 
             if (this.EnableAlarmRepeat)
             {
@@ -848,7 +848,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     private void StopAlarmRepeat()
     {
         this.alarmRepeatTimer?.Stop();
-        this.audioService.StopSound();
+        this.audioService.StopSound(this);
         this.alarmExpirationTime = null;
         QualificationDiagnostics.SetAlarmRepeatActive(ref this.isAlarmRepeatActive, false);
     }
@@ -875,7 +875,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
         if (this.IsCompleted && this.EnableAlarm)
         {
-            this.audioService.PlaySound(this.AlarmSound);
+            this.audioService.PlaySound(this.AlarmSound, this);
         }
         else
         {

@@ -1089,9 +1089,9 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnTimerCompleted()": {
-      "crap": 6.0,
+      "crap": 4.25,
       "complexity": 4.0,
-      "coverage": 0.5,
+      "coverage": 0.75,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1704,7 +1704,7 @@
       "coverageBasis": "line",
       "source": "src/Services/AudioService.cs"
     },
-    "[TickDown]TickDown.Services.AudioService::PlaySound(System.String)": {
+    "[TickDown]TickDown.Services.AudioService::PlaySound(System.String,System.Object)": {
       "crap": 20.0,
       "complexity": 4.0,
       "coverage": 0.0,
@@ -1718,11 +1718,11 @@
       "coverageBasis": "branch+line",
       "source": "src/Services/AudioService.cs"
     },
-    "[TickDown]TickDown.Services.AudioService::StopSound()": {
-      "crap": 2.0,
-      "complexity": 1.0,
+    "[TickDown]TickDown.Services.AudioService::StopSound(System.Object)": {
+      "crap": 6.0,
+      "complexity": 2.0,
       "coverage": 0.0,
-      "coverageBasis": "line",
+      "coverageBasis": "branch+line",
       "source": "src/Services/AudioService.cs"
     },
     "[TickDown]TickDown.Services.ServiceCollectionExtensions::AddAppServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)": {
