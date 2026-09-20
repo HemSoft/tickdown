@@ -54,32 +54,30 @@ internal static class NativeWindowPlacement
     /// </summary>
     /// <param name="windowHandle">The native window handle.</param>
     /// <param name="bounds">The bounds in physical screen coordinates.</param>
-    /// <param name="targetWorkArea">The work area of the display selected for restoration.</param>
-    internal static void MoveAndResize(
-        nint windowHandle,
-        WindowBounds bounds,
-        WindowBounds targetWorkArea) =>
-        MoveAndResize(windowHandle, bounds, targetWorkArea, SetWindowPos);
+    internal static void MoveAndResize(nint windowHandle, WindowBounds bounds) =>
+        MoveAndResize(windowHandle, bounds, SetWindowPos);
 
     /// <summary>
-    /// Moves to the selected display without resizing before applying saved bounds.
+    /// Moves a window to its target display before applying size, so the DPI transition cannot rescale saved bounds.
     /// </summary>
     /// <param name="windowHandle">The native window handle.</param>
     /// <param name="bounds">The bounds to restore.</param>
-    /// <param name="targetWorkArea">The work area of the display selected for restoration.</param>
     /// <param name="setWindowPosition">The native window-position operation.</param>
     internal static void MoveAndResize(
         nint windowHandle,
         WindowBounds bounds,
-        WindowBounds targetWorkArea,
         SetWindowPosition setWindowPosition)
     {
         SetWindowBounds(
             windowHandle,
-            new WindowBounds(targetWorkArea.X, targetWorkArea.Y, bounds.Width, bounds.Height),
+            bounds,
             NoActivate | NoSize | NoZOrder,
             setWindowPosition);
-        SetWindowBounds(windowHandle, bounds, NoActivate | NoZOrder, setWindowPosition);
+        SetWindowBounds(
+            windowHandle,
+            bounds,
+            NoActivate | NoZOrder,
+            setWindowPosition);
     }
 
     private static void SetWindowBounds(
