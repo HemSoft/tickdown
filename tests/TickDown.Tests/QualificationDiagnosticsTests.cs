@@ -27,6 +27,8 @@ public sealed class QualificationDiagnosticsTests
             bool alarmRepeatActive = false;
             QualificationDiagnostics.SetAlarmRepeatActive(ref alarmRepeatActive, true);
             QualificationDiagnostics.SetMediaPlayerActive(true);
+            QualificationDiagnostics.RecordAlarmReplay();
+            QualificationDiagnostics.RecordAlarmReplay();
             long completed = QualificationDiagnostics.QueueTick();
             QualificationDiagnostics.CompleteTick(completed);
             long canceled = QualificationDiagnostics.QueueTick();
@@ -39,6 +41,7 @@ public sealed class QualificationDiagnosticsTests
             Assert.Equal(1, active.MaximumPendingUiCallbacks);
             Assert.Equal(1, active.TimerSubscriptions);
             Assert.Equal(1, active.ActiveAlarmRepeatTimers);
+            Assert.Equal(2, active.AlarmReplayRequests);
             Assert.Equal(1, active.ActiveMediaPlayers);
             Assert.True(active.TickLatencyMaximumMilliseconds >= 0);
 
@@ -50,6 +53,7 @@ public sealed class QualificationDiagnosticsTests
             Assert.Equal(0, settled.DisplayedTicks);
             Assert.Equal(0, settled.TimerSubscriptions);
             Assert.Equal(0, settled.ActiveAlarmRepeatTimers);
+            Assert.Equal(0, settled.AlarmReplayRequests);
             Assert.Equal(0, settled.ActiveMediaPlayers);
         }
         finally

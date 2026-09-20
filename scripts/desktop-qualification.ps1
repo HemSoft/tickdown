@@ -264,7 +264,7 @@ try {
     [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
     Start-Sleep -Milliseconds 100
     $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
-    if ($null -eq $focused -or [string]::IsNullOrWhiteSpace($focused.Current.Name)) { throw 'Keyboard tab navigation did not reach a named control.' }
+    if ($null -eq $focused -or $focused.Current.AutomationId -ne 'RemoveTimerButton') { throw 'Keyboard tab navigation did not reach the expected remove control.' }
 
     $actionableTypes = [System.Windows.Automation.ControlType[]]@(
         [System.Windows.Automation.ControlType]::Button,
@@ -293,6 +293,8 @@ try {
     $alarmSnapshot = Request-Snapshot (++$requestId)
     if ($alarmSnapshot.Runtime.ActiveAlarmRepeatTimers -ne 1 -or $alarmSnapshot.Runtime.ActiveMediaPlayers -ne 1) { throw 'Alarm repeat and native playback were not active after completion.' }
     Start-Sleep -Milliseconds 5200
+    $alarmRepeatSnapshot = Request-Snapshot (++$requestId)
+    if ($alarmRepeatSnapshot.Runtime.AlarmReplayRequests -le $alarmSnapshot.Runtime.AlarmReplayRequests) { throw 'Alarm repeat did not issue another playback request.' }
     Invoke-LastByAutomationId $window 'DismissTimerButton'
     $alarmCleanup = Request-Snapshot (++$requestId)
     if ($alarmCleanup.Runtime.ActiveAlarmRepeatTimers -ne 0 -or $alarmCleanup.Runtime.ActiveMediaPlayers -ne 0) { throw 'Dismiss did not release alarm-repeat resources.' }
@@ -316,6 +318,7 @@ try {
     for ($cycle = 0; $cycle -lt [int]$runPolicy.warmupCycles; $cycle++) {
         Add-OneSecondTimer $window "Warmup $cycle" $inputLatencies
     }
+    $inputLatencies.Clear()
     $resourceBefore = Request-Snapshot (++$requestId) -ResetLatencyWindow
 
     for ($cycle = 0; $cycle -lt [int]$runPolicy.measuredCycles; $cycle++) {

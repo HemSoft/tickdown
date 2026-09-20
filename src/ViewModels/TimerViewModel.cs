@@ -875,6 +875,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
         if (this.IsCompleted && this.EnableAlarm)
         {
+            QualificationDiagnostics.RecordAlarmReplay();
             this.audioService.PlaySound(this.AlarmSound, this);
         }
         else

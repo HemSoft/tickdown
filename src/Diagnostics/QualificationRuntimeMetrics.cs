@@ -58,6 +58,11 @@ internal sealed class QualificationRuntimeMetrics
     public int ActiveAlarmRepeatTimers { get; init; }
 
     /// <summary>
+    /// Gets the number of repeating-alarm playback requests in the current window.
+    /// </summary>
+    public long AlarmReplayRequests { get; init; }
+
+    /// <summary>
     /// Gets the number of active native media players.
     /// </summary>
     public int ActiveMediaPlayers { get; init; }

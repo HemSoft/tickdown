@@ -402,6 +402,13 @@
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::RecordAlarmReplay()": {
+      "crap": 2.5,
+      "complexity": 2.0,
+      "coverage": 0.5,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
     "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::RefreshConfiguration()": {
       "crap": 1.0,
       "complexity": 1.0,
@@ -445,6 +452,13 @@
       "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
     },
     "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_ActiveMediaPlayers()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_AlarmReplayRequests()": {
       "crap": 1.0,
       "complexity": 1.0,
       "coverage": 1.0,

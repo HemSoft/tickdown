@@ -18,6 +18,7 @@ internal static class QualificationDiagnostics
     private static int activeAlarmRepeatTimers;
     private static int activeMediaPlayers;
     private static long displayedTicks;
+    private static long alarmReplayRequests;
 
     /// <summary>
     /// Gets a value indicating whether an isolated qualification directory was configured before process start.
@@ -141,6 +142,17 @@ internal static class QualificationDiagnostics
     }
 
     /// <summary>
+    /// Records a repeating alarm reaching its playback request.
+    /// </summary>
+    internal static void RecordAlarmReplay()
+    {
+        if (Enabled)
+        {
+            _ = Interlocked.Increment(ref alarmReplayRequests);
+        }
+    }
+
+    /// <summary>
     /// Records whether the singleton audio service owns a native media player.
     /// </summary>
     /// <param name="active">Whether a player is active.</param>
@@ -155,6 +167,7 @@ internal static class QualificationDiagnostics
     {
         double[] latencies;
         long displayed = Interlocked.Read(ref displayedTicks);
+        long alarmReplays = Interlocked.Read(ref alarmReplayRequests);
         int pending = Volatile.Read(ref pendingUiCallbacks);
         int maximumPending = Volatile.Read(ref maximumPendingUiCallbacks);
         lock (Sync)
@@ -165,6 +178,7 @@ internal static class QualificationDiagnostics
                 TickLatencies.Clear();
                 _ = Interlocked.Exchange(ref maximumPendingUiCallbacks, pending);
                 _ = Interlocked.Exchange(ref displayedTicks, 0);
+                _ = Interlocked.Exchange(ref alarmReplayRequests, 0);
             }
         }
 
@@ -181,6 +195,7 @@ internal static class QualificationDiagnostics
             MaximumPendingUiCallbacks = maximumPending,
             TimerSubscriptions = Volatile.Read(ref timerSubscriptions),
             ActiveAlarmRepeatTimers = Volatile.Read(ref activeAlarmRepeatTimers),
+            AlarmReplayRequests = alarmReplays,
             ActiveMediaPlayers = Volatile.Read(ref activeMediaPlayers),
         };
     }
