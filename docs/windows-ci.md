@@ -81,3 +81,33 @@ Do not activate a guessed check name. Use this order:
    `main` run, and fetch the live ruleset to detect configuration drift.
 
 A skipped historical AI-review deployment does not satisfy any step above.
+
+## Delivered status and timing
+
+The first successful `main` delivery for commit
+`fab92e591a60c845632556b34b465010f761d4fe` is
+[Windows quality run 35481633605](https://github.com/HemSoft/tickdown/actions/runs/35481633605).
+The required check is exactly `Required`, reported by the GitHub Actions app.
+The active `Main branch quality and review` ruleset requires that check from
+GitHub Actions, an up-to-date pull request, resolved review conversations and
+squash merging. It blocks deletion and force pushes and has no bypass actors.
+
+Measured job durations on that run were:
+
+| Job | Duration |
+| --- | ---: |
+| Release build and tests | 2m 10s |
+| Countdown mutation | 3m 35s |
+| Coverage and function risk | 2m 26s |
+| Build (ARM64) | 1m 58s |
+| Build (x64) | 2m 15s |
+| Quality policy | 4m 21s |
+| Build (x86) | 2m 24s |
+| Required | 19s |
+
+Final qualification completed in 4m 45s. The run published
+[coverage-function-risk](https://github.com/HemSoft/tickdown/actions/runs/35481633605/artifacts/10596340169)
+and
+[countdown-mutation](https://github.com/HemSoft/tickdown/actions/runs/35481633605/artifacts/10595993460)
+artifacts. The mutation candidate record matches the delivered commit and reports
+100.00%, with 44 killed and zero surviving mutants.
