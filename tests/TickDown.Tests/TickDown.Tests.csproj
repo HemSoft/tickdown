@@ -38,6 +38,7 @@
     <Compile Include="..\..\src\Services\SettingsService.cs" Link="Production\SettingsService.cs" />
     <Compile Include="..\..\src\Diagnostics\QualificationDiagnostics.cs" Link="Production\QualificationDiagnostics.cs" />
     <Compile Include="..\..\src\Diagnostics\QualificationRuntimeMetrics.cs" Link="Production\QualificationRuntimeMetrics.cs" />
+    <Compile Include="..\..\src\Diagnostics\QualificationTick.cs" Link="Production\QualificationTick.cs" />
   </ItemGroup>
 
 </Project>

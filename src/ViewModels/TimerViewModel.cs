@@ -748,14 +748,14 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
             return;
         }
 
-        long queuedTimestamp = QualificationDiagnostics.QueueTick();
-        if (!this.dispatcher.TryEnqueue(() => this.ProcessQueuedTick(queuedTimestamp)))
+        QualificationTick queuedTick = QualificationDiagnostics.QueueTick();
+        if (!this.dispatcher.TryEnqueue(() => this.ProcessQueuedTick(queuedTick)))
         {
-            QualificationDiagnostics.CancelTick(queuedTimestamp);
+            QualificationDiagnostics.CancelTick(queuedTick);
         }
     }
 
-    private void ProcessQueuedTick(long queuedTimestamp)
+    private void ProcessQueuedTick(QualificationTick queuedTick)
     {
         bool displayed = false;
         try
@@ -781,11 +781,11 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         {
             if (displayed)
             {
-                QualificationDiagnostics.CompleteTick(queuedTimestamp);
+                QualificationDiagnostics.CompleteTick(queuedTick);
             }
             else
             {
-                QualificationDiagnostics.CancelTick(queuedTimestamp);
+                QualificationDiagnostics.CancelTick(queuedTick);
             }
         }
     }

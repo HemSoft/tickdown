@@ -19,6 +19,7 @@ internal static class QualificationDiagnostics
     private static int activeMediaPlayers;
     private static long displayedTicks;
     private static long alarmReplayRequests;
+    private static long measurementGeneration;
 
     /// <summary>
     /// Gets a value indicating whether an isolated qualification directory was configured before process start.
@@ -48,58 +49,56 @@ internal static class QualificationDiagnostics
     /// <summary>
     /// Records a timer callback waiting for the UI dispatcher.
     /// </summary>
-    /// <returns>The high-resolution start timestamp, or zero when diagnostics are disabled.</returns>
-    internal static long QueueTick()
+    /// <returns>The queued tick identity, or its default value when diagnostics are disabled.</returns>
+    internal static QualificationTick QueueTick()
     {
         if (!Enabled)
         {
-            return 0;
+            return default;
         }
 
-        int pending = Interlocked.Increment(ref pendingUiCallbacks);
-        int currentMaximum;
-        do
+        lock (Sync)
         {
-            currentMaximum = Volatile.Read(ref maximumPendingUiCallbacks);
-            if (pending <= currentMaximum)
-            {
-                break;
-            }
+            pendingUiCallbacks++;
+            maximumPendingUiCallbacks = Math.Max(maximumPendingUiCallbacks, pendingUiCallbacks);
+            return new QualificationTick(Stopwatch.GetTimestamp(), measurementGeneration);
         }
-        while (Interlocked.CompareExchange(ref maximumPendingUiCallbacks, pending, currentMaximum) != currentMaximum);
-
-        return Stopwatch.GetTimestamp();
     }
 
     /// <summary>
     /// Records a queued callback that updated the timer display.
     /// </summary>
-    /// <param name="startedTimestamp">The timestamp returned by <see cref="QueueTick"/>.</param>
-    internal static void CompleteTick(long startedTimestamp)
+    /// <param name="tick">The identity returned by <see cref="QueueTick"/>.</param>
+    internal static void CompleteTick(QualificationTick tick)
     {
-        if (!Enabled || startedTimestamp == 0)
+        if (tick.StartedTimestamp == 0)
         {
             return;
         }
 
-        _ = Interlocked.Decrement(ref pendingUiCallbacks);
-        _ = Interlocked.Increment(ref displayedTicks);
-        double latencyMilliseconds = Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds;
         lock (Sync)
         {
-            TickLatencies.Add(latencyMilliseconds);
+            pendingUiCallbacks--;
+            if (tick.Generation == measurementGeneration)
+            {
+                displayedTicks++;
+                TickLatencies.Add(Stopwatch.GetElapsedTime(tick.StartedTimestamp).TotalMilliseconds);
+            }
         }
     }
 
     /// <summary>
     /// Removes a callback that could not or no longer needed to update the display.
     /// </summary>
-    /// <param name="startedTimestamp">The timestamp returned by <see cref="QueueTick"/>.</param>
-    internal static void CancelTick(long startedTimestamp)
+    /// <param name="tick">The identity returned by <see cref="QueueTick"/>.</param>
+    internal static void CancelTick(QualificationTick tick)
     {
-        if (Enabled && startedTimestamp != 0)
+        if (tick.StartedTimestamp != 0)
         {
-            _ = Interlocked.Decrement(ref pendingUiCallbacks);
+            lock (Sync)
+            {
+                pendingUiCallbacks--;
+            }
         }
     }
 
@@ -148,7 +147,10 @@ internal static class QualificationDiagnostics
     {
         if (Enabled)
         {
-            _ = Interlocked.Increment(ref alarmReplayRequests);
+            lock (Sync)
+            {
+                alarmReplayRequests++;
+            }
         }
     }
 
@@ -166,19 +168,24 @@ internal static class QualificationDiagnostics
     internal static QualificationRuntimeMetrics CaptureRuntimeMetrics(bool resetLatency)
     {
         double[] latencies;
-        long displayed = Interlocked.Read(ref displayedTicks);
-        long alarmReplays = Interlocked.Read(ref alarmReplayRequests);
-        int pending = Volatile.Read(ref pendingUiCallbacks);
-        int maximumPending = Volatile.Read(ref maximumPendingUiCallbacks);
+        long displayed;
+        long alarmReplays;
+        int pending;
+        int maximumPending;
         lock (Sync)
         {
             latencies = [.. TickLatencies];
+            displayed = displayedTicks;
+            alarmReplays = alarmReplayRequests;
+            pending = pendingUiCallbacks;
+            maximumPending = maximumPendingUiCallbacks;
             if (resetLatency)
             {
                 TickLatencies.Clear();
-                _ = Interlocked.Exchange(ref maximumPendingUiCallbacks, pending);
-                _ = Interlocked.Exchange(ref displayedTicks, 0);
-                _ = Interlocked.Exchange(ref alarmReplayRequests, 0);
+                maximumPendingUiCallbacks = pendingUiCallbacks;
+                displayedTicks = 0;
+                alarmReplayRequests = 0;
+                measurementGeneration++;
             }
         }
 

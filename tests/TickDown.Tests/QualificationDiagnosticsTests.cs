@@ -29,15 +29,16 @@ public sealed class QualificationDiagnosticsTests
             QualificationDiagnostics.SetMediaPlayerActive(true);
             QualificationDiagnostics.RecordAlarmReplay();
             QualificationDiagnostics.RecordAlarmReplay();
-            long completed = QualificationDiagnostics.QueueTick();
+            QualificationTick completed = QualificationDiagnostics.QueueTick();
             QualificationDiagnostics.CompleteTick(completed);
-            long canceled = QualificationDiagnostics.QueueTick();
+            QualificationTick canceled = QualificationDiagnostics.QueueTick();
             QualificationDiagnostics.CancelTick(canceled);
+            QualificationTick previousGeneration = QualificationDiagnostics.QueueTick();
 
             QualificationRuntimeMetrics active = QualificationDiagnostics.CaptureRuntimeMetrics(true);
             Assert.Equal(1, active.TickSamples);
             Assert.Equal(1, active.DisplayedTicks);
-            Assert.Equal(0, active.PendingUiCallbacks);
+            Assert.Equal(1, active.PendingUiCallbacks);
             Assert.Equal(1, active.MaximumPendingUiCallbacks);
             Assert.Equal(1, active.TimerSubscriptions);
             Assert.Equal(1, active.ActiveAlarmRepeatTimers);
@@ -45,12 +46,14 @@ public sealed class QualificationDiagnosticsTests
             Assert.Equal(1, active.ActiveMediaPlayers);
             Assert.True(active.TickLatencyMaximumMilliseconds >= 0);
 
+            QualificationDiagnostics.CompleteTick(previousGeneration);
             QualificationDiagnostics.RemoveTimerSubscription();
             QualificationDiagnostics.SetAlarmRepeatActive(ref alarmRepeatActive, false);
             QualificationDiagnostics.SetMediaPlayerActive(false);
             QualificationRuntimeMetrics settled = QualificationDiagnostics.CaptureRuntimeMetrics(false);
             Assert.Equal(0, settled.TickSamples);
             Assert.Equal(0, settled.DisplayedTicks);
+            Assert.Equal(0, settled.PendingUiCallbacks);
             Assert.Equal(0, settled.TimerSubscriptions);
             Assert.Equal(0, settled.ActiveAlarmRepeatTimers);
             Assert.Equal(0, settled.AlarmReplayRequests);
@@ -63,6 +66,6 @@ public sealed class QualificationDiagnosticsTests
         }
 
         Assert.False(QualificationDiagnostics.Enabled);
-        Assert.Equal(0, QualificationDiagnostics.QueueTick());
+        Assert.Equal(0, QualificationDiagnostics.QueueTick().StartedTimestamp);
     }
 }

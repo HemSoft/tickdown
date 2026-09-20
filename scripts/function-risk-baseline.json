@@ -16,6 +16,7 @@
     "src/Diagnostics/QualificationRuntimeMetrics.cs",
     "src/Diagnostics/QualificationSnapshot.cs",
     "src/Diagnostics/QualificationSnapshotWriter.cs",
+    "src/Diagnostics/QualificationTick.cs",
     "src/Services/AudioService.cs",
     "src/Services/ServiceCollectionExtensions.cs",
     "src/Services/SettingsService.cs",
@@ -360,10 +361,10 @@
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
-    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CancelTick(System.Int64)": {
-      "crap": 6.0,
-      "complexity": 4.0,
-      "coverage": 0.5,
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CancelTick(TickDown.Diagnostics.QualificationTick)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
@@ -374,7 +375,7 @@
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
-    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CompleteTick(System.Int64)": {
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CompleteTick(TickDown.Diagnostics.QualificationTick)": {
       "crap": 4.0,
       "complexity": 4.0,
       "coverage": 1.0,
@@ -396,16 +397,16 @@
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
     "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::QueueTick()": {
-      "crap": 6.1667,
-      "complexity": 6.0,
-      "coverage": 0.833333,
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
     "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::RecordAlarmReplay()": {
-      "crap": 2.5,
+      "crap": 2.0,
       "complexity": 2.0,
-      "coverage": 0.5,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
@@ -527,6 +528,27 @@
       "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationTick::.ctor(System.Int64,System.Int64)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationTick.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationTick::get_Generation()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationTick.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationTick::get_StartedTimestamp()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationTick.cs"
     },
     "[TickDown.Tests]TickDown.Services.SettingsService::.ctor()": {
       "crap": 2.0,
@@ -1130,7 +1152,7 @@
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
-    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::ProcessQueuedTick(System.Int64)": {
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::ProcessQueuedTick(TickDown.Diagnostics.QualificationTick)": {
       "crap": 7.3333,
       "complexity": 6.0,
       "coverage": 0.666667,
