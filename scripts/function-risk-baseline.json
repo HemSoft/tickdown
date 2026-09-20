@@ -382,9 +382,9 @@
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
     "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::get_Enabled()": {
-      "crap": 2.5,
+      "crap": 2.0,
       "complexity": 2.0,
-      "coverage": 0.5,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
@@ -1908,6 +1908,13 @@
       "source": "src/Views/SoundPickerDialog.xaml.cs"
     },
     "[TickDown]TickDown.Views.SoundPickerDialog::get_SelectedSound()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/SoundPickerDialog.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.SoundPickerDialog::OnClosed(Microsoft.UI.Xaml.Controls.ContentDialog,Microsoft.UI.Xaml.Controls.ContentDialogClosedEventArgs)": {
       "crap": 2.0,
       "complexity": 1.0,
       "coverage": 0.0,

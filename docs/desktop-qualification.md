@@ -1,6 +1,6 @@
 # Windows desktop qualification
 
-`scripts/desktop-qualification.ps1` drives the built WinUI application through Windows UI Automation. It launches the candidate with a disposable `TICKDOWN_SETTINGS_DIRECTORY`; the harness never reads or writes the normal TickDown profile.
+`scripts/desktop-qualification.ps1` requires PowerShell 7.4 or newer and drives the built WinUI application through Windows UI Automation. It launches the candidate with a disposable `TICKDOWN_SETTINGS_DIRECTORY`; the harness never reads or writes the normal TickDown profile.
 
 ## Commands
 

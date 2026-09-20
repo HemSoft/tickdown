@@ -1,4 +1,4 @@
-#Requires -Version 7.0
+#Requires -Version 7.4
 [CmdletBinding()]
 param(
     [ValidateSet('Fast', 'Full')][string]$Mode = 'Fast',
@@ -155,7 +155,6 @@ function Start-EvidenceRecording {
     $startInfo.Arguments = "-y -f gdigrab -framerate 12 -offset_x $($policy.display.x) -offset_y $($policy.display.y) -video_size $($policy.display.width)x$($policy.display.height) -i desktop -c:v libx264 -preset ultrafast -pix_fmt yuv420p `"$recordingPath`""
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardInput = $true
-    $startInfo.RedirectStandardError = $true
     $process = [Diagnostics.Process]::Start($startInfo)
     Start-Sleep -Seconds 1
     return $process
@@ -342,8 +341,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Could not revalidate the candidate working tree.' }
     if (!$AllowDirty -and $completedDirty) { throw "Working tree changed during desktop qualification:`n$completedDirty" }
 
-    $evaluation = Get-QualificationEvaluation $resourceBefore $resourceAfter $loadSnapshot $inputLatencies.ToArray() $policy.budgets ([int]$runPolicy.loadTimerCount) ([double]$runPolicy.loadSeconds)
     $highContrastResource = (Get-Content (Join-Path $root 'src/Views/MainPage.xaml') -Raw).Contains('<ResourceDictionary x:Key="HighContrast">')
+    $evaluation = Get-QualificationEvaluation $resourceBefore $resourceAfter $loadSnapshot $inputLatencies.ToArray() $policy.budgets ([int]$runPolicy.loadTimerCount) ([double]$runPolicy.loadSeconds) -HighContrastResource $highContrastResource
     $result = [pscustomobject]@{
         Candidate = $candidate
         Mode = $Mode

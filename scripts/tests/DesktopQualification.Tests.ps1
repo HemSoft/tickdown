@@ -61,6 +61,8 @@ try {
     Assert-Equal $true ($bad.Failures.Count -ge 6) 'Distinct resource and latency failures'
 
     $scriptText = Get-Content (Join-Path $root 'scripts/desktop-qualification.ps1') -Raw
+    Assert-Equal $true $scriptText.StartsWith('#Requires -Version 7.4') 'Start-Process environment version requirement'
+    Assert-Equal $false $scriptText.Contains('RedirectStandardError = $true') 'Nonblocking ffmpeg diagnostics'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_SETTINGS_DIRECTORY') 'Isolated settings launch'
     Assert-Equal $true $scriptText.Contains('TICKDOWN_QUALIFICATION_CANDIDATE') 'Candidate-bound launch'
     Assert-Equal 2 ([regex]::Matches($scriptText, 'git -C \$root rev-parse HEAD').Count) 'Candidate revision revalidation'
@@ -73,6 +75,9 @@ try {
     Assert-Equal $true ($policyDocument.full.measuredCycles -gt $policyDocument.fast.measuredCycles) 'Full duration tier'
     Assert-Equal 8 $policyDocument.full.loadTimerCount 'Documented full timer count'
     Assert-Equal 4 $policyDocument.fast.loadTimerCount 'Documented fast timer count'
+    $missingContrast = Get-QualificationEvaluation $before $after $load @(4, 8, 12) $policy 4 3 -HighContrastResource $false
+    Assert-Equal $false $missingContrast.Passed 'Missing high-contrast resource rejection'
+    Assert-Equal $true ($missingContrast.Failures -contains 'The required high-contrast resource dictionary is missing.') 'High-contrast failure detail'
 
     $reportResult = [pscustomobject]@{
         Candidate = 'abc'; Mode = 'Fast'; RunLabel = 'fixture'; ElapsedSeconds = 1

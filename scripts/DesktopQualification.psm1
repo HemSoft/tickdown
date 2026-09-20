@@ -26,7 +26,8 @@ function Get-QualificationEvaluation(
     [double[]]$InputLatenciesMilliseconds,
     [object]$Policy,
     [int]$LoadTimerCount,
-    [double]$LoadSeconds
+    [double]$LoadSeconds,
+    [bool]$HighContrastResource = $true
 ) {
     $memoryScale = [Math]::Max(1.0, [double]$ResourceAfter.TotalAvailableMemoryBytes / [double]$Policy.machineReferenceBytes)
     $budgets = [ordered]@{
@@ -64,6 +65,7 @@ function Get-QualificationEvaluation(
         finalTimerCount = [int]$ResourceAfter.TimerCount
     }
     $failures = [Collections.Generic.List[string]]::new()
+    if (!$HighContrastResource) { $failures.Add('The required high-contrast resource dictionary is missing.') }
     if ($metrics.tickLatencyP95Milliseconds -gt $budgets.tickLatencyP95Milliseconds) { $failures.Add("Tick p95 $($metrics.tickLatencyP95Milliseconds) ms exceeds $($budgets.tickLatencyP95Milliseconds) ms.") }
     if ($metrics.tickLatencyP99Milliseconds -gt $budgets.tickLatencyP99Milliseconds) { $failures.Add("Tick p99 $($metrics.tickLatencyP99Milliseconds) ms exceeds $($budgets.tickLatencyP99Milliseconds) ms.") }
     if ($metrics.inputLatencyP95Milliseconds -gt $budgets.inputLatencyP95Milliseconds) { $failures.Add("Input p95 $($metrics.inputLatencyP95Milliseconds) ms exceeds $($budgets.inputLatencyP95Milliseconds) ms.") }

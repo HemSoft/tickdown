@@ -7,6 +7,7 @@ using global::TickDown.Diagnostics;
 /// <summary>
 /// Verifies the opt-in desktop qualification counters without representing a native UI test.
 /// </summary>
+[Collection(QualificationDiagnosticsIsolation.Name)]
 public sealed class QualificationDiagnosticsTests
 {
     /// <summary>
