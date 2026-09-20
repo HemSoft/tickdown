@@ -453,6 +453,23 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.alarmRepeatTimer?.Dispose();
     }
 
+    /// <summary>
+    /// Formats an end time against an explicit zone so standard and daylight names are deterministic.
+    /// </summary>
+    /// <param name="endTime">The local end time.</param>
+    /// <param name="timeZone">The zone supplying standard and daylight names.</param>
+    /// <returns>The formatted end time.</returns>
+    internal static string FormatEndTime(DateTime endTime, TimeZoneInfo timeZone)
+    {
+        string daySuffix = GetDaySuffix(endTime.Day);
+        string timeZoneName = timeZone.IsDaylightSavingTime(endTime)
+            ? timeZone.DaylightName
+            : timeZone.StandardName;
+        string timeZoneAbbr = GetTimeZoneAbbreviation(timeZoneName);
+
+        return $"{endTime:dddd, MMMM} {endTime.Day}{daySuffix} {endTime:yyyy, h:mm tt} {timeZoneAbbr}";
+    }
+
     private static bool TryParseTime(string value, out TimeSpan result)
     {
         value = value.Trim();
@@ -514,16 +531,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    private static string FormatEndTime(DateTime endTime)
-    {
-        string daySuffix = GetDaySuffix(endTime.Day);
-        string timeZone = TimeZoneInfo.Local.IsDaylightSavingTime(endTime)
-            ? TimeZoneInfo.Local.DaylightName
-            : TimeZoneInfo.Local.StandardName;
-        string timeZoneAbbr = GetTimeZoneAbbreviation(timeZone);
-
-        return $"{endTime:dddd, MMMM} {endTime.Day}{daySuffix} {endTime:yyyy, h:mm tt} {timeZoneAbbr}";
-    }
+    private static string FormatEndTime(DateTime endTime) => FormatEndTime(endTime, TimeZoneInfo.Local);
 
     private static string GetDaySuffix(int day) =>
         day switch

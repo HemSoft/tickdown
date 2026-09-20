@@ -851,11 +851,18 @@
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
-    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::FormatEndTime(System.DateTime)": {
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::FormatEndTime(System.DateTime,System.TimeZoneInfo)": {
       "crap": 2.0,
       "complexity": 2.0,
       "coverage": 1.0,
       "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::FormatEndTime(System.DateTime)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmExpirationMinutes()": {

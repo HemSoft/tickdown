@@ -187,6 +187,34 @@ public class TimerInputTests
         Assert.Empty(fixture.Timer.EndTimeDisplay);
     }
 
+    /// <summary>
+    /// Verifies end-time formatting covers both names without depending on the runner's local zone.
+    /// </summary>
+    [Fact]
+    public void EndTimeFormattingUsesExplicitStandardAndDaylightNames()
+    {
+        TimeZoneInfo.TransitionTime daylightStart = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+            new DateTime(1, 1, 1, 2, 0, 0, DateTimeKind.Unspecified), 3, 2, DayOfWeek.Sunday);
+        TimeZoneInfo.TransitionTime daylightEnd = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+            new DateTime(1, 1, 1, 2, 0, 0, DateTimeKind.Unspecified), 11, 1, DayOfWeek.Sunday);
+        TimeZoneInfo.AdjustmentRule adjustment = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+            new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Unspecified),
+            new DateTime(2030, 12, 31, 0, 0, 0, DateTimeKind.Unspecified),
+            TimeSpan.FromHours(1),
+            daylightStart,
+            daylightEnd);
+        TimeZoneInfo timeZone = TimeZoneInfo.CreateCustomTimeZone(
+            "Qualification zone",
+            TimeSpan.FromHours(-5),
+            "Qualification zone",
+            "Test Standard",
+            "Test Daylight",
+            [adjustment]);
+
+        Assert.EndsWith(" TS", TimerViewModel.FormatEndTime(new DateTime(2026, 1, 15, 12, 0, 0, DateTimeKind.Unspecified), timeZone));
+        Assert.EndsWith(" TD", TimerViewModel.FormatEndTime(new DateTime(2026, 7, 15, 12, 0, 0, DateTimeKind.Unspecified), timeZone));
+    }
+
     private sealed class Fixture : IDisposable
     {
         private readonly TestTimerService ticks = new();
