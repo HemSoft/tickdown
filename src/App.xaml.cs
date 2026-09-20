@@ -82,12 +82,16 @@ public partial class App : Application
 
     private static void RestoreWindowPlacement(AppWindow appWindow, nint windowHandle, WindowSettings? settings)
     {
-        if (settings is null || !settings.HasSavedPlacement)
+        if (settings is null)
         {
             return;
         }
 
-        RestoreNormalBounds(windowHandle, settings);
+        if (settings.HasSavedPlacement)
+        {
+            RestoreNormalBounds(windowHandle, settings);
+        }
+
         RestoreMaximizedState(appWindow, settings);
     }
 

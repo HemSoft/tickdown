@@ -42,6 +42,18 @@ public class WindowSettingsTests
     }
 
     /// <summary>
+    /// Verifies maximized state remains independent from the availability of normal geometry.
+    /// </summary>
+    [Fact]
+    public void MaximizedDefaultsHaveNoSavedNormalPlacement()
+    {
+        WindowSettings settings = new();
+        settings.UpdateWindowState(true, 0, 0, 1920, 1080);
+        Assert.True(settings.IsMaximized);
+        Assert.False(settings.HasSavedPlacement);
+    }
+
+    /// <summary>
     /// Verifies geometry written before the position flag was maintained remains restorable.
     /// </summary>
     [Fact]
