@@ -3,6 +3,7 @@
 namespace TickDown.Services;
 
 using TickDown.Core.Services;
+using TickDown.Diagnostics;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
@@ -72,7 +73,11 @@ public sealed class AudioService : IAudioService, IDisposable
             Source = MediaSource.CreateFromUri(new Uri(filePath)),
             AutoPlay = true,
         };
+        QualificationDiagnostics.SetMediaPlayerActive(true);
     }
+
+    /// <inheritdoc/>
+    public void StopSound() => this.StopCurrentPlayback();
 
     /// <inheritdoc/>
     public void Dispose()
@@ -91,6 +96,7 @@ public sealed class AudioService : IAudioService, IDisposable
             this.mediaPlayer.Pause();
             this.mediaPlayer.Dispose();
             this.mediaPlayer = null;
+            QualificationDiagnostics.SetMediaPlayerActive(false);
         }
     }
 }

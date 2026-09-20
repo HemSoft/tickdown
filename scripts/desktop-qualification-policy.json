@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "display": {
+    "x": 3440,
+    "y": 0,
+    "width": 3840,
+    "height": 2160
+  },
+  "fast": {
+    "warmupCycles": 2,
+    "measuredCycles": 4,
+    "loadTimerCount": 4,
+    "loadSeconds": 3
+  },
+  "full": {
+    "warmupCycles": 5,
+    "measuredCycles": 12,
+    "loadTimerCount": 8,
+    "loadSeconds": 6
+  },
+  "budgets": {
+    "machineReferenceBytes": 17179869184,
+    "tickLatencyP95Milliseconds": 100,
+    "tickLatencyP99Milliseconds": 200,
+    "inputLatencyP95Milliseconds": 250,
+    "minimumThroughputRatio": 0.7,
+    "managedHeapGrowthBytes": 8388608,
+    "privateMemoryGrowthBytes": 25165824,
+    "workingSetGrowthBytes": 33554432,
+    "handleGrowth": 12,
+    "threadGrowth": 4,
+    "maximumPendingCallbacksPerTimer": 1
+  }
+}

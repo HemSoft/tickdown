@@ -11,6 +11,11 @@
   "requiredSources": [
     "src/App.xaml.cs",
     "src/Converters/BoolToVisibilityConverter.cs",
+    "src/Diagnostics/QualificationDiagnostics.cs",
+    "src/Diagnostics/QualificationRequest.cs",
+    "src/Diagnostics/QualificationRuntimeMetrics.cs",
+    "src/Diagnostics/QualificationSnapshot.cs",
+    "src/Diagnostics/QualificationSnapshotWriter.cs",
     "src/Services/AudioService.cs",
     "src/Services/ServiceCollectionExtensions.cs",
     "src/Services/SettingsService.cs",
@@ -26,69 +31,6 @@
     "src/Views/SoundPickerDialog.xaml.cs"
   ],
   "functions": {
-    "[TickDown]TickDown.App::.ctor()": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.App::get_MainWindow()": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.App::get_Services()": {
-      "crap": 20.0,
-      "complexity": 4.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.App::LoadWindowSettingsObservedAsync(TickDown.Core.Services.ISettingsService)": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.App::OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow,Microsoft.UI.Windowing.AppWindowClosingEventArgs)": {
-      "crap": 110.0,
-      "complexity": 10.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.App::OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs)": {
-      "crap": 72.0,
-      "complexity": 8.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.App::OnNavigationFailed(System.Object,Microsoft.UI.Xaml.Navigation.NavigationFailedEventArgs)": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/App.xaml.cs"
-    },
-    "[TickDown]TickDown.Converters.BoolToVisibilityConverter::Convert(System.Object,System.Type,System.Object,System.String)": {
-      "crap": 72.0,
-      "complexity": 8.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Converters/BoolToVisibilityConverter.cs"
-    },
-    "[TickDown]TickDown.Converters.BoolToVisibilityConverter::ConvertBack(System.Object,System.Type,System.Object,System.String)": {
-      "crap": 42.0,
-      "complexity": 6.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Converters/BoolToVisibilityConverter.cs"
-    },
     "[TickDown.Core]TickDown.Core.Models.CompletionColorPalette::.cctor()": {
       "crap": 1.0,
       "complexity": 1.0,
@@ -404,47 +346,173 @@
       "coverageBasis": "line",
       "source": "src/TickDown.Core/Services/SettingsFailureEventArgs.cs"
     },
-    "[TickDown]TickDown.Services.AudioService::.cctor()": {
-      "crap": 2.0,
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::.cctor()": {
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
-      "source": "src/Services/AudioService.cs"
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
-    "[TickDown]TickDown.Services.AudioService::Dispose()": {
-      "crap": 6.0,
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::AddTimerSubscription()": {
+      "crap": 2.0,
       "complexity": 2.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
-      "source": "src/Services/AudioService.cs"
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
-    "[TickDown]TickDown.Services.AudioService::get_AvailableSounds()": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/Services/AudioService.cs"
-    },
-    "[TickDown]TickDown.Services.AudioService::PlaySound(System.String)": {
-      "crap": 20.0,
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CancelTick(System.Int64)": {
+      "crap": 6.0,
       "complexity": 4.0,
-      "coverage": 0.0,
+      "coverage": 0.5,
       "coverageBasis": "branch+line",
-      "source": "src/Services/AudioService.cs"
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
-    "[TickDown]TickDown.Services.AudioService::StopCurrentPlayback()": {
-      "crap": 6.0,
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CaptureRuntimeMetrics(System.Boolean)": {
+      "crap": 4.0,
+      "complexity": 4.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::CompleteTick(System.Int64)": {
+      "crap": 4.0,
+      "complexity": 4.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::get_Enabled()": {
+      "crap": 2.5,
       "complexity": 2.0,
-      "coverage": 0.0,
+      "coverage": 0.5,
       "coverageBasis": "branch+line",
-      "source": "src/Services/AudioService.cs"
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
     },
-    "[TickDown]TickDown.Services.ServiceCollectionExtensions::AddAppServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)": {
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::Percentile(System.Double[],System.Double)": {
       "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::QueueTick()": {
+      "crap": 6.1667,
+      "complexity": 6.0,
+      "coverage": 0.833333,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::RefreshConfiguration()": {
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
-      "source": "src/Services/ServiceCollectionExtensions.cs"
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::RemoveTimerSubscription()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::SetAlarmRepeatActive(System.Boolean&,System.Boolean)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::SetBooleanCounter(System.Int32&,System.Boolean)": {
+      "crap": 8.125,
+      "complexity": 8.0,
+      "coverage": 0.875,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationDiagnostics::SetMediaPlayerActive(System.Boolean)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationDiagnostics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_ActiveAlarmRepeatTimers()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_ActiveMediaPlayers()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_DisplayedTicks()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_MaximumPendingUiCallbacks()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_PendingUiCallbacks()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_TickLatencyMaximumMilliseconds()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_TickLatencyP50Milliseconds()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_TickLatencyP95Milliseconds()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_TickLatencyP99Milliseconds()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_TickSamples()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
+    },
+    "[TickDown.Tests]TickDown.Diagnostics.QualificationRuntimeMetrics::get_TimerSubscriptions()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRuntimeMetrics.cs"
     },
     "[TickDown.Tests]TickDown.Services.SettingsService::.ctor()": {
       "crap": 2.0,
@@ -578,83 +646,6 @@
       "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/Services/SettingsService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::.ctor(TickDown.Core.Services.ISettingsService)": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::ApplyTheme()": {
-      "crap": 72.0,
-      "complexity": 8.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::get_CurrentTheme()": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::GetRootElement()": {
-      "crap": 20.0,
-      "complexity": 4.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::InitializeAsync()": {
-      "crap": 20.0,
-      "complexity": 4.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::OnSystemThemeChanged(Windows.UI.ViewManagement.UISettings,System.Object)": {
-      "crap": 42.0,
-      "complexity": 6.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::SaveThemeAsync()": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.ThemeService::SetTheme(System.String)": {
-      "crap": 20.0,
-      "complexity": 4.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/ThemeService.cs"
-    },
-    "[TickDown]TickDown.Services.TimerService::.ctor()": {
-      "crap": 2.0,
-      "complexity": 1.0,
-      "coverage": 0.0,
-      "coverageBasis": "line",
-      "source": "src/Services/TimerService.cs"
-    },
-    "[TickDown]TickDown.Services.TimerService::Dispose()": {
-      "crap": 6.0,
-      "complexity": 2.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/TimerService.cs"
-    },
-    "[TickDown]TickDown.Services.TimerService::OnTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
-      "crap": 6.0,
-      "complexity": 2.0,
-      "coverage": 0.0,
-      "coverageBasis": "branch+line",
-      "source": "src/Services/TimerService.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.MainViewModel::.ctor(TickDown.Core.Services.ITimerService,TickDown.Core.Services.ISettingsService,TickDown.Core.Services.IThemeService,TickDown.Core.Services.IAudioService)": {
       "crap": 1.0,
@@ -804,16 +795,16 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::CreateBrushFromHex(System.String)": {
-      "crap": 20.0,
+      "crap": 6.0,
       "complexity": 4.0,
-      "coverage": 0.0,
+      "coverage": 0.5,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::Dismiss()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -832,23 +823,23 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmExpirationMinutes()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmRepeatIntervalSeconds()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_AlarmSound()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -867,30 +858,30 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_CompletionColor()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EnableAlarm()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EnableAlarmRepeat()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::get_EnableCompletionColor()": {
-      "crap": 2.0,
+      "crap": 1.0,
       "complexity": 1.0,
-      "coverage": 0.0,
+      "coverage": 1.0,
       "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1084,9 +1075,9 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnGlobalTick(System.Object,System.EventArgs)": {
-      "crap": 4.8651,
-      "complexity": 2.0,
-      "coverage": 0.105263,
+      "crap": 4.25,
+      "complexity": 4.0,
+      "coverage": 0.75,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1098,9 +1089,9 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnTimerCompleted()": {
-      "crap": 20.0,
+      "crap": 6.0,
       "complexity": 4.0,
-      "coverage": 0.0,
+      "coverage": 0.5,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1108,6 +1099,13 @@
       "crap": 6.0,
       "complexity": 2.0,
       "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::ProcessQueuedTick(System.Int64)": {
+      "crap": 7.3333,
+      "complexity": 6.0,
+      "coverage": 0.666667,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1196,9 +1194,9 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_IsCompleted(System.Boolean)": {
-      "crap": 2.5,
+      "crap": 2.0,
       "complexity": 2.0,
-      "coverage": 0.5,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1231,9 +1229,9 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::set_ProgressPercentage(System.Double)": {
-      "crap": 2.5,
+      "crap": 2.0,
       "complexity": 2.0,
-      "coverage": 0.5,
+      "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1329,9 +1327,9 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::StartAlarmRepeat()": {
-      "crap": 6.0,
+      "crap": 2.5,
       "complexity": 2.0,
-      "coverage": 0.0,
+      "coverage": 0.5,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1370,10 +1368,17 @@
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UnsubscribeFromTicks()": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::UpdateCompletionBackground()": {
-      "crap": 10.75,
+      "crap": 4.25,
       "complexity": 4.0,
-      "coverage": 0.25,
+      "coverage": 0.75,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1412,7 +1417,406 @@
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
+    "[TickDown]TickDown.App::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::get_MainWindow()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::get_Services()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::LoadWindowSettingsObservedAsync(TickDown.Core.Services.ISettingsService)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow,Microsoft.UI.Windowing.AppWindowClosingEventArgs)": {
+      "crap": 110.0,
+      "complexity": 10.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.App::OnNavigationFailed(System.Object,Microsoft.UI.Xaml.Navigation.NavigationFailedEventArgs)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/App.xaml.cs"
+    },
+    "[TickDown]TickDown.Converters.BoolToVisibilityConverter::Convert(System.Object,System.Type,System.Object,System.String)": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Converters/BoolToVisibilityConverter.cs"
+    },
+    "[TickDown]TickDown.Converters.BoolToVisibilityConverter::ConvertBack(System.Object,System.Type,System.Object,System.String)": {
+      "crap": 42.0,
+      "complexity": 6.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Converters/BoolToVisibilityConverter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationRequest::get_RequestId()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRequest.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationRequest::get_ResetLatencyWindow()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationRequest.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_Candidate()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_CapturedUtc()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_CompletedTimerCount()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_CurrentTheme()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_HandleCount()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_ManagedHeapBytes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_PrivateMemoryBytes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_ProcessorCount()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_RequestId()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_RunningTimerCount()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_Runtime()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_SettingsDirectory()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_ThreadCount()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_TimerCount()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_TotalAvailableMemoryBytes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_WorkingSetBytes()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshot::get_ZoomFactor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshot.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::.cctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::.ctor(System.String,TickDown.ViewModels.MainViewModel,System.Func`1<System.Double>)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::CanWrite(TickDown.Diagnostics.QualificationRequest)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::CaptureSnapshot(TickDown.Diagnostics.QualificationRequest)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::Dispose()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::IsNewRequest(TickDown.Diagnostics.QualificationRequest)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::OnTimerTick(Microsoft.UI.Dispatching.DispatcherQueueTimer,System.Object)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::ReadRequestAsync()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::TryStart(TickDown.ViewModels.MainViewModel,System.Func`1<System.Double>)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Diagnostics.QualificationSnapshotWriter::WriteSnapshotAsync(TickDown.Diagnostics.QualificationRequest)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Diagnostics/QualificationSnapshotWriter.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::.cctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::Dispose()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::get_AvailableSounds()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::PlaySound(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::StopCurrentPlayback()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.AudioService::StopSound()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/AudioService.cs"
+    },
+    "[TickDown]TickDown.Services.ServiceCollectionExtensions::AddAppServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ServiceCollectionExtensions.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::.ctor(TickDown.Core.Services.ISettingsService)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::ApplyTheme()": {
+      "crap": 72.0,
+      "complexity": 8.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::get_CurrentTheme()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::GetRootElement()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::InitializeAsync()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::OnSystemThemeChanged(Windows.UI.ViewManagement.UISettings,System.Object)": {
+      "crap": 42.0,
+      "complexity": 6.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::SaveThemeAsync()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.ThemeService::SetTheme(System.String)": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/ThemeService.cs"
+    },
+    "[TickDown]TickDown.Services.TimerService::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "[TickDown]TickDown.Services.TimerService::Dispose()": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/TimerService.cs"
+    },
+    "[TickDown]TickDown.Services.TimerService::OnTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
+      "crap": 6.0,
+      "complexity": 2.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Services/TimerService.cs"
+    },
     "[TickDown]TickDown.Views.MainPage::.ctor()": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::<.ctor>b__2_0()": {
       "crap": 2.0,
       "complexity": 1.0,
       "coverage": 0.0,
@@ -1457,6 +1861,13 @@
     "[TickDown]TickDown.Views.MainPage::OnSelectSoundClick(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
       "crap": 156.0,
       "complexity": 12.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/Views/MainPage.xaml.cs"
+    },
+    "[TickDown]TickDown.Views.MainPage::OnUnloaded(System.Object,Microsoft.UI.Xaml.RoutedEventArgs)": {
+      "crap": 6.0,
+      "complexity": 2.0,
       "coverage": 0.0,
       "coverageBasis": "branch+line",
       "source": "src/Views/MainPage.xaml.cs"

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using TickDown.Diagnostics;
 using TickDown.ViewModels;
 using Windows.System;
 
@@ -15,6 +16,7 @@ using Windows.System;
 public sealed partial class MainPage : Page
 {
     private const float ZoomStep = 0.1f;
+    private readonly QualificationSnapshotWriter? qualificationSnapshotWriter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainPage"/> class.
@@ -26,12 +28,22 @@ public sealed partial class MainPage : Page
         this.DataContext = this.ViewModel;
 
         this.SetupZoomAccelerators();
+        this.qualificationSnapshotWriter = QualificationSnapshotWriter.TryStart(this.ViewModel, () => this.RootScrollViewer.ZoomFactor);
+        this.Unloaded += this.OnUnloaded;
     }
 
     /// <summary>
     /// Gets the main view model.
     /// </summary>
     public MainViewModel ViewModel { get; }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(e);
+        this.qualificationSnapshotWriter?.Dispose();
+        this.Unloaded -= this.OnUnloaded;
+    }
 
     private void SetupZoomAccelerators()
     {

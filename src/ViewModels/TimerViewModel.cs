@@ -12,6 +12,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
 using TickDown.Core.Models;
 using TickDown.Core.Services;
+using TickDown.Diagnostics;
 using Windows.UI;
 
 /// <summary>
@@ -44,6 +45,8 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     private int minutes = 5;
     private int seconds;
     private DateTime? alarmExpirationTime;
+    private bool isTimerSubscribed;
+    private bool isAlarmRepeatActive;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TimerViewModel"/> class.
@@ -75,6 +78,8 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.UpdateProgressBarColor();
 
         this.timerService.Tick += this.OnGlobalTick;
+        this.isTimerSubscribed = true;
+        QualificationDiagnostics.AddTimerSubscription();
     }
 
     /// <summary>
@@ -440,7 +445,12 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     public Brush ProgressBarBrush { get; private set; } = new SolidColorBrush(Color.FromArgb(255, 244, 67, 54));
 
     /// <inheritdoc/>
-    public void Dispose() => this.alarmRepeatTimer?.Dispose();
+    public void Dispose()
+    {
+        this.StopAlarmRepeat();
+        this.UnsubscribeFromTicks();
+        this.alarmRepeatTimer?.Dispose();
+    }
 
     private static bool TryParseTime(string value, out TimeSpan result)
     {
@@ -660,7 +670,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     private void Remove()
     {
         this.StopAlarmRepeat();
-        this.timerService.Tick -= this.OnGlobalTick;
+        this.UnsubscribeFromTicks();
         this.RequestRemove?.Invoke(this, EventArgs.Empty);
     }
 
@@ -732,25 +742,50 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
     private void OnGlobalTick(object? sender, EventArgs e)
     {
-        if (this.Model.State == TimerState.Running)
+        if (this.Model.State != TimerState.Running)
         {
-            _ = this.dispatcher.TryEnqueue(() =>
+            return;
+        }
+
+        long queuedTimestamp = QualificationDiagnostics.QueueTick();
+        if (!this.dispatcher.TryEnqueue(() => this.ProcessQueuedTick(queuedTimestamp)))
+        {
+            QualificationDiagnostics.CancelTick(queuedTimestamp);
+        }
+    }
+
+    private void ProcessQueuedTick(long queuedTimestamp)
+    {
+        bool displayed = false;
+        try
+        {
+            if (this.Model.State != TimerState.Running)
             {
-                if (this.Model.State != TimerState.Running)
-                {
-                    return;
-                }
+                return;
+            }
 
-                this.Model.Tick();
-                this.UpdateTimeDisplay();
-                this.ProgressPercentage = this.Model.ProgressPercentage;
+            this.Model.Tick();
+            this.UpdateTimeDisplay();
+            this.ProgressPercentage = this.Model.ProgressPercentage;
 
-                if (this.Model.State == TimerState.Completed)
-                {
-                    this.OnTimerCompleted();
-                    this.UpdateState();
-                }
-            });
+            if (this.Model.State == TimerState.Completed)
+            {
+                this.OnTimerCompleted();
+                this.UpdateState();
+            }
+
+            displayed = true;
+        }
+        finally
+        {
+            if (displayed)
+            {
+                QualificationDiagnostics.CompleteTick(queuedTimestamp);
+            }
+            else
+            {
+                QualificationDiagnostics.CancelTick(queuedTimestamp);
+            }
         }
     }
 
@@ -807,12 +842,27 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         this.alarmExpirationTime = DateTime.Now.AddMinutes(this.AlarmExpirationMinutes);
         this.alarmRepeatTimer.Interval = this.AlarmRepeatIntervalSeconds * 1000;
         this.alarmRepeatTimer.Start();
+        QualificationDiagnostics.SetAlarmRepeatActive(ref this.isAlarmRepeatActive, true);
     }
 
     private void StopAlarmRepeat()
     {
         this.alarmRepeatTimer?.Stop();
+        this.audioService.StopSound();
         this.alarmExpirationTime = null;
+        QualificationDiagnostics.SetAlarmRepeatActive(ref this.isAlarmRepeatActive, false);
+    }
+
+    private void UnsubscribeFromTicks()
+    {
+        if (!this.isTimerSubscribed)
+        {
+            return;
+        }
+
+        this.timerService.Tick -= this.OnGlobalTick;
+        this.isTimerSubscribed = false;
+        QualificationDiagnostics.RemoveTimerSubscription();
     }
 
     private void OnAlarmRepeatTimerElapsed(object? sender, ElapsedEventArgs e)

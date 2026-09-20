@@ -186,6 +186,10 @@ public class TimerPersistenceTests
         public List<string> PlayedSounds { get; } = [];
 
         public void PlaySound(string soundName) => this.PlayedSounds.Add(soundName);
+
+        public void StopSound()
+        {
+        }
     }
 
     private sealed class TestThemeService : IThemeService

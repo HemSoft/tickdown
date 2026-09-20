@@ -17,4 +17,9 @@ public interface IAudioService
     /// </summary>
     /// <param name="soundName">The name of the system sound to play.</param>
     void PlaySound(string soundName);
+
+    /// <summary>
+    /// Stops and releases the current native playback resource.
+    /// </summary>
+    void StopSound();
 }

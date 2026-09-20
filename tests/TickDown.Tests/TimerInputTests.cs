@@ -119,6 +119,30 @@ public class TimerInputTests
     }
 
     /// <summary>
+    /// Verifies a queued UI tick completes the timer and dismiss releases alarm playback.
+    /// </summary>
+    [Fact]
+    public void CompletionTickAndDismissReleaseAlarmResources()
+    {
+        CountdownTimer model = new(TimeSpan.FromSeconds(1))
+        {
+            State = TimerState.Running,
+            EndTime = DateTime.Now.AddSeconds(-1),
+            EnableAlarm = true,
+            EnableAlarmRepeat = true,
+        };
+        using TestTimerService ticks = new();
+        TestAudioService audio = new();
+        using TimerViewModel timer = new(ticks, audio, model);
+        ticks.RaiseTick();
+        Assert.True(timer.IsCompleted);
+        _ = Assert.Single(audio.PlayedSounds);
+        timer.DismissCommand.Execute(null);
+        Assert.False(timer.IsCompleted);
+        Assert.True(audio.StopCount > 0);
+    }
+
+    /// <summary>
     /// Verifies loaded or formerly valid durations cannot overflow the start path.
     /// </summary>
     /// <param name="state">The state before starting.</param>
@@ -174,6 +198,10 @@ public class TimerInputTests
 
         public List<string> PlayedSounds { get; } = [];
 
+        public int StopCount { get; private set; }
+
         public void PlaySound(string soundName) => this.PlayedSounds.Add(soundName);
+
+        public void StopSound() => this.StopCount++;
     }
 }

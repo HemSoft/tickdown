@@ -36,6 +36,8 @@
     <Compile Include="..\..\src\ViewModels\MainViewModel.cs" Link="Production\MainViewModel.cs" />
     <Compile Include="..\..\src\ViewModels\TimerViewModel.cs" Link="Production\TimerViewModel.cs" />
     <Compile Include="..\..\src\Services\SettingsService.cs" Link="Production\SettingsService.cs" />
+    <Compile Include="..\..\src\Diagnostics\QualificationDiagnostics.cs" Link="Production\QualificationDiagnostics.cs" />
+    <Compile Include="..\..\src\Diagnostics\QualificationRuntimeMetrics.cs" Link="Production\QualificationRuntimeMetrics.cs" />
   </ItemGroup>
 
 </Project>
