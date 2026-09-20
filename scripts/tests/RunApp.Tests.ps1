@@ -1,61 +1,97 @@
-#Requires -Version 7.4
-$ErrorActionPreference = 'Stop'
-$root = Resolve-Path "$PSScriptRoot/../.."
-Import-Module (Join-Path $root 'scripts/RunApp.psm1') -Force
-$temp = Join-Path ([IO.Path]::GetTempPath()) "tickdown-run-app-$([Guid]::NewGuid())"
-$passed = 0
+# Copyright © 2025 HemSoft
 
-function Assert-Equal($Expected, $Actual, [string]$Name) {
-    if ($Expected -ne $Actual) { throw "$Name expected '$Expected', got '$Actual'" }
-    $script:passed++
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+Import-Module (Join-Path $repositoryRoot 'scripts/RunApp.psm1') -Force
+$script:assertionCount = 0
+
+function Assert-Equal {
+    param($Expected, $Actual, [string] $Name)
+
+    $script:assertionCount++
+    if ($Expected -ne $Actual) {
+        throw "$Name expected '$Expected' but found '$Actual'."
+    }
 }
 
+$tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('tickdown-run-tests-' + [guid]::NewGuid())
 try {
-    $null = New-Item (Join-Path $temp 'src/Assets') -ItemType Directory -Force
-    $null = New-Item (Join-Path $temp 'src/bin/Debug/net10.0') -ItemType Directory -Force
-    $null = New-Item (Join-Path $temp 'src/obj') -ItemType Directory -Force
-    Set-Content (Join-Path $temp 'src/App.xaml.cs') 'first source' -Encoding utf8
-    Set-Content (Join-Path $temp 'src/Assets/app.ico') 'first asset' -Encoding utf8
-    Set-Content (Join-Path $temp 'src/bin/ignored.txt') 'first output' -Encoding utf8
-    Set-Content (Join-Path $temp 'src/obj/ignored.txt') 'first intermediate' -Encoding utf8
-    Set-Content (Join-Path $temp 'Directory.Build.props') '<Project />' -Encoding utf8
-    Set-Content (Join-Path $temp 'global.json') '{}' -Encoding utf8
+    New-Item (Join-Path $tempRoot 'src/bin/Debug/net10.0-windows') -ItemType Directory -Force | Out-Null
+    Set-Content (Join-Path $tempRoot 'Directory.Build.props') '<Project />'
+    Set-Content (Join-Path $tempRoot 'src/App.xaml') '<Application />'
+    Set-Content (Join-Path $tempRoot 'src/packages.lock.json') '{}'
 
-    $initial = Get-TickDownRunInputFingerprint $temp
-    Assert-Equal $initial (Get-TickDownRunInputFingerprint $temp) 'Stable input fingerprint'
-    Set-Content (Join-Path $temp 'src/bin/ignored.txt') 'changed output' -Encoding utf8
-    Set-Content (Join-Path $temp 'src/obj/ignored.txt') 'changed intermediate' -Encoding utf8
-    Assert-Equal $initial (Get-TickDownRunInputFingerprint $temp) 'Generated output exclusion'
+    $fingerprint = Get-TickDownRunFingerprint $tempRoot
+    $fingerprintPath = Join-Path $tempRoot '.run/Debug.fingerprint'
+    $manifestPath = Join-Path $tempRoot '.run/Debug.outputs'
+    $targetPath = Join-Path $tempRoot 'src/bin/Debug/net10.0-windows/TickDown.dll'
+    $outputPaths = @(Get-TickDownRunOutputPaths $targetPath)
+    Assert-Equal 4 $outputPaths.Count 'Required output count'
+    Assert-Equal ([IO.Path]::GetFullPath($targetPath)) $outputPaths[1] 'Managed target path'
+    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $fingerprint) 'Missing outputs require build'
 
-    Set-Content (Join-Path $temp 'src/App.xaml.cs') 'changed source' -Encoding utf8
-    $sourceChanged = Get-TickDownRunInputFingerprint $temp
-    Assert-Equal $true ($sourceChanged -cne $initial) 'Source invalidation'
-    Set-Content (Join-Path $temp 'src/Assets/app.ico') 'changed asset' -Encoding utf8
-    $assetChanged = Get-TickDownRunInputFingerprint $temp
-    Assert-Equal $true ($assetChanged -cne $sourceChanged) 'Asset invalidation'
-    Set-Content (Join-Path $temp 'Directory.Build.props') '<Project><PropertyGroup /></Project>' -Encoding utf8
-    $buildChanged = Get-TickDownRunInputFingerprint $temp
-    Assert-Equal $true ($buildChanged -cne $assetChanged) 'Build policy invalidation'
+    foreach ($path in $outputPaths) {
+        New-Item ([IO.Path]::GetDirectoryName($path)) -ItemType Directory -Force | Out-Null
+        Set-Content $path 'output'
+    }
 
-    $fingerprintPath = Join-Path $temp 'src/obj/run-Debug.sha256'
-    $executablePath = Join-Path $temp 'src/bin/Debug/net10.0/TickDown.exe'
-    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $null $buildChanged) 'Undiscovered output build requirement'
-    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $executablePath $buildChanged) 'Missing output build requirement'
-    Set-Content $executablePath '' -Encoding utf8
-    Set-TickDownRunFingerprint $fingerprintPath $buildChanged
-    Assert-Equal $false (Test-TickDownRunBuildRequired $fingerprintPath $executablePath $buildChanged) 'Current output fast path'
-    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $executablePath 'different') 'Stale fingerprint build requirement'
-    Remove-Item $executablePath
-    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $executablePath $buildChanged) 'Deleted output build requirement'
+    New-Item ([IO.Path]::GetDirectoryName($fingerprintPath)) -ItemType Directory -Force | Out-Null
+    $manifestOutputs = @(Get-TickDownRunOutputManifest $targetPath)
+    Assert-Equal 4 $manifestOutputs.Count 'Output manifest count'
+    Set-Content $manifestPath $manifestOutputs
+    Set-Content $fingerprintPath $fingerprint
+    Assert-Equal $false (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $fingerprint) 'Matching fingerprint skips build'
 
-    Set-Content $executablePath '' -Encoding utf8
-    Assert-Equal $executablePath (Find-TickDownRunExecutable $temp 'Debug') 'Executable discovery'
-    $runScript = Get-Content (Join-Path $root 'run.ps1') -Raw
+    Remove-Item $targetPath
+    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $fingerprint) 'Missing managed assembly requires build'
+    Set-Content $targetPath 'output'
+
+    Remove-Item $outputPaths[0]
+    $decoyPath = Join-Path $tempRoot 'src/bin/Debug/net10.0-windows/win-x64/TickDown.exe'
+    New-Item ([IO.Path]::GetDirectoryName($decoyPath)) -ItemType Directory -Force | Out-Null
+    Set-Content $decoyPath 'stale RID output'
+    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $fingerprint) 'RID decoy does not satisfy exact output'
+    Set-Content $outputPaths[0] 'output'
+
+    $dependencyOutput = Join-Path ([IO.Path]::GetDirectoryName($targetPath)) 'TickDown.Core.dll'
+    Set-Content $dependencyOutput 'dependency output'
+    Set-Content $manifestPath @($outputPaths + $dependencyOutput)
+    Remove-Item $dependencyOutput
+    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $fingerprint) 'Missing manifest output requires build'
+    Set-Content $dependencyOutput 'dependency output'
+
+    Set-Content (Join-Path $tempRoot 'src/App.xaml') '<Application RequestedTheme="Dark" />'
+    $changedFingerprint = Get-TickDownRunFingerprint $tempRoot
+    Assert-Equal $false ($fingerprint -eq $changedFingerprint) 'Source edit changes fingerprint'
+    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $changedFingerprint) 'Source edit requires build'
+
+    Set-Content $fingerprintPath $changedFingerprint
+    Set-Content (Join-Path $tempRoot 'src/packages.lock.json') '{"changed":true}'
+    $dependencyFingerprint = Get-TickDownRunFingerprint $tempRoot
+    Assert-Equal $false ($changedFingerprint -eq $dependencyFingerprint) 'Dependency edit changes fingerprint'
+    Assert-Equal $true (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $dependencyFingerprint) 'Dependency edit requires build'
+
+    New-Item (Join-Path $tempRoot 'src/obj') -ItemType Directory -Force | Out-Null
+    Set-Content (Join-Path $tempRoot 'src/obj/generated.cs') '// generated'
+    Assert-Equal $dependencyFingerprint (Get-TickDownRunFingerprint $tempRoot) 'Generated files are ignored'
+
+    Set-Content $fingerprintPath $dependencyFingerprint
+    Set-Content (Join-Path $tempRoot 'README.md') '# Documentation'
+    Assert-Equal $dependencyFingerprint (Get-TickDownRunFingerprint $tempRoot) 'Documentation is ignored'
+    Assert-Equal $false (Test-TickDownRunBuildRequired $fingerprintPath $manifestPath $outputPaths $dependencyFingerprint) 'Unrelated edit skips build'
+
+    $runScript = Get-Content (Join-Path $repositoryRoot 'run.ps1') -Raw
     Assert-Equal $true $runScript.Contains('dotnet restore $project --locked-mode') 'Locked cold restore'
     Assert-Equal $true $runScript.Contains('--no-build --no-restore') 'Warm launch without build or restore'
     Assert-Equal $true $runScript.Contains('$PSNativeCommandUseErrorActionPreference = $true') 'Native failure propagation'
-    "Passed $passed run-app assertions."
+    Assert-Equal $true $runScript.Contains('-getProperty:TargetPath') 'Exact target resolution'
+
+    Write-Host "Passed $script:assertionCount run-app assertions."
 }
 finally {
-    Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
 }

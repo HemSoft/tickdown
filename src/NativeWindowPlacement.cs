@@ -12,7 +12,6 @@ using global::TickDown.Core.Models;
 internal static class NativeWindowPlacement
 {
     private const uint NoActivate = 0x0010;
-    private const uint NoSize = 0x0001;
     private const uint NoZOrder = 0x0004;
 
     /// <summary>
@@ -54,24 +53,31 @@ internal static class NativeWindowPlacement
     /// </summary>
     /// <param name="windowHandle">The native window handle.</param>
     /// <param name="bounds">The bounds in physical screen coordinates.</param>
-    internal static void MoveAndResize(nint windowHandle, WindowBounds bounds) =>
-        MoveAndResize(windowHandle, bounds, SetWindowPos);
+    /// <param name="targetWorkArea">The work area of the display selected for restoration.</param>
+    internal static void MoveAndResize(
+        nint windowHandle,
+        WindowBounds bounds,
+        WindowBounds targetWorkArea) =>
+        MoveAndResize(windowHandle, bounds, targetWorkArea, SetWindowPos);
 
     /// <summary>
-    /// Moves a window to its target display before applying size, so the DPI transition cannot rescale saved bounds.
+    /// Places a small window wholly on the target display before applying saved bounds.
     /// </summary>
     /// <param name="windowHandle">The native window handle.</param>
     /// <param name="bounds">The bounds to restore.</param>
+    /// <param name="targetWorkArea">The work area of the display selected for restoration.</param>
     /// <param name="setWindowPosition">The native window-position operation.</param>
     internal static void MoveAndResize(
         nint windowHandle,
         WindowBounds bounds,
+        WindowBounds targetWorkArea,
         SetWindowPosition setWindowPosition)
     {
+        WindowBounds targetDisplayAnchor = new(targetWorkArea.X, targetWorkArea.Y, 1, 1);
         SetWindowBounds(
             windowHandle,
-            bounds,
-            NoActivate | NoSize | NoZOrder,
+            targetDisplayAnchor,
+            NoActivate | NoZOrder,
             setWindowPosition);
         SetWindowBounds(
             windowHandle,

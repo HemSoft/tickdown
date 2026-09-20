@@ -1869,14 +1869,14 @@
       "coverageBasis": "branch+line",
       "source": "src/NativeWindowPlacement.cs"
     },
-    "[TickDown]TickDown.NativeWindowPlacement::MoveAndResize(System.IntPtr,TickDown.Core.Models.WindowBounds,TickDown.NativeWindowPlacement/SetWindowPosition)": {
+    "[TickDown]TickDown.NativeWindowPlacement::MoveAndResize(System.IntPtr,TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds,TickDown.NativeWindowPlacement/SetWindowPosition)": {
       "crap": 2.0,
       "complexity": 1.0,
       "coverage": 0.0,
       "coverageBasis": "line",
       "source": "src/NativeWindowPlacement.cs"
     },
-    "[TickDown]TickDown.NativeWindowPlacement::MoveAndResize(System.IntPtr,TickDown.Core.Models.WindowBounds)": {
+    "[TickDown]TickDown.NativeWindowPlacement::MoveAndResize(System.IntPtr,TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
       "crap": 2.0,
       "complexity": 1.0,
       "coverage": 0.0,

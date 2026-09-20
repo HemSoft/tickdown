@@ -104,16 +104,17 @@ public partial class App : Application
             return;
         }
 
+        WindowBounds workArea = new(
+            displayArea.WorkArea.X,
+            displayArea.WorkArea.Y,
+            displayArea.WorkArea.Width,
+            displayArea.WorkArea.Height);
         WindowBounds? restoredBounds = WindowPlacement.ResolveVisibleBounds(
             new WindowBounds(settings.X, settings.Y, settings.Width, settings.Height),
-            new WindowBounds(
-                displayArea.WorkArea.X,
-                displayArea.WorkArea.Y,
-                displayArea.WorkArea.Width,
-                displayArea.WorkArea.Height));
+            workArea);
         if (restoredBounds is WindowBounds bounds)
         {
-            NativeWindowPlacement.MoveAndResize(windowHandle, bounds);
+            NativeWindowPlacement.MoveAndResize(windowHandle, bounds, workArea);
         }
     }
 
