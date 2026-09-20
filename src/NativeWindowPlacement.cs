@@ -73,7 +73,11 @@ internal static class NativeWindowPlacement
         WindowBounds targetWorkArea,
         SetWindowPosition setWindowPosition)
     {
-        WindowBounds targetDisplayAnchor = new(targetWorkArea.X, targetWorkArea.Y, 1, 1);
+        WindowBounds targetDisplayAnchor = new(
+            targetWorkArea.X,
+            targetWorkArea.Y,
+            Math.Max(1, Math.Min(640, targetWorkArea.Width)),
+            Math.Max(1, Math.Min(480, targetWorkArea.Height)));
         SetWindowBounds(
             windowHandle,
             targetDisplayAnchor,

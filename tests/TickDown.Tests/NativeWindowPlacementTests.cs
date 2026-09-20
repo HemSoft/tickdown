@@ -49,7 +49,7 @@ public class NativeWindowPlacementTests
             });
 
         Assert.Equal(2, calls.Count);
-        Assert.Equal((workAreaX, workAreaY, 1, 1), (calls[0].X, calls[0].Y, calls[0].Width, calls[0].Height));
+        Assert.Equal((workAreaX, workAreaY, 640, 480), (calls[0].X, calls[0].Y, calls[0].Width, calls[0].Height));
         Assert.Equal((x, y, width, height), (calls[1].X, calls[1].Y, calls[1].Width, calls[1].Height));
         Assert.Equal(0U, calls[0].Flags & 0x0001U);
         Assert.Equal(0U, calls[1].Flags & 0x0001U);
