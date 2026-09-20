@@ -29,8 +29,9 @@ Closing disables input, saves the latest normal window geometry, and waits for
 the queue to drain. The next launch activates the native window before applying
 that geometry so Windows uses the same visible frame coordinates. Settings that
 contain only theme defaults leave first-run placement to Windows. If the saved
-display is unavailable, TickDown moves the window into the nearest work area.
-Maximized shutdown preserves the last normal bounds and restores maximized state.
+display is unavailable or too little of the caption remains usable, TickDown fits
+the window into the nearest work area. Maximized shutdown preserves the last
+normal bounds and restores maximized state.
 
 An unresolved write failure cancels closing instead of silently discarding work.
 A successful retry of the affected file clears its unresolved write failure.

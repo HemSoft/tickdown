@@ -24,6 +24,34 @@ public class WindowPlacementTests
     }
 
     /// <summary>
+    /// Verifies a small body intersection does not preserve an inaccessible caption.
+    /// </summary>
+    [Fact]
+    public void BoundsWithCaptionAboveWorkAreaMoveIntoView()
+    {
+        WindowBounds saved = new(100, -690, 800, 700);
+        WindowBounds workArea = new(0, 0, 1920, 1040);
+
+        WindowBounds? restored = WindowPlacement.ResolveVisibleBounds(saved, workArea);
+
+        Assert.Equal(new WindowBounds(100, 0, 800, 700), restored);
+    }
+
+    /// <summary>
+    /// Verifies a narrow caption sliver does not leave the window inaccessible at the display edge.
+    /// </summary>
+    [Fact]
+    public void BoundsWithCaptionSliverMoveIntoView()
+    {
+        WindowBounds saved = new(1900, 100, 800, 700);
+        WindowBounds workArea = new(0, 0, 1920, 1040);
+
+        WindowBounds? restored = WindowPlacement.ResolveVisibleBounds(saved, workArea);
+
+        Assert.Equal(new WindowBounds(1120, 100, 800, 700), restored);
+    }
+
+    /// <summary>
     /// Verifies a disconnected right-side display falls back to the nearest work-area edge.
     /// </summary>
     [Fact]

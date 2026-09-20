@@ -301,6 +301,20 @@
       "coverageBasis": "line",
       "source": "src/TickDown.Core/Models/WindowBounds.cs"
     },
+    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::CalculateOverlap(System.Int32,System.Int32,System.Int32,System.Int32)": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/TickDown.Core/Models/WindowPlacement.cs"
+    },
+    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::FitsWorkArea(TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
+      "crap": 2.0,
+      "complexity": 2.0,
+      "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/TickDown.Core/Models/WindowPlacement.cs"
+    },
     "[TickDown.Core]TickDown.Core.Models.WindowPlacement::HasArea(TickDown.Core.Models.WindowBounds)": {
       "crap": 2.0,
       "complexity": 2.0,
@@ -308,16 +322,16 @@
       "coverageBasis": "branch+line",
       "source": "src/TickDown.Core/Models/WindowPlacement.cs"
     },
-    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::Intersects(TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
-      "crap": 6.0,
-      "complexity": 6.0,
+    "[TickDown.Core]TickDown.Core.Models.WindowPlacement::HasUsableCaption(TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
+      "crap": 2.0,
+      "complexity": 2.0,
       "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/TickDown.Core/Models/WindowPlacement.cs"
     },
     "[TickDown.Core]TickDown.Core.Models.WindowPlacement::ResolveVisibleBounds(TickDown.Core.Models.WindowBounds,TickDown.Core.Models.WindowBounds)": {
-      "crap": 6.0,
-      "complexity": 6.0,
+      "crap": 8.0,
+      "complexity": 8.0,
       "coverage": 1.0,
       "coverageBasis": "branch+line",
       "source": "src/TickDown.Core/Models/WindowPlacement.cs"
