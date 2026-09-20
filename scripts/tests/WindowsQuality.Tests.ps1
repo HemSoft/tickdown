@@ -22,7 +22,7 @@ function Assert-Rejected([string]$Json, [string]$Name) {
 
 $clean = '{"quality":{"result":"success"},"tests":{"result":"success"},"coverage":{"result":"success"},"mutation":{"result":"success"},"architecture":{"result":"success"}}'
 $rows = @(Assert-RequiredJobs -ResultsJson $clean -RequiredNames $required)
-Assert-Equal 6 $rows.Count 'Temporary ruleset failure proof'
+Assert-Equal 5 $rows.Count 'All required jobs returned'
 Assert-Equal 'architecture' $rows[4].Name 'Required order retained'
 Assert-Rejected '{"quality":{"result":"failure"},"tests":{"result":"success"},"coverage":{"result":"success"},"mutation":{"result":"success"},"architecture":{"result":"success"}}' 'Failure'
 Assert-Rejected '{"quality":{"result":"success"},"tests":{"result":"cancelled"},"coverage":{"result":"success"},"mutation":{"result":"success"},"architecture":{"result":"success"}}' 'Cancellation'
