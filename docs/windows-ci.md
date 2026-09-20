@@ -111,3 +111,11 @@ and
 [countdown-mutation](https://github.com/HemSoft/tickdown/actions/runs/35481633605/artifacts/10595993460)
 artifacts. The mutation candidate record matches the delivered commit and reports
 100.00%, with 44 killed and zero surviving mutants.
+
+The ruleset fail/pass proof used
+[run 35481964040](https://github.com/HemSoft/tickdown/actions/runs/35481964040).
+A temporary change made the required-job policy test fail. `Quality policy`
+reported failure after 2m 38s of job execution, `Required` failed after every
+child completed, and GitHub reported pull request #30 as blocked. The next
+commit reverted that temporary change before the documentation-only candidate
+was qualified for merge.
