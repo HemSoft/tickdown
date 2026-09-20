@@ -1081,11 +1081,18 @@
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
-    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnAlarmRepeatTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
-      "crap": 72.0,
-      "complexity": 8.0,
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::IsAlarmExpired()": {
+      "crap": 6.0,
+      "complexity": 2.0,
       "coverage": 0.0,
       "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnAlarmRepeatTimerElapsed(System.Object,System.Timers.ElapsedEventArgs)": {
+      "crap": 2.0,
+      "complexity": 1.0,
+      "coverage": 0.0,
+      "coverageBasis": "line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::OnGlobalTick(System.Object,System.EventArgs)": {
@@ -1116,6 +1123,13 @@
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::ProcessAlarmRepeatElapsed()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::ProcessQueuedTick(System.Int64)": {
       "crap": 7.3333,
       "complexity": 6.0,
@@ -1127,6 +1141,13 @@
       "crap": 2.0,
       "complexity": 2.0,
       "coverage": 1.0,
+      "coverageBasis": "branch+line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::ReplayAlarmOrStop()": {
+      "crap": 20.0,
+      "complexity": 4.0,
+      "coverage": 0.0,
       "coverageBasis": "branch+line",
       "source": "src/ViewModels/TimerViewModel.cs"
     },
@@ -1355,6 +1376,13 @@
       "source": "src/ViewModels/TimerViewModel.cs"
     },
     "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::StopAlarmRepeat()": {
+      "crap": 1.0,
+      "complexity": 1.0,
+      "coverage": 1.0,
+      "coverageBasis": "line",
+      "source": "src/ViewModels/TimerViewModel.cs"
+    },
+    "[TickDown.Tests]TickDown.ViewModels.TimerViewModel::StopAlarmRepeatCore()": {
       "crap": 2.5,
       "complexity": 2.0,
       "coverage": 0.5,

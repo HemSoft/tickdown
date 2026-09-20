@@ -29,6 +29,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
     private readonly ITimerService timerService;
     private readonly IAudioService audioService;
     private readonly DispatcherQueue dispatcher;
+    private readonly object alarmSync = new();
     private readonly Timer? alarmRepeatTimer;
 
     private string timeDisplay = "00:05:00";
@@ -834,18 +835,29 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
     private void StartAlarmRepeat()
     {
-        if (this.alarmRepeatTimer is null)
+        lock (this.alarmSync)
         {
-            return;
-        }
+            if (this.alarmRepeatTimer is null)
+            {
+                return;
+            }
 
-        this.alarmExpirationTime = DateTime.Now.AddMinutes(this.AlarmExpirationMinutes);
-        this.alarmRepeatTimer.Interval = this.AlarmRepeatIntervalSeconds * 1000;
-        this.alarmRepeatTimer.Start();
-        QualificationDiagnostics.SetAlarmRepeatActive(ref this.isAlarmRepeatActive, true);
+            this.alarmExpirationTime = DateTime.Now.AddMinutes(this.AlarmExpirationMinutes);
+            this.alarmRepeatTimer.Interval = this.AlarmRepeatIntervalSeconds * 1000;
+            this.alarmRepeatTimer.Start();
+            QualificationDiagnostics.SetAlarmRepeatActive(ref this.isAlarmRepeatActive, true);
+        }
     }
 
     private void StopAlarmRepeat()
+    {
+        lock (this.alarmSync)
+        {
+            this.StopAlarmRepeatCore();
+        }
+    }
+
+    private void StopAlarmRepeatCore()
     {
         this.alarmRepeatTimer?.Stop();
         this.audioService.StopSound(this);
@@ -867,12 +879,33 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
 
     private void OnAlarmRepeatTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (this.alarmExpirationTime.HasValue && DateTime.Now >= this.alarmExpirationTime.Value)
+        lock (this.alarmSync)
         {
-            _ = this.dispatcher.TryEnqueue(this.StopAlarmRepeat);
+            this.ProcessAlarmRepeatElapsed();
+        }
+    }
+
+    private void ProcessAlarmRepeatElapsed()
+    {
+        if (!this.isAlarmRepeatActive)
+        {
             return;
         }
 
+        if (this.IsAlarmExpired())
+        {
+            this.StopAlarmRepeatCore();
+            return;
+        }
+
+        this.ReplayAlarmOrStop();
+    }
+
+    private bool IsAlarmExpired() =>
+        this.alarmExpirationTime.HasValue && DateTime.Now >= this.alarmExpirationTime.Value;
+
+    private void ReplayAlarmOrStop()
+    {
         if (this.IsCompleted && this.EnableAlarm)
         {
             QualificationDiagnostics.RecordAlarmReplay();
@@ -880,7 +913,7 @@ public sealed partial class TimerViewModel : ObservableObject, IDisposable
         }
         else
         {
-            _ = this.dispatcher.TryEnqueue(this.StopAlarmRepeat);
+            this.StopAlarmRepeatCore();
         }
     }
 
