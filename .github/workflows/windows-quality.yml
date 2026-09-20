@@ -86,12 +86,12 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: 10.0.108
-      - name: Restore locked solution
-        run: dotnet restore TickDown.sln --locked-mode
-      - name: Build solution
-        run: dotnet build TickDown.sln --configuration Release --no-restore
-      - name: Test solution
-        run: dotnet test TickDown.sln --configuration Release --no-build --no-restore
+      - name: Restore locked x64 solution
+        run: dotnet restore TickDown.sln --locked-mode -p:Platform=x64
+      - name: Build x64 solution
+        run: dotnet build TickDown.sln --configuration Release --no-restore -p:Platform=x64
+      - name: Test x64 solution
+        run: dotnet test TickDown.sln --configuration Release --no-build --no-restore -p:Platform=x64
       - name: Publish test duration
         if: ${{ always() }}
         shell: pwsh
@@ -124,7 +124,7 @@ jobs:
         with:
           name: coverage-function-risk
           path: artifacts/coverage
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
       - name: Publish coverage duration
         if: ${{ always() }}
@@ -158,7 +158,7 @@ jobs:
         with:
           name: countdown-mutation
           path: artifacts/mutation
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
       - name: Publish mutation duration
         if: ${{ always() }}
