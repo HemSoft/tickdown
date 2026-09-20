@@ -58,6 +58,9 @@ try {
     $traversalRejected = $false
     try { $null = Resolve-MutationOutputPath $temp '../outside' } catch { $traversalRejected = $true }
     Assert-Equal $true $traversalRejected 'Traversal rejection'
+    $gateScript = Get-Content (Join-Path $root 'scripts/check-mutation.ps1') -Raw
+    Assert-Equal 2 ([regex]::Matches($gateScript, 'git rev-parse HEAD').Count) 'Candidate revision revalidation'
+    Assert-Equal 2 ([regex]::Matches($gateScript, 'git status --porcelain').Count) 'Working-tree revalidation'
     "Passed $passed mutation-quality assertions."
 }
 finally {

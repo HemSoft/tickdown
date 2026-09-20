@@ -38,6 +38,13 @@ try {
         $timer.Stop()
     }
 
+    $completedCandidate = (& git rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Could not revalidate the candidate revision.' }
+    if ($completedCandidate -ne $candidate) { throw "Candidate changed during mutation testing: $candidate -> $completedCandidate." }
+    $completedDirty = (& git status --porcelain --untracked-files=all | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Could not revalidate the candidate working tree.' }
+    if (!$AllowDirty -and $completedDirty) { throw "Working tree changed during mutation testing:`n$completedDirty" }
+
     New-Item $outputPath -ItemType Directory -Force | Out-Null
     $runOutput | Set-Content (Join-Path $outputPath 'console.log') -Encoding utf8
     $reportFiles = @(Get-ChildItem $outputPath -Filter mutation-report.json -Recurse)
@@ -52,7 +59,7 @@ try {
     $reportHash = (Get-FileHash $reportFiles[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     [ordered]@{
         candidate = $candidate
-        workingTreeClean = !$dirty
+        workingTreeClean = !$dirty -and !$completedDirty
         tool = 'dotnet-stryker'
         toolVersion = '5.0.0'
         mutationScore = $score
