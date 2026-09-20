@@ -12,7 +12,7 @@ using TickDown.Core.Models;
 public class NativeWindowPlacementTests
 {
     /// <summary>
-    /// Verifies restoration first places a small window wholly on the target display.
+    /// Verifies restoration first moves to the selected display without resizing.
     /// </summary>
     /// <param name="x">The saved left coordinate.</param>
     /// <param name="y">The saved top coordinate.</param>
@@ -48,13 +48,11 @@ public class NativeWindowPlacementTests
                 return true;
             });
 
-        Assert.Equal(3, calls.Count);
-        Assert.Equal((0, 0, 640, 480), (calls[0].X, calls[0].Y, calls[0].Width, calls[0].Height));
-        Assert.Equal((workAreaX, workAreaY, 640, 480), (calls[1].X, calls[1].Y, calls[1].Width, calls[1].Height));
-        Assert.Equal((x, y, width, height), (calls[2].X, calls[2].Y, calls[2].Width, calls[2].Height));
-        Assert.NotEqual(0U, calls[0].Flags & 0x0002U);
-        Assert.NotEqual(0U, calls[1].Flags & 0x0001U);
-        Assert.Equal(0U, calls[2].Flags & 0x0003U);
+        Assert.Equal(2, calls.Count);
+        Assert.Equal((workAreaX, workAreaY, width, height), (calls[0].X, calls[0].Y, calls[0].Width, calls[0].Height));
+        Assert.Equal((x, y, width, height), (calls[1].X, calls[1].Y, calls[1].Width, calls[1].Height));
+        Assert.NotEqual(0U, calls[0].Flags & 0x0001U);
+        Assert.Equal(0U, calls[1].Flags & 0x0001U);
     }
 
     /// <summary>
@@ -90,8 +88,8 @@ public class NativeWindowPlacementTests
             42,
             new WindowBounds(100, 200, 800, 600),
             new WindowBounds(0, 0, 1920, 1040),
-            (_, _, _, _, _, _, _) => ++calls <= 2));
+            (_, _, _, _, _, _, _) => ++calls == 1));
 
-        Assert.Equal(3, calls);
+        Assert.Equal(2, calls);
     }
 }

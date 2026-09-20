@@ -12,7 +12,6 @@ using global::TickDown.Core.Models;
 internal static class NativeWindowPlacement
 {
     private const uint NoActivate = 0x0010;
-    private const uint NoMove = 0x0002;
     private const uint NoSize = 0x0001;
     private const uint NoZOrder = 0x0004;
 
@@ -63,7 +62,7 @@ internal static class NativeWindowPlacement
         MoveAndResize(windowHandle, bounds, targetWorkArea, SetWindowPos);
 
     /// <summary>
-    /// Places a small window wholly on the target display before applying saved bounds.
+    /// Moves to the selected display without resizing before applying saved bounds.
     /// </summary>
     /// <param name="windowHandle">The native window handle.</param>
     /// <param name="bounds">The bounds to restore.</param>
@@ -75,16 +74,9 @@ internal static class NativeWindowPlacement
         WindowBounds targetWorkArea,
         SetWindowPosition setWindowPosition)
     {
-        int anchorWidth = Math.Max(1, Math.Min(640, targetWorkArea.Width));
-        int anchorHeight = Math.Max(1, Math.Min(480, targetWorkArea.Height));
         SetWindowBounds(
             windowHandle,
-            new WindowBounds(0, 0, anchorWidth, anchorHeight),
-            NoActivate | NoMove | NoZOrder,
-            setWindowPosition);
-        SetWindowBounds(
-            windowHandle,
-            new WindowBounds(targetWorkArea.X, targetWorkArea.Y, anchorWidth, anchorHeight),
+            new WindowBounds(targetWorkArea.X, targetWorkArea.Y, bounds.Width, bounds.Height),
             NoActivate | NoSize | NoZOrder,
             setWindowPosition);
         SetWindowBounds(windowHandle, bounds, NoActivate | NoZOrder, setWindowPosition);
