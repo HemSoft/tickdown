@@ -3,6 +3,7 @@
 namespace TickDown.Services;
 
 using TickDown.Core.Services;
+using TickDown.Diagnostics;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
@@ -45,15 +46,18 @@ public sealed class AudioService : IAudioService, IDisposable
         ["Windows Notify Email"] = "Windows Notify Email.wav",
     };
 
+    private readonly object playbackSync = new();
     private MediaPlayer? mediaPlayer;
+    private object? playbackOwner;
     private bool disposed;
 
     /// <inheritdoc/>
     public IReadOnlyList<string> AvailableSounds => [.. SoundFiles.Keys];
 
     /// <inheritdoc/>
-    public void PlaySound(string soundName)
+    public void PlaySound(string soundName, object owner)
     {
+        ArgumentNullException.ThrowIfNull(owner);
         if (!SoundFiles.TryGetValue(soundName, out string? fileName))
         {
             fileName = "Alarm01.wav";
@@ -65,22 +69,43 @@ public sealed class AudioService : IAudioService, IDisposable
             return;
         }
 
-        this.StopCurrentPlayback();
-
-        this.mediaPlayer = new MediaPlayer
+        lock (this.playbackSync)
         {
-            Source = MediaSource.CreateFromUri(new Uri(filePath)),
-            AutoPlay = true,
-        };
+            ObjectDisposedException.ThrowIf(this.disposed, this);
+            this.StopCurrentPlayback();
+            this.mediaPlayer = new MediaPlayer
+            {
+                Source = MediaSource.CreateFromUri(new Uri(filePath)),
+                AutoPlay = true,
+            };
+            this.playbackOwner = owner;
+            QualificationDiagnostics.SetMediaPlayerActive(true);
+        }
+    }
+
+    /// <inheritdoc/>
+    public void StopSound(object owner)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        lock (this.playbackSync)
+        {
+            if (ReferenceEquals(this.playbackOwner, owner))
+            {
+                this.StopCurrentPlayback();
+            }
+        }
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (!this.disposed)
+        lock (this.playbackSync)
         {
-            this.StopCurrentPlayback();
-            this.disposed = true;
+            if (!this.disposed)
+            {
+                this.StopCurrentPlayback();
+                this.disposed = true;
+            }
         }
     }
 
@@ -91,6 +116,8 @@ public sealed class AudioService : IAudioService, IDisposable
             this.mediaPlayer.Pause();
             this.mediaPlayer.Dispose();
             this.mediaPlayer = null;
+            this.playbackOwner = null;
+            QualificationDiagnostics.SetMediaPlayerActive(false);
         }
     }
 }

@@ -59,12 +59,16 @@
                                                 <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox Text="{Binding Name, Mode=TwoWay}"
+                                                 AutomationProperties.Name="Timer name"
+                                                 AutomationProperties.AutomationId="TimerNameEditor"
                                                  FontSize="18"
                                                  PlaceholderText="Timer Name"
                                                  BorderThickness="0"
                                                  Background="Transparent"/>
                                         <Button Grid.Column="1"
                                                 Content="❌"
+                                                AutomationProperties.Name="Remove timer"
+                                                AutomationProperties.AutomationId="RemoveTimerButton"
                                                 Command="{Binding RemoveCommand}"
                                                 Background="Transparent"
                                                 BorderThickness="0"
@@ -73,6 +77,8 @@
 
                                 <!-- Timer Display -->
                                 <TextBox Grid.Row="1"
+                                         AutomationProperties.Name="Timer duration"
+                                         AutomationProperties.AutomationId="TimerDurationEditor"
                                          Text="{Binding TimeDisplay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          FontSize="56"
                                          FontWeight="Bold"
@@ -109,17 +115,25 @@
                                             Margin="0,0,0,20">
                                         <Button Command="{Binding StartCommand}"
                                                 Content="▶️ Start"
+                                                AutomationProperties.Name="Start timer"
+                                                AutomationProperties.AutomationId="StartTimerButton"
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
                                         <Button Command="{Binding PauseCommand}"
                                                 Content="⏸️ Pause"
+                                                AutomationProperties.Name="Pause timer"
+                                                AutomationProperties.AutomationId="PauseTimerButton"
                                                 Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                         <Button Command="{Binding StopCommand}"
-                                                Content="⏹️ Stop"/>
+                                                Content="⏹️ Stop"
+                                                AutomationProperties.Name="Stop timer"
+                                                AutomationProperties.AutomationId="StopTimerButton"/>
                                         <Button Command="{Binding ResetCommand}"
                                                 Content="🔄 Reset"/>
                                         <Button Command="{Binding DismissCommand}"
                                                 Content="✅ Dismiss"
+                                                AutomationProperties.Name="Dismiss completed timer"
+                                                AutomationProperties.AutomationId="DismissTimerButton"
                                                 Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibilityConverter}}"
                                                 Style="{StaticResource AccentButtonStyle}"/>
                                 </StackPanel>
@@ -422,11 +436,15 @@
                                         </StackPanel>
                                         <Button Command="{Binding AddTimerCommand}"
                                                 Content="➕ Add Timer"
+                                                AutomationProperties.Name="Add timer"
+                                                AutomationProperties.AutomationId="AddTimerButton"
                                                 Style="{StaticResource AccentButtonStyle}"/>
                                 </StackPanel>
 
                                 <!-- Theme Toggle (right-aligned) -->
                                 <ComboBox Grid.Column="2"
+                                          AutomationProperties.Name="Theme"
+                                          AutomationProperties.AutomationId="ThemeSelector"
                                           HorizontalAlignment="Right"
                                           VerticalAlignment="Center"
                                           ItemsSource="{Binding AvailableThemes}"

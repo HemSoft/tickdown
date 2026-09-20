@@ -102,6 +102,9 @@ try {
         'TickDown.ViewModels.MainViewModel'
         'TickDown.ViewModels.TimerViewModel'
         'TickDown.Services.SettingsService'
+        'TickDown.Diagnostics.QualificationDiagnostics'
+        'TickDown.Diagnostics.QualificationRuntimeMetrics'
+        'TickDown.Diagnostics.QualificationTick'
     )
     [xml]$effectiveSettings = Get-Content (Join-Path $root 'coverage.runsettings') -Raw
     $productionFilters = @($productionAssemblyNames | ForEach-Object { "[$_]*" })

@@ -6,7 +6,7 @@
         <Configuration>
           <Format>cobertura</Format>
           <Include>[TickDown.Core]*,[TickDown]*,[TickDown.Tests]TickDown.ViewModels.MainViewModel*,[TickDown.Tests]TickDown.ViewModels.TimerViewModel*,[TickDown.Tests]TickDown.Services.SettingsService*</Include>
-          <Exclude>[TickDown]TickDown.ViewModels.MainViewModel,[TickDown]TickDown.ViewModels.MainViewModel/*,[TickDown]TickDown.ViewModels.TimerViewModel,[TickDown]TickDown.ViewModels.TimerViewModel/*,[TickDown]TickDown.Services.SettingsService,[TickDown]TickDown.Services.SettingsService/*,[TickDown]Microsoft.Windows.ApplicationModel.WindowsAppRuntime.Common.AutoInitialize,[TickDown]Microsoft.Windows.ApplicationModel.DynamicDependency.BootstrapCS.AutoInitialize</Exclude>
+          <Exclude>[TickDown]TickDown.ViewModels.MainViewModel,[TickDown]TickDown.ViewModels.MainViewModel/*,[TickDown]TickDown.ViewModels.TimerViewModel,[TickDown]TickDown.ViewModels.TimerViewModel/*,[TickDown]TickDown.Services.SettingsService,[TickDown]TickDown.Services.SettingsService/*,[TickDown]TickDown.Diagnostics.QualificationDiagnostics,[TickDown]TickDown.Diagnostics.QualificationDiagnostics/*,[TickDown]TickDown.Diagnostics.QualificationRuntimeMetrics,[TickDown]TickDown.Diagnostics.QualificationRuntimeMetrics/*,[TickDown]TickDown.Diagnostics.QualificationTick,[TickDown]TickDown.Diagnostics.QualificationTick/*,[TickDown]Microsoft.Windows.ApplicationModel.WindowsAppRuntime.Common.AutoInitialize,[TickDown]Microsoft.Windows.ApplicationModel.DynamicDependency.BootstrapCS.AutoInitialize</Exclude>
           <IncludeTestAssembly>true</IncludeTestAssembly>
           <ExcludeByFile>**/obj/**</ExcludeByFile>
           <DeterministicReport>true</DeterministicReport>

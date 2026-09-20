@@ -185,7 +185,13 @@ public class TimerPersistenceTests
 
         public List<string> PlayedSounds { get; } = [];
 
-        public void PlaySound(string soundName) => this.PlayedSounds.Add(soundName);
+        public void PlaySound(string soundName, object owner)
+        {
+            _ = owner;
+            this.PlayedSounds.Add(soundName);
+        }
+
+        public void StopSound(object owner) => _ = owner;
     }
 
     private sealed class TestThemeService : IThemeService

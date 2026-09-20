@@ -21,6 +21,7 @@ public sealed partial class SoundPickerDialog : ContentDialog
         this.InitializeComponent();
         this.audioService = App.Services.GetRequiredService<IAudioService>();
         this.AvailableSounds = this.audioService.AvailableSounds;
+        this.Closed += this.OnClosed;
     }
 
     /// <summary>
@@ -33,6 +34,14 @@ public sealed partial class SoundPickerDialog : ContentDialog
     /// </summary>
     public string SelectedSound { get; set; } = "Alarm 01";
 
+    private void OnClosed(ContentDialog sender, ContentDialogClosedEventArgs args)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(args);
+        this.audioService.StopSound(this);
+        this.Closed -= this.OnClosed;
+    }
+
     private void OnPreviewClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(sender);
@@ -40,7 +49,7 @@ public sealed partial class SoundPickerDialog : ContentDialog
 
         if (!string.IsNullOrEmpty(this.SelectedSound))
         {
-            this.audioService.PlaySound(this.SelectedSound);
+            this.audioService.PlaySound(this.SelectedSound, this);
         }
     }
 }

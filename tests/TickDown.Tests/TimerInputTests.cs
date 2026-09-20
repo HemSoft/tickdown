@@ -119,6 +119,54 @@ public class TimerInputTests
     }
 
     /// <summary>
+    /// Verifies a queued UI tick completes the timer and dismiss releases alarm playback.
+    /// </summary>
+    [Fact]
+    public void CompletionTickAndDismissReleaseAlarmResources()
+    {
+        CountdownTimer model = new(TimeSpan.FromSeconds(1))
+        {
+            State = TimerState.Running,
+            EndTime = DateTime.Now.AddSeconds(-1),
+            EnableAlarm = true,
+            EnableAlarmRepeat = true,
+        };
+        using TestTimerService ticks = new();
+        TestAudioService audio = new();
+        using TimerViewModel timer = new(ticks, audio, model);
+        ticks.RaiseTick();
+        Assert.True(timer.IsCompleted);
+        _ = Assert.Single(audio.PlayedSounds);
+        timer.DismissCommand.Execute(null);
+        Assert.False(timer.IsCompleted);
+        Assert.True(audio.StopCount > 0);
+    }
+
+    /// <summary>
+    /// Verifies an unrelated timer cannot stop another timer's active alarm.
+    /// </summary>
+    [Fact]
+    public void StoppingAnotherTimerPreservesAlarmOwnership()
+    {
+        CountdownTimer completed = new(TimeSpan.FromSeconds(1))
+        {
+            State = TimerState.Running,
+            EndTime = DateTime.Now.AddSeconds(-1),
+            EnableAlarm = true,
+        };
+        using TestTimerService ticks = new();
+        TestAudioService audio = new();
+        using TimerViewModel alarmOwner = new(ticks, audio, completed);
+        using TimerViewModel unrelated = new(ticks, audio, new CountdownTimer(TimeSpan.FromMinutes(1)));
+        ticks.RaiseTick();
+        Assert.Same(alarmOwner, audio.CurrentOwner);
+        unrelated.Dispose();
+        Assert.Same(alarmOwner, audio.CurrentOwner);
+        alarmOwner.DismissCommand.Execute(null);
+        Assert.Null(audio.CurrentOwner);
+    }
+
+    /// <summary>
     /// Verifies loaded or formerly valid durations cannot overflow the start path.
     /// </summary>
     /// <param name="state">The state before starting.</param>
@@ -174,6 +222,23 @@ public class TimerInputTests
 
         public List<string> PlayedSounds { get; } = [];
 
-        public void PlaySound(string soundName) => this.PlayedSounds.Add(soundName);
+        public int StopCount { get; private set; }
+
+        public object? CurrentOwner { get; private set; }
+
+        public void PlaySound(string soundName, object owner)
+        {
+            this.PlayedSounds.Add(soundName);
+            this.CurrentOwner = owner;
+        }
+
+        public void StopSound(object owner)
+        {
+            if (ReferenceEquals(this.CurrentOwner, owner))
+            {
+                this.CurrentOwner = null;
+                this.StopCount++;
+            }
+        }
     }
 }
