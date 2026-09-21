@@ -12,7 +12,28 @@ using global::TickDown.Core.Models;
 internal static class NativeWindowPlacement
 {
     private const uint NoActivate = 0x0010;
+    private const uint NoSize = 0x0001;
     private const uint NoZOrder = 0x0004;
+
+    /// <summary>
+    /// Applies native window bounds with the supplied positioning flags.
+    /// </summary>
+    /// <param name="windowHandle">The native window handle.</param>
+    /// <param name="insertAfter">The z-order predecessor.</param>
+    /// <param name="x">The left screen coordinate.</param>
+    /// <param name="y">The top screen coordinate.</param>
+    /// <param name="width">The window width.</param>
+    /// <param name="height">The window height.</param>
+    /// <param name="flags">The positioning flags.</param>
+    /// <returns><see langword="true"/> when positioning succeeds.</returns>
+    internal delegate bool SetWindowPosition(
+        nint windowHandle,
+        nint insertAfter,
+        int x,
+        int y,
+        int width,
+        int height,
+        uint flags);
 
     /// <summary>
     /// Gets the outer bounds of a native window.
@@ -33,16 +54,46 @@ internal static class NativeWindowPlacement
     /// </summary>
     /// <param name="windowHandle">The native window handle.</param>
     /// <param name="bounds">The bounds in physical screen coordinates.</param>
-    internal static void MoveAndResize(nint windowHandle, WindowBounds bounds)
+    internal static void MoveAndResize(nint windowHandle, WindowBounds bounds) =>
+        MoveAndResize(windowHandle, bounds, SetWindowPos);
+
+    /// <summary>
+    /// Moves a window to its target display before applying size, so the DPI transition cannot rescale saved bounds.
+    /// </summary>
+    /// <param name="windowHandle">The native window handle.</param>
+    /// <param name="bounds">The bounds to restore.</param>
+    /// <param name="setWindowPosition">The native window-position operation.</param>
+    internal static void MoveAndResize(
+        nint windowHandle,
+        WindowBounds bounds,
+        SetWindowPosition setWindowPosition)
     {
-        if (!SetWindowPos(
+        SetWindowBounds(
+            windowHandle,
+            bounds,
+            NoActivate | NoSize | NoZOrder,
+            setWindowPosition);
+        SetWindowBounds(
+            windowHandle,
+            bounds,
+            NoActivate | NoZOrder,
+            setWindowPosition);
+    }
+
+    private static void SetWindowBounds(
+        nint windowHandle,
+        WindowBounds bounds,
+        uint flags,
+        SetWindowPosition setWindowPosition)
+    {
+        if (!setWindowPosition(
             windowHandle,
             0,
             bounds.X,
             bounds.Y,
             bounds.Width,
             bounds.Height,
-            NoActivate | NoZOrder))
+            flags))
         {
             throw new Win32Exception(Marshal.GetLastWin32Error());
         }

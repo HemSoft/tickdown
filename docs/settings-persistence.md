@@ -27,11 +27,13 @@ The banner remains as a record until restart.
 
 Closing disables input, saves the latest normal window geometry, and waits for
 the queue to drain. The next launch activates the native window before applying
-that geometry so Windows uses the same visible frame coordinates. Settings that
-contain only theme defaults leave first-run placement to Windows. If the saved
-display is unavailable or too little of the caption remains usable, TickDown fits
-the window into the nearest work area. Maximized shutdown preserves the last
-normal bounds and restores maximized state.
+that geometry so Windows uses the same visible frame coordinates. Restoration
+moves the window to its saved display before applying width and height. This
+lets Windows complete a per-monitor DPI transition without scaling the saved
+size a second time. Settings that contain only theme defaults leave first-run
+placement to Windows. If the saved display is unavailable or too little of the
+caption remains usable, TickDown fits the window into the nearest work area.
+Maximized shutdown preserves the last normal bounds and restores maximized state.
 
 An unresolved write failure cancels closing instead of silently discarding work.
 A successful retry of the affected file clears its unresolved write failure.
